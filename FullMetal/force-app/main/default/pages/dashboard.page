@@ -1,0 +1,122 @@
+<apex:page standardController="contact" extensions="dashboardController" action="{!readSql}" title="Dashboard">
+
+<apex:includeScript value="//code.jquery.com/jquery-2.1.1.min.js"/>
+<apex:includeScript value="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.18.3/js/jquery.tablesorter.js"/>
+<apex:includeScript value="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.18.3/js/jquery.tablesorter.widgets.js"/>
+<apex:stylesheet value="{!$Resource.tablesort_css}"/>
+
+<script>
+    j$ = jQuery.noConflict();
+    
+    j$(document).ready(function(){
+    
+        updateTable();
+    });
+
+    function updateTable(){
+        j$.tablesorter.addWidget({
+            // give the widget a id
+            id: "indexFirstColumn",
+            // format is called when the on init and when a sorting has finished
+            format: function(table) {               
+                // loop all tr elements and set the value for the first column  
+                for(var i=0; i < table.tBodies[0].rows.length; i++) {
+                    j$("tbody tr:eq(" + i + ") td:first",table).html(i+1);
+                }                                   
+            }
+        });
+        j$("table").tablesorter({
+            theme : 'jui',
+            headerTemplate : '{content} {icon}',
+            widgets : ['uitheme', 'zebra', 'indexFirstColumn'],
+            widgetOptions : {
+                zebra : ["even", "odd"],
+            }
+        });
+   }
+</script>
+
+    <apex:form >
+<apex:pageBlock title="Dashboard">
+
+
+        <apex:actionFunction name="pageN">
+            <table>
+                <tr>
+                    <td style="height:25px; line-height:25px; vertical-align:middle;width:80px">Program:</td>
+                    <td style="height:25px; line-height:25px; vertical-align:middle;width:300px">
+                        <apex:selectList value="{!program}" size="4" style="width:280px" multiselect="true">
+                            <apex:selectOptions value="{!ProgramOptions}" />
+                        </apex:selectList>
+                    </td>
+                    <td style="height:25px; line-height:25px; vertical-align:middle;width:80px">Start Date: </td>
+                    <td style="height:25px; line-height:25px; vertical-align:middle;width:120px">
+                        <apex:selectList value="{!StartDate}" size="4" style="width:100px" multiselect="true">
+                            <apex:selectOptions value="{!ExpStartDateList}" />
+                        </apex:selectList>
+                    </td>
+                    <td style="height:25px; line-height:25px; vertical-align:middle;width:100px">School Status: </td>
+                    <td style="height:25px; line-height:25px; vertical-align:middle;width:220px">
+                        <apex:selectList value="{!SchoolStatus}" size="4" style="width:200px" multiselect="true">
+                            <apex:selectOptions value="{!SchoolStatusList}" />
+                        </apex:selectList>
+                    </td>
+                    <td style="height:25px; line-height:25px; vertical-align:middle;width:100px">Adm. Rep: </td>
+                    <td style="height:25px; line-height:25px; vertical-align:middle;width:220px">
+                        <apex:selectList value="{!reps}" size="4" style="width:200px" multiselect="true">
+                            <apex:selectOptions value="{!SalesRep}" />
+                        </apex:selectList>
+                    </td>
+                    <td style="height:25px; line-height:25px; vertical-align:middle">
+                        <apex:commandButton value="Search" action="{!start}" reRender="showResult" status="status1" oncomplete="updateTable();" />
+                    </td>
+                    <td style="height:25px; line-height:25px; vertical-align:middle; width:100px">
+                        <apex:actionStatus id="status1" startText="Searching....." stopText="" onstop="updateTable();"></apex:actionStatus>
+                    </td>
+                </tr>
+            </table>
+    
+        </apex:actionFunction>
+        <apex:pageMessages /> 
+</apex:pageBlock>  
+
+<apex:pageBlock id="showResult">
+        
+        <apex:variable var="rowcount" value="{!1}"/>
+        
+        <apex:pageBlockTable value="{!DataSet}" var="row">
+
+            <apex:column style="min-width:30px; max-width:50px">
+                <apex:facet name="header">#</apex:facet>
+                <apex:outputText value=""/> <!-- {!rowcount} -->
+                <apex:variable var="rowcount" value="{!rowcount+1}"/>
+            </apex:column>
+            
+            <apex:column value="{!row.name}" headerValue="Name"  />
+            <apex:column value="{!row.Descrip}" headerValue="Program" />
+            <apex:column value="{!row.expstartdate}" headerValue="Start Date" />
+            <apex:column value="{!row.school_status}" headerValue="School Status" />
+            <apex:column value="{!row.StatusDate}" headerValue="Status Date" />
+            <apex:column value="{!row.registration}" headerValue="Registration" />
+            <apex:column value="{!row.schedule}" headerValue="Schedule" />
+            <apex:column value="{!row.rep}" headerValue="Adm. Rep" />
+            <apex:column value="{!row.first_attend}" headerValue="WK-1 Attend" />
+            <apex:column value="{!row.second_attend}" headerValue="WK-2 Attend" />
+            <apex:column value="{!row.third_attend}" headerValue="WK-3 Attend" />
+            <apex:column value="{!row.fourth_attend}" headerValue="WK-4 Attend" />
+            <apex:column value="{!row.Comments}" headerValue="Comments" title="{!row.Comments}" style="width:200px;" />
+            <apex:column value="{!row.lastActivity}" headerValue="Last Activity" style="width:100px;" />
+
+        </apex:pageBlockTable>
+        <apex:pageblockButtons >
+            <apex:commandButton value="<<" action="{!pre}" reRender="showResult" status="status1" />
+            <apex:outputText value="Page : {!page_no} of {!pages}"></apex:outputText>
+            <apex:commandButton value=">>" action="{!next}" reRender="showResult" status="status1" />
+        </apex:pageblockButtons>
+        
+        <apex:variable var="rowcount" value="{!1}"/>
+</apex:pageBlock>
+        
+   </apex:form>
+
+</apex:page>

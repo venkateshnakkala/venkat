@@ -1,0 +1,353 @@
+<apex:page Controller="ApplicationPDFController" applyBodyTag="false" applyHtmlTag="false" cache="false" renderAs="pdf"  showHeader="false" sidebar="false" showChat="false" standardStylesheets="false">
+    <html>
+        <head>
+            <title>Application for Enrollment</title>
+            <style>
+                *{
+                font-family:Arial;
+                font-size:13px;
+                }
+                .ful-box{
+                width:100%;
+                display:block;
+                float:none;
+                margin:8px 0px;
+                clear:both;
+                }
+                .half-box{
+                width:50%;
+                display:block;
+                float:left;
+                box-sizing:border-box;
+                margin:6px 0px;
+                }
+                .h1{
+                font-size:22px;
+                font-weight:bold;
+                }
+                .h2 {
+                font-size:15px;
+                background-color:#ADADAD;
+                padding:4px;
+                width:100%;
+                float:none;
+                clear:both;
+                font-weight:bold;
+                margin:3px 0px;
+                }
+                .line {
+                display:block;
+                float:none;
+                font-size:12px;
+                padding:2px 0px;
+                clear:both;
+                }
+                .bold {
+                font-weight:bold;
+                font-size:12px;
+                }
+                .half-box .title {
+                font-size:16px;
+                border-bottom:1px solid #ADADAD;
+                }
+                .section > .title, body > .title, .new-page-start > .title{
+                font-size:16px;
+                border-bottom:1px solid #ADADAD;
+                padding-top:10px;
+                float:none;
+                display:block;
+                clear:both;
+                }
+                /* latin-ext */
+                @font-face {
+                font-family: 'Great Vibes';
+                font-style: normal;
+                font-weight: 400;
+                src: local('Great Vibes'), local('GreatVibes-Regular'), url(https://fonts.gstatic.com/s/greatvibes/v4/6q1c0ofG6NKsEhAc2eh-3SYE0-AqJ3nfInTTiDXDjU4.woff2) format('woff2');
+                unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF;
+                }
+                /* latin */
+                @font-face {
+                font-family: 'Great Vibes';
+                font-style: normal;
+                font-weight: 400;
+                src: local('Great Vibes'), local('GreatVibes-Regular'), url(https://fonts.gstatic.com/s/greatvibes/v4/6q1c0ofG6NKsEhAc2eh-3Y4P5ICox8Kq3LLUNMylGO4.woff2) format('woff2');
+                unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215;
+                }
+                @media print {
+                .h2 {
+                -webkit-print-color-adjust: exact !important;
+                }
+                .section {
+                page-break-inside: avoid;
+                float:none;
+                clear:both;
+                }
+                .new-page-start{
+                page-break-before:always;
+                }
+                
+                .new-page-end{
+                page-break-after:always;
+                }
+                }
+            </style>
+        </head>
+        
+        <body>
+            <div class="ful-box logo" style="text-align:center; border-bottom:1px solid #ADADAD; padding-bottom:20px"><img src="{!URLFOR($Resource.application_pdf,'logo.jpg')}" alt="logo" width="250"/></div>
+            
+            <div class="ful-box h1">Application for Enrollment</div>
+            <div class="half-box">
+                <div class="line"><span class="bold">Admissions Representative:</span><span>{!StudentAdmRep}</span></div>
+                <div class="line"><span class="bold">Program:</span><span>{!Program} ({!Location})</span></div>
+            </div>
+            
+            <div class="half-box">
+                <div class="line"><span class="bold">Preferred Start Date:</span><span>{!Preferred_Start_Date}</span></div>
+            </div>
+            
+            <div class="section">
+                
+                <div class="h2">STUDENT INFORMATION</div>
+                
+                <div class="half-box">
+                    <div class="title">Student Details:</div>
+                    <div class="line"><span class="bold">Name:</span><span>{!studentName}</span></div>
+                    <div class="line"><span class="bold">Telephone Number:</span><span>{!studentPhone}</span></div>
+                    <div class="line"><span class="bold">Alternate Telephone Number:</span><span>{!studentOtherPhone}</span></div>
+                    <div class="line"><span class="bold">Date of Birth:</span><span>{!studentBirthdate}</span></div>
+                    <div class="line"><span class="bold">Email:</span><span>{!studentEmail}</span></div>
+                    <div class="line">&nbsp;</div>
+                </div>
+                
+                <div class="half-box">
+                    <div class="title">Permanent Mailing Address:</div>
+                    <div class="line"><span class="bold">Address:</span><span>{!studentMailingStreet}</span></div>
+                    <div class="line"><span class="bold">City:</span><span>{!studentMailingCity}</span></div>
+                    <div class="line"><span class="bold">State / Province:</span><span>{!studentMailingState}</span></div>
+                    <div class="line"><span class="bold">ZIP / Postal Code:</span><span>{!studentMailingPostalCode}</span></div>
+                    <div class="line"><span class="bold">Country:</span><span>{!studentMailingCountry}</span></div>
+                </div>
+                
+                <div class="half-box">
+                    <div class="title">Emergency Contact:</div>
+                    <div class="line"><span class="bold">Name:</span><span>{!emContactName}</span></div>
+                    <div class="line"><span class="bold">Relationship:</span><span>{!emContactRelation}</span></div>
+                    <div class="line"><span class="bold">Phone:</span><span>{!emContactPhone}</span></div>
+                </div>
+                
+                <div class="half-box">
+                    <div class="title">Personal data:</div>
+                    <div class="line"><span class="bold">Gender:</span><span>{!studentGender}</span></div>
+                    <div class="line"><span class="bold">Ethnicity:</span><span>{!studentEthnicity}</span></div>
+                    <div class="line"><span class="bold">Nationality:</span><span>{!studentNationality}</span></div>
+                </div>
+                
+                <div class="title">Refer a Friend</div>
+                <div class="half-box">
+                    <div class="line"><span class="bold">Referral First Name:</span><span>{!studentReferral_First_Name}</span></div>
+                    <div class="line"><span class="bold">Referral Last Name:</span><span>{!studentReferral_Last_Name}</span></div>
+                </div>
+                
+                <div class="half-box">
+                    <div class="line"><span class="bold">Referral Email:</span><span>{!studentReferral_Email}</span></div>
+                    <div class="line"><span class="bold">Referral Phone:</span><span>{!studentReferral_Phone}</span></div>
+                </div>   
+                
+                <div class="title">Parent / Guardian contact Information</div>
+                <div class="half-box">
+                    <div class="line"><span class="bold">Under 24 years old:</span><span>{!AgeUnder24}</span></div>
+                    <div class="line"><span class="bold">Parent's name:</span><span>{!parentName}</span></div>
+                </div>
+                
+                <div class="half-box">
+                    <div class="line"><span class="bold">Parent's Email:</span><span>{!parentEmail}</span></div>
+                    <div class="line"><span class="bold">Parent's Phone:</span><span>{!parentPhone}</span></div>
+                </div>
+                
+            </div>
+            
+            <div class="section">
+                <div class="h2">EDUCATION</div>
+                
+                <div class="half-box">
+                    <div class="line"><span class="bold">High School Name:</span><span>{!High_School_Name}</span></div>
+                    <div class="line"><span class="bold">Graduation Date:</span><span>{!HS_Graduation_Date}</span></div>
+                    <div class="line"><span class="bold">Diploma, Degree or Certificate:</span><span>{!HS_Degree_Received}</span></div>
+                    <div class="line">&nbsp;</div>
+                    <div class="line">&nbsp;</div>
+                </div>
+                
+                <div class="half-box">
+                    <div class="line"><span class="bold">Address:</span><span>{!High_School_Address} {!High_School_Address_2}</span></div>
+                    <div class="line"><span class="bold">City:</span><span>{!High_School_City}</span></div>
+                    <div class="line"><span class="bold">ZIP / Postal Code:</span><span>{!High_School_Zip}</span></div>
+                    <div class="line"><span class="bold">Country:</span><span>{!High_School_Country}</span></div>
+                </div>
+                
+                <div class="title">College Information:</div>
+                <div class="half-box">
+                    <div class="line"><span class="bold">College Name:</span><span>{!College_1_Name}</span></div>
+                    <div class="line"><span class="bold">Diploma/Degree Received:</span><span>{!College_1_Degree}</span></div>
+                    <div class="line"><span class="bold">Graduation Date:</span><span>{!College_1_Graduation_Date}</span></div>
+                </div>
+                
+                <div class="half-box">
+                    <div class="line"><span class="bold">College Name:</span><span>{!College_2_Name}</span></div>
+                    <div class="line"><span class="bold">Diploma/Degree Received:</span><span>{!College_2_Degree}</span></div>
+                    <div class="line"><span class="bold">Graduation Date:</span><span>{!College_2_Graduation_Date}</span></div>
+                </div>
+                <div class="line"><span class="bold">Additional Notes:</span><span>{!College_Notes}</span></div>
+            </div>
+            
+            <div class="section">
+                <div class="h2">VETERANS BENEFITS</div>
+                
+                <div class="half-box">
+                    <div class="line"><span class="bold">Military affiliation:</span><span>{!studentAffiliation}</span></div>
+                    <div class="line"><span class="bold">Branch of Service:</span><span>{!studentMilitary_Branch}</span></div>
+                    <div class="line"><span class="bold">Military Benefits Eligibility:</span><span>{!studentEligible_For_Military_Benefits}</span></div>
+                </div>
+                
+                <div class="half-box">
+                    <div class="line"><span class="bold">Current COE / NOBE:</span><span>{!studentCertificate_or_NOBE}</span></div>
+                    <div class="line"><span class="bold">Eligible Dates:</span><span>{!studentVatETS}</span></div>
+                    <div class="line">&nbsp;</div>
+                </div>
+                <div class="line"><span class="bold">Do you Authorize The Los Angeles Film School to request and receive your military transcripts for review regarding
+                    transfer credit(s)?</span><span>{!studentAuthorize}</span></div>
+            </div>
+            
+            <div class="new-page-start">
+                <div class="ful-box logo" style="text-align:center; border-bottom:1px solid #ADADAD; padding-bottom:20px"><img src="{!URLFOR($Resource.application_pdf,'logo.jpg')}" alt="logo" width="250"/></div>
+                <div class="h2">CITIZENSHIP INFORMATION</div>
+                
+                <div class="half-box">
+                    <div class="line"><span class="bold">Citizenship Status:</span><span>{!studentCitizenship_Status}</span></div>
+                    <div class="line"><span class="bold">SSN:</span><span>{!studentSSN}</span></div>
+                    <div class="line"><span class="bold">Alien Registration Number:</span><span>{!studentAlien_Registration_Number}</span></div>
+                </div>
+                
+                <div class="title">International Student Visa Details</div>
+                
+                <div class="half-box">
+                    <div class="line"><span class="bold">Country of Citizenship:</span><span>{!studentCountry_of_Citizenship}</span></div>
+                    <div class="line"><span class="bold">Visa Type:</span><span>{!studentVisa_Type}</span></div>
+                    <div class="line"><span class="bold">Expiration Date:</span><span>{!studentVisa_Expiration_Date}</span></div>
+                    <div class="line"><span class="bold">School Name:</span><span>{!studentVisa_School_Name}</span></div>
+                </div>
+                
+                <div class="half-box">
+                    <div class="line"><span class="bold">School Address:</span><span>{!studentVisa_School_Address}</span></div>
+                    <div class="line"><span class="bold">City:</span><span>{!studentVisa_School_City}</span></div>
+                    <div class="line"><span class="bold">State:</span><span>{!studentVisa_School_State}</span></div>
+                    <div class="line"><span class="bold">ZIP / Postal Code:</span><span>{!studentVisa_School_Zip}</span></div>
+                    <div class="line"><span class="bold">Country:</span><span>{!studentVisa_School_Country}</span></div>
+                </div>
+                
+            </div>
+            
+            <div class="section">
+                <div class="h2">DISABILITY ACCOMMODATIONS:</div>
+                <div class="line">
+                    <p>{!Disability_Accomodations}</p></div>
+            </div>
+            
+            <div class="section">
+                <div class="h2">PREVIOUS HISTORY:</div>
+                <div class="line"><span class="bold">Have you ever been convicted of a crime, made a plea of guilty, accepted a deferred judgment, been adjudicated, 
+                    or been required to register as a sex offender?</span>
+                    <p>{!Criminal_History}</p></div>
+                
+                <div class="line"><span class="bold">Have you ever been placed on probation, suspended, expelled, or been subject to official disciplinary action from 
+                    any high school or post-secondary institution for any academic misconduct or behavioral misconduct?</span>
+                    <p>{!Academic_Misconduct}</p></div>
+            </div>
+            
+            <div class="section">
+                <div class="h2">ACCEPTANCE AGREEMENT</div>
+                <div class="line"><p style="font-size:11px">If accepted, I agree to abide by the policies of the school and authorize the use of my likeness, appearance, performance, voice, name, 
+                    and student projects in connection with the operation and promotion of the school. I acknowledge that names, products, services, logos, and concepts may be 
+                    service marks, trademarks, patents, registered service marks, or registered trademarks of The Los Angeles Film School and may not be used in any way without 
+                    the express written consent of The Los Angeles Film School. I have read the school catalog and understand its contents and requirements. 
+                    I also understand that The Los Angeles Film School reserves the right to withdraw subjects, courses and programs if registration falls below the required number, 
+                    and to change faculty and staff without prior notice to students.I hereby grant The Los Angeles Film School permission to make any necessary inquiries. 
+                    I voluntarily and knowingly authorize any former school, government agency, employer, person, firm, corporation, and/or its officers, employees, and agents, 
+                    to comply with such a request from The Los Angeles Film School or its agents. The information I have provided is complete and accurate to the best of my knowledge. 
+                    I agree to abide by all rules and regulations of The Los Angeles Film School.</p></div>
+                <div style="height:80px"><apex:image url="https://cv-ws-salesforce.lafilm.com/signature.php?value={!studentName}" style="height:80px"/></div>
+                <div>{!studentName}<br/>{!Today}</div>
+            </div>
+            
+            <div class="section new-page-start">
+                <div class="ful-box logo" style="text-align:center; border-bottom:1px solid #ADADAD; padding-bottom:20px"><img src="{!URLFOR($Resource.application_pdf,'logo.jpg')}" alt="logo" width="250"/></div>
+                <div class="ful-box h1 ">Short Essay</div>
+                <!--
+					<div class="line"><span class="bold">Why do you consider The Los Angeles Film School or Los Angeles Recording School a good match for you? Your response should discuss: Why you have selected Animation, Audio, Films or Games as your program of choice; your professional goals and intended career path; and your current skills. Please limit your response to 250 words.</span></div>
+               -->
+                <apex:outputText escape="false" value="{!Short_Essay}"/>
+            </div>
+            
+            <div class="section new-page-start">
+                <div class="ful-box logo" style="text-align:center; border-bottom:1px solid #ADADAD; padding-bottom:20px"><img src="{!URLFOR($Resource.application_pdf,'logo.jpg')}" alt="logo" width="250"/></div>
+                <div class="ful-box h1 ">High School / GED / College Transcript request form</div>
+                
+                <div class="h2">STUDENT INFORMATION</div>
+                
+                <div class="half-box">
+                    <div class="title">Student Details:</div>
+                    <div class="line"><span class="bold">Name:</span><span>{!studentName}</span></div>
+                    <div class="line"><span class="bold">Telephone Number:</span><span>{!studentPhone}</span></div>
+                    <div class="line"><span class="bold">Alternate Telephone Number:</span><span>{!studentOtherPhone}</span></div>
+                    <div class="line"><span class="bold">Date of Birth:</span><span>{!studentBirthdate}</span></div>
+                    <div class="line"><span class="bold">Email:</span><span>{!studentEmail}</span></div>
+                    <div class="line">&nbsp;</div>
+                </div>
+                
+                <div class="half-box">
+                    <div class="title">Permanent Mailing Address:</div>
+                    <div class="line"><span class="bold">Address:</span><span>{!studentMailingStreet}</span></div>
+                    <div class="line"><span class="bold">Address line2:</span><span></span></div>
+                    <div class="line"><span class="bold">City:</span><span>{!studentMailingCity}</span></div>
+                    <div class="line"><span class="bold">State / Province:</span><span>{!studentMailingState}</span></div>
+                    <div class="line"><span class="bold">ZIP / Postal Code:</span><span>{!studentMailingPostalCode}</span></div>
+                    <div class="line"><span class="bold">Country:</span><span>{!studentMailingCountry}</span></div>
+                </div>
+                
+                <div class="h2">INFORMATION OF HIGH SCHOOL / GED TESTING OFFICE / COLLEGE ATTENDED</div>
+                
+                <div class="ful-box">
+                    <div class="line"><span class="bold">High School Name:</span><span>{!High_School_Name}</span></div>
+                    <div class="line"><span class="bold">Graduation Date:</span><span>{!HS_Graduation_Date}</span></div>
+                    <div class="line"><span class="bold">Diploma, Degree or Certificate:</span><span>{!HS_Degree_Received}</span></div>
+                    <div class="line">&nbsp;</div>
+                    <div class="line"><span class="bold">High School Address:</span></div>
+                    <div class="line"><span class="bold">Address:</span><span>{!High_School_Address}</span></div>
+                    <div class="line"><span class="bold">Address line2:</span><span>{!High_School_Address_2}</span></div>
+                    <div class="line"><span class="bold">City:</span><span>{!High_School_City}</span></div>
+                    <div class="line"><span class="bold">State:</span><span>{!High_School_State}</span></div>
+                    <div class="line"><span class="bold">ZIP / Postal Code:</span><span>{!High_School_Zip}</span></div>
+                    <div class="line"><span class="bold">Country:</span><span>{!High_School_Country}</span></div>
+                </div>
+                
+                <div class="h2">ATTENTION HIGH SCHOOL OR AGENCY RECORDS DEPARTMENT</div>
+                <p>I hereby request and authorize you to forward my official transcript and this form to The Los Angeles Film School. 
+                    I do authorize The Los Angeles Film School to make further transcript requests on my behalf. Please send my transcript to:</p>
+                <p><strong>The Los Angeles Film School</strong><br/>
+                    Attention Admissions<br/>
+                    6363 Sunset Blvd.<br/>
+                    Hollywood, CA 90028</p>
+                <p>Or, I authorize a fax of my transcript and this form to be sent to The Los Angeles Film School at <strong>815-717-7688</strong>.</p>
+                <p>I understand that it is my responsibility to furnish a copy of my official transcript by registration day.<br/>
+                    I understand that if there is a transcript charge and/or an outstanding balance, I am responsible for the payment</p>
+                
+                <div style="height:80px"><apex:image url="https://cv-ws-salesforce.lafilm.com/signature.php?value={!studentName}" style="height:80px"/></div>
+                <div>{!studentName}<br/>{!Today}</div>
+                
+            </div>
+            
+        </body>
+    </html>
+    
+</apex:page>

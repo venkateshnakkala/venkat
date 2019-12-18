@@ -1,0 +1,4 @@
+<apex:page standardController="Document">
+<apex:detail />
+    
+</apex:page>

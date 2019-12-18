@@ -1,0 +1,2 @@
+<apex:page controller="Postback" action="{!Action}" showHeader="false" sidebar="false" showChat="false">
+</apex:page>

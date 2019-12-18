@@ -1,0 +1,1737 @@
+<apex:component Controller="NewApplicationDetailComponentController" allowDML="true" >
+  
+    <style type="text/css">
+    
+        .step_progress{
+            position: relative;
+        }
+        
+        .step_progress .step_progress_text{
+            position: absolute;
+            top: 3px;
+            font-size: 16px;
+            color: #FFF;
+            left: 0;
+            right: 0;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+        }
+        
+        .step_progress img {
+            height: 50px;
+        }
+        
+        .step_progress .col-lg-3.col-md-3{
+            padding-right: 0px !important;
+            padding-left: 0px !important;
+        }
+        
+        #custom_msg{
+            width: 70%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #custom_msg .alert-success {
+            color: #FFF;
+            background-color: #05844B;
+            border-color: #05844B;
+            border-radius: 10px;
+            display: none;
+        }
+        #custom_msg .alert-dismissible .close {
+            padding: 8px 10px !important;
+            color: #FFF !important;
+            font-size: 35px !important;
+            font-weight: normal !important;
+            opacity: 1 !important;
+        }   
+        #custom_msg .fa-check-circle {
+            font-size: 25px;
+            padding-right: 10px;
+        }
+        
+        #custom_msg .alert-danger {
+            color: #FFF;
+            background-color: #fb4556;
+            border-color: #fb4556;
+            border-radius: 10px;
+            display: none;
+        }
+        #custom_msg .fa-times-circle {
+            font-size: 25px;
+            padding-right: 10px;
+        }
+       
+        .text_justify {
+        text-align: justify;
+        }
+    </style>
+    
+    <body>
+        <apex:form id="form">
+        
+            <!-- START SPINNER -->
+            <apex:actionStatus id="ProcessStatus">
+                <apex:facet name="start">
+                    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.25; z-index: 1000; background-color: #000;">
+                        &nbsp;
+                    </div>
+                    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 30% 50%">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/ed/Cursor_Windows_Vista.gif" />
+                    </div>
+                </apex:facet>
+            </apex:actionStatus>
+            <!-- END SPINNER -->
+                
+            <!-- START PROGRESS PATH PANEL -->
+            <apex:outputPanel id="ProgressPath">
+                
+                <!-- START ACTION FUNCTIONS -->
+                <apex:actionFunction name="updateContactAndApponAcceptandSubmitFunction" action="{!updateContactAndApponAcceptandSubmit}" 
+                                     reRender="ProgressPath" status="ProcessStatus" oncomplete="refreshProgressBar();" />
+                <apex:actionFunction name="updateContactAndApplicationFunction" action="{!updateContactWithApplication}" 
+                                     reRender="ProgressPath" status="ProcessStatus" oncomplete="refreshProgressBar();" />
+                <apex:actionFunction name="updateContactAndAppsavenfinish" action="{!updateContactAndAppsavenfinish}" 
+                                     reRender="ProgressPath" status="ProcessStatus" oncomplete="refreshProgressBar();" />
+                <apex:actionFunction name="goNextNoSave" action="{!goNextNoSave}" 
+                                     reRender="ProgressPath" status="ProcessStatus" oncomplete="refreshProgressBar();" />
+                <apex:actionFunction name="goBackToSumary" action="{!goBackToSumary}" 
+                                     reRender="ProgressPath" status="ProcessStatus" oncomplete="refreshProgressBar();" />
+                <!-- END ACTION FUNCTIONS -->
+                
+                <!-- START SUCCESS/ERROR MESSAGE -->
+                <div id="custom_msg">
+                    <div class="alert alert-success alert-dismissible mt-2">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <i class="fa fa-check-circle error_icon" aria-hidden="true"></i> <span id="show_message">{!pageMessage}</span>
+                    </div>
+                    <div class="alert alert-danger alert-dismissible mt-2">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <i class="fa fa-times-circle error_icon" aria-hidden="true"></i> <span id="show_message">{!pageMessage}</span>
+                    </div>
+                </div>
+                
+                <!-- END SUCCESS/ERROR MESSAGE -->
+                
+                <!-- START PROGRESS BAR -->
+                <div class="container mt-4 mb-5 step_progress">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-3 col-sm-3 active">
+                            <img src="{!URLFOR($Resource.LAFilmsApplication, '/images/step_active.png')}"/>
+                            <div class="step_progress_text text-center">{!$Label.NewApp_ContactInformation}</div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <apex:outputPanel rendered="{!stage > 1}">
+                                <img src="{!URLFOR($Resource.LAFilmsApplication, '/images/step_active.png')}"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!stage <= 1}">
+                                <img src="{!URLFOR($Resource.LAFilmsApplication, '/images/step_default.png')}"/>
+                            </apex:outputPanel>
+                            <div class="step_progress_text text-center">{!$Label.NewApp_EducationBackGroundInfo}</div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            
+                            <apex:outputPanel rendered="{!stage > 2}">
+                                <img src="{!URLFOR($Resource.LAFilmsApplication, '/images/step_active.png')}"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!stage <= 2}">
+                                <img src="{!URLFOR($Resource.LAFilmsApplication, '/images/step_default.png')}"/>
+                            </apex:outputPanel>
+                            <div class="step_progress_text text-center">{!$Label.NewApp_SupplimentalInfo}</div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <apex:outputPanel rendered="{!stage > 3}">
+                                <img src="{!URLFOR($Resource.LAFilmsApplication, '/images/step_active.png')}"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!stage <= 3}">
+                                <img src="{!URLFOR($Resource.LAFilmsApplication, '/images/step_default.png')}"/>
+                            </apex:outputPanel>
+                            <div class="step_progress_text text-center">Fee Payment &#38; Documentation</div>
+                        </div>
+                    </div>  
+                </div> 
+                <!-- END PROGRESS BAR -->
+                
+                <!-- START CONTAINER -->
+                <div class="container" >
+                    
+                    <!-- START REGISTER FORM -->
+                    <div class="register-form">
+                        <apex:outputPanel rendered="{!stage<4}">
+                            <p><strong>Please note:</strong> Fields with an 
+                                <span class="requiredField">*</span> are required.
+                            </p>
+                            </apex:outputPanel>
+                        
+                        <!-- START FORM-CONTENT -->
+                        <div class="form-content" >
+                            <apex:outputPanel rendered="{!stage==1}">
+                                <c:StudentInformationComponent nadc="{!CommonData}"/>
+                            </apex:outputPanel>
+                            
+                            <apex:outputPanel rendered="{!stage==2}">
+                                <c:NewApplicationEducation nadc="{!CommonData}"/>
+                            </apex:outputPanel>
+                            
+                            <apex:outputPanel rendered="{!stage==3}">
+                                <c:SupplementalInformationComponent nadc="{!CommonData}"/> 
+                            </apex:outputPanel> 
+                            
+                            <apex:outputPanel rendered="{!stage==4}">
+                                <c:PaymentInformationComponent nadc="{!CommonData}"/> 
+                            </apex:outputPanel> 
+                            <apex:outputPanel rendered="{!stage>1}">
+                                <apex:commandButton styleClass="btn btn-primary float-left" value="PREVIOUS"
+                                                    action="{!redirectToPreviousPage}" rerender="ProgressPath" 
+                                                    oncomplete="refreshProgressBar();" style="margin-right: 5px;"
+                                                    status="ProcessStatus" />
+                            </apex:outputPanel>                      
+                            
+                            <apex:outputPanel layout="none" rendered="{!!CommonData.isAlreadySubmitted && stage <= 3}">
+                                <button type="button" value="SAVE AND FINISH LATER"  onclick="return Saveandfinishlater();"
+                                        class="btn btn-primary" >{!$Label.NewApp_SaveANDFinishLater}</button>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none"  rendered="{!recordContact.Applcation_Submitted_count__c > 0 || CommonData.isAlreadySubmitted}">
+                                <button type="button" value="BACK"  onclick="tempDisableBeforeUnload = true;return goBackToSumary()"
+                                        class="btn btn-primary" >HOME</button>
+                            </apex:outputPanel>   
+                            <apex:outputPanel rendered="{!stage < 3}">
+                                <apex:outputPanel layout="none" rendered="{!!CommonData.isAlreadySubmitted}">
+                                    <button type="button" value="NEXT"  onclick="tempDisableBeforeUnload = true;return saveandnext()"
+                                            class="btn btn-primary" >{!$Label.NewApp_NextBtn}</button>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="none" rendered="{!CommonData.isAlreadySubmitted}">
+                                    <button type="button" value="NEXT"  onclick="return goNextNoSave()"
+                                            class="btn btn-primary" >{!$Label.NewApp_NextBtn}</button>
+                                </apex:outputPanel>
+                               
+                            </apex:outputPanel>
+                            
+                            <apex:outputPanel rendered="{!stage == 3}">
+                                <apex:outputPanel layout="none" rendered="{!!CommonData.isAlreadySubmitted}">
+                                    <button type="button" value="I Accept - Submit" 
+                                            onclick="return AcceptandSubmit()" class="btn btn-primary" >I Accept - Submit</button>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="none" rendered="{!CommonData.isAlreadySubmitted}">
+                                    <button type="button" value="NEXT"  onclick="return goNextNoSave()"
+                                            class="btn btn-primary" >{!$Label.NewApp_NextBtn}</button>
+                                </apex:outputPanel>
+                                
+                            </apex:outputPanel>
+                        </div>
+                        <!-- END FORM-CONTENT -->
+                        
+                    </div>
+                    <!-- END REGISTER FORM -->
+                    
+                    <div class="row disclaimer">
+                        {!$Label.NewApp_Disclaimer}
+                    </div>
+                </div>
+                <!-- END CONTAINER -->
+                
+                <!-- START SCRIPT -->
+                <script type="text/javascript">
+               
+                    var itiPhone_1;
+                    var itiPhone_2;
+                    var FriendContact;
+                    var EmargencyContact;
+                    
+                    // POPULATES HTML DATE FIELDS FROM APEX DATE VALUES WHEN PAGE LOADED OR SCREEN CHANGED.
+                    var apexInputClassToHtmlInputId = {
+                        'apexBirthDate' : 'htmlBirthDate',
+                        'apexMilitaryStartDate' : 'militaryStartDate',
+                        'apexMilitaryEndDate' : 'militaryEndDate',
+                        'apexVisaExpirationDate' : 'visaExpirationDate',
+                        'apexEstimationDate' : 'estimationDate',
+                        'GradDatePicker' : 'GradDate',
+                        'Clg1GradDatePicker' : 'Clg1GradDate',
+                        'Clg2GradDatePicker' : 'Clg2GradDate'
+                    };
+                    
+                    // POPULATE APEX HIDDEN DATE FIELDS FROM HTML DATE FIELDS BASED ON CURRENT SCREEN WHEN SAVE OR NEXT BUTTON IS CLICKED.                                    
+                    var htmlDateToApexDateField = [
+                        { 'htmlInputDateFieldId' : 'htmlBirthDate', 
+                         'apexInputDateClass' : 'apexBirthDate', 
+                         'htmlSpanErrorId' : 'htmlDate',
+                         'errorMessage' : '{!$Label.NewApp_Error_DateOfBirth}',
+                         'stage' : '1',
+                         'required' : true
+                        },
+                        { 'htmlInputDateFieldId' : 'militaryStartDate', 
+                         'apexInputDateClass' : 'apexMilitaryStartDate', 
+                         'htmlSpanErrorId' : 'militaryStartDateError',
+                         'errorMessage' : '{!$Label.NewApp_Error_DateOfBirth}',
+                         'stage' : '1'
+                        },
+                        { 'htmlInputDateFieldId' : 'militaryEndDate', 
+                         'apexInputDateClass' : 'apexMilitaryEndDate', 
+                         'htmlSpanErrorId' : 'militaryEndDateError',
+                         'errorMessage' : '{!$Label.NewApp_Error_DateOfBirth}',
+                         'stage' : '1'
+                        },
+                        { 'htmlInputDateFieldId' : 'estimationDate', 
+                         'apexInputDateClass' : 'apexEstimationDate', 
+                         'htmlSpanErrorId' : 'estimationDateError',
+                         'errorMessage' : '{!$Label.NewApp_Error_DateOfBirth}',
+                         'stage' : '1'
+                        },
+                        { 'htmlInputDateFieldId' : 'visaExpirationDate', 
+                         'apexInputDateClass' : 'apexVisaExpirationDate', 
+                         'htmlSpanErrorId' : 'visaExpirationDateError',
+                         'errorMessage' : '{!$Label.NewApp_Error_DateOfBirth}',
+                         'stage' : '1'
+                        },
+                        {
+                            'htmlInputDateFieldId' : 'GradDate',
+                            'apexInputDateClass' : 'GradDatePicker',
+                            'htmlSpanErrorId' : 'GraduationDate',
+                            'stage' : '2',
+                            'errorMessage' : '{!$Label.NewApp_Error_DateOfBirth}',
+                            'required' : true
+                        },
+                        {
+                            'htmlInputDateFieldId' : 'Clg1GradDate',
+                            'apexInputDateClass' : 'Clg1GradDatePicker',
+                            'htmlSpanErrorId' : 'Clg1GraduationDate',
+                            'stage' : '2',
+                            'error message' : '{!$Label.NewApp_Error_HighSchoolGraduationDate}'
+                        },
+                        {
+                            'htmlInputDateFieldId' : 'Clg2GradDate',
+                            'apexInputDateClass' : 'Clg2GradDatePicker',
+                            'htmlSpanErrorId' : 'Clg2GraduationDate',
+                            'stage' : '2',
+                            'error message' : '{!$Label.NewApp_Error_HighSchoolGraduationDate}'
+                        }
+                    ];
+                    
+                    // START refreshProgressBar
+                    function refreshProgressBar() {
+                       
+                        document.location.href = '#focusHeader';
+                        console.log( 'phone fix going on by sourabh' );
+                        
+                        var pageMessageType = '{!pageMessageType}';
+                        if( pageMessageType ) {
+                            console.log( 'inside' );
+                            if( pageMessageType == 'success' ) {
+                                j$('#custom_msg .alert-success').show();
+                                 
+                               
+                            }
+                            else if( pageMessageType == 'error' ) {
+                                j$('#custom_msg .alert-danger').show();
+                                
+                            }
+                            setTimeout( function() {
+                               
+                                j$('#custom_msg').hide();
+                               
+                                },5000);
+                        }
+                        else {
+                            console.log( 'else' );
+                        }
+                        //*
+                        // HIGHLIGHTS BORDER ON EMPTYING THE FIELD
+                        j$('.validate').bind('blur keyup input change', function() {
+                            if( !j$(this).val() || j$(this).val().trim() == '' )
+                                j$(this).addClass('required_error');
+                                
+                            else
+                               
+                                j$(this).removeClass('required_error');
+                                
+                        }); 
+                        
+                        var stage = "{!stage}";
+                        console.log( 'refreshProgressBar-stage-', stage );
+                        
+                        if( stage == '1' ) {
+                            initializeStudentInfo();
+                            
+                        }
+                        else if( stage == '2' ) {
+                            initializeEducationInfo();
+                             
+                        }
+                        else if( stage == '3' ) {
+                            initializeSupplimentInfo();
+                        }else if( stage == '4' ) {
+                            initializePaymentInfo();
+                        }
+                        
+                        // INITIALIZE PAST DATE PICKER
+                        var pastDatePickerField = j$(".pastDatePicker");
+                        if( pastDatePickerField && pastDatePickerField.length > 0 ) {
+                            var yesterday = new Date();
+                            yesterday.setDate( yesterday.getDate() - 1 );
+                            
+                            pastDatePickerField.datepicker({  
+                                maxDate: yesterday,
+                                dateFormat:"mm-dd-yy",
+                                changeMonth: true,
+                                changeYear: true,
+                                yearRange: "-35:+0"
+                            });
+                        }
+                        
+                        // INITIALIZE FUTURE DATE PICKER
+                        var futureDatePickerField = j$(".futureDatePicker");
+                        //if( futureDatePickerField && futureDatePickerField.length > 0 ) {
+                            futureDatePickerField.datepicker({  
+                                minDate: new Date(),
+                                dateFormat:"mm-dd-yy",
+                                changeMonth: true,
+                                changeYear: true,
+                                yearRange: "0:+35"
+                            });
+                        //}
+                        
+                        // INITIALIZE NORMAL DATE PICKER
+                        var datepickerField = j$( ".datepicker" );
+                        //if( datepickerField && datepickerField.length > 0 ) {
+                            datepickerField.datepicker({  
+                                dateFormat:"mm-dd-yy",
+                                changeMonth: true,
+                                changeYear: true,
+                                yearRange: "-35:+35"
+                            });
+                            
+                            j$('.militaryStartDate').datepicker({  
+                                dateFormat:"mm-dd-yy",
+                                changeMonth: true,
+                                changeYear: true,
+                                yearRange: "-35:+35",
+                                onSelect: function (selected) {  
+                                    
+                                    var dt = new Date(selected);
+                                    dt.setDate(dt.getDate() + 1);
+                                    j$(".militaryEndDate").val('');
+                                    j$(".militaryEndDate").datepicker("option", "minDate", dt);
+                                    
+                                }
+                            });
+                            
+                            j$('.militaryEndDate').datepicker({  
+                                dateFormat:"mm-dd-yy",
+                                changeMonth: true,
+                                changeYear: true,
+                                yearRange: "-35:+35"
+                            });
+                        //}
+                        
+                        
+                        // WHENEVER PAGE IS LOADED OR SCREEN IS CHANGED, POPULATE HTML DATE FIELD VALUES FROM HIDDEN APEX DATE FIELDS.
+                        for( var key in apexInputClassToHtmlInputId ) {
+                            populateHtmlFieldValue( key, apexInputClassToHtmlInputId[key] );
+                        }
+                        console.log( 'before invoke setPhoneNumber from refreshProgressBar method ' );
+                        phoneDialCodemethod();
+                        setPhoneNumber();
+                    }
+                    // END refreshProgressBar
+                    
+                    // START Saveandfinishlater
+                    function Saveandfinishlater(){
+                        console.log( 'hii');
+                        //*
+                        if( validateForm() ) {
+                            phoneDialCodemethod();
+                            
+                            updateContactAndAppsavenfinish();
+                           
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+                    // END Saveandfinishlater
+                    
+                    // START saveandnext
+                    function saveandnext(){
+                        
+                        if( validateForm() ) {
+                            phoneDialCodemethod();
+                            updateContactAndApplicationFunction();
+                             
+                        }
+                        else {
+                            return false;
+                        }
+                        
+                    }
+                    // END saveandnext
+                    
+                    // START validateForm
+                    function validateForm(){
+                        
+                        var isFormValid = true;
+                        
+                        var stage = '{!stage}';
+                        console.log( 'validateForm-stage', stage );
+                        
+                        if( stage == '1' ) {
+                            var checkpgm = '{!checkpgmconsideration}';
+                            isFormValid = validateStudentInfo( checkpgm, stage );
+                        }
+                        else if( stage == '2' ) {
+                            isFormValid = validateEducationInfo( stage );
+                            var apexInputClassToDependentFieldClass = {
+                                'disbalityAccomodation' : 'disbalityAccomodationExplaination',
+                                'criminalHistory' : 'criminalHistoryExplaination',
+                                'academicMisconduct' : 'academicMisconductExplaination'
+                            };
+                            for( var key in apexInputClassToDependentFieldClass ) {
+                                bindWithExplainationApexFields( key, apexInputClassToDependentFieldClass[key] );
+                            }
+                        }
+                            else if( stage == '3' ) {
+                                populateApexRichText();
+                                isFormValid = validateSupplementInfo();
+                            }
+                        return isFormValid;
+                    }
+                    // END validateForm
+                    
+                    function setPhoneNumber() {
+                        
+                        var stage = '{!stage}';
+                        console.log( 'setPhoneNumber-stage', stage );
+                        if( stage == '1' ) {
+                            if( itiPhone_1 && itiPhone_1.getSelectedCountryData() && 
+                                itiPhone_1.getSelectedCountryData().dialCode
+                            ) {
+                                var phoneDialCode = itiPhone_1.getSelectedCountryData().dialCode;
+                                var phoneNumber ='{!recordContact.Phone}';
+                                if( phoneNumber.length > 0 ) {
+                                    var onlyPhoneNumber = phoneNumber.split('+' + phoneDialCode);
+                                    itiPhone_1.setNumber(onlyPhoneNumber[1]);
+                                }
+                            }
+                            
+                            if( itiPhone_2 && itiPhone_2.getSelectedCountryData() &&
+                                itiPhone_2.getSelectedCountryData().dialCode
+                            ) {
+                                var altPhoneDialCode = itiPhone_2.getSelectedCountryData().dialCode;
+                                var altphoneNumber ='{!recordContact.OtherPhone}';
+                                if( altphoneNumber.length > 0){
+                                    var onlyaltPhoneNumber = altphoneNumber.split('+' + altPhoneDialCode);
+                                    itiPhone_2.setNumber(onlyaltPhoneNumber[1]);
+                                }    
+                            }
+                        }
+                        else if( stage == '3' ) {
+                            if( FriendContact && FriendContact.getSelectedCountryData() &&
+                                FriendContact.getSelectedCountryData().dialCode
+                            ) {
+                                var altPhoneDialCode = FriendContact.getSelectedCountryData().dialCode;
+                                var altphoneNumber ='{!recordApplication.Referral_Phone__c}';
+                                if( altphoneNumber && altphoneNumber.length > 0 ) {
+                                    var onlyaltPhoneNumber = altphoneNumber.split( '+' + altPhoneDialCode);
+                                    if( onlyaltPhoneNumber && onlyaltPhoneNumber.length > 1 ) {
+                                        FriendContact.setNumber(onlyaltPhoneNumber[1]);
+                                    }
+                                }    
+                            }
+                            
+                            if( EmargencyContact && EmargencyContact.getSelectedCountryData() &&
+                                EmargencyContact.getSelectedCountryData().dialCode
+                            ) {
+                                var altPhoneDialCode = EmargencyContact.getSelectedCountryData().dialCode;
+                                var altphoneNumber ='{!recordContact.Emergency_Contact_Phone__c}';
+                                if( altphoneNumber && altphoneNumber.length > 1 ) {
+                                    var onlyaltPhoneNumber = altphoneNumber.split('+' + altPhoneDialCode);
+                                    EmargencyContact.setNumber(onlyaltPhoneNumber[1]);
+                                }    
+                            }
+                        }
+                    }
+                    
+                    /**********************---------------- START STUDENT INFORMATION ----------------**********************/
+                    
+                    // START initializeStudentInfo [ ONLY ON PAGE LOAD ]
+                    function initializeStudentInfo() {
+                        
+                        var inputPhone1 = document.querySelector( ".phone" );
+                        if( inputPhone1 ) {
+                            itiPhone_1 = window.intlTelInput( inputPhone1 );
+                        }
+                        var inputPhone2 = document.querySelector( ".otherphone" );
+                        if( inputPhone2 ) {
+                            itiPhone_2 = window.intlTelInput( inputPhone2 );
+                        }
+                        
+                        if( j$( '.militaryBenefits' ).val() == 'true' ) {
+                            j$( '#militaryBenefits' ).val( 'Yes' );
+                        }
+                        else {
+                            j$( '#militaryBenefits' ).val( 'No' );
+                        }
+                        
+                        if( j$( '.authorize_chk' ).val() == 'YES' ) {
+                            j$( '#authorize').val( 'Yes' );
+                        }
+                        else {
+                            j$('#authorize').val('No');
+                             j$('.authorize_chk').val('NO');
+                        }
+                        
+                       
+                        
+                        if( j$( '.certificate' ).val() == 'YES' ) {
+                            j$( '#certificate' ).val( 'Yes' );
+                        }
+                        else {
+                            j$( '#certificate' ).val( 'No' );
+                            j$( '.certificate' ).val( 'NO' );
+                        }
+                        
+                        /*
+                        if( j$( '.indicate_affiliation' ).val() == 'Active Duty' ) {
+                                j$('#estimation_date' ).show();
+                        }
+                        else {
+                            j$( '#estimation_date' ).val( undefined );
+                            j$( '.apexEstimationDate' ).val( undefined );
+                        }
+                        //*/
+                        
+                        if( j$( '.ResidentialSatus' ).val() != '' ) {
+                            j$( '.ResidentialSatus' ).trigger( 'change' );
+                        }
+                        
+                        if( j$( '#militaryBenefits' ).val() != '' ) {
+                            j$( '#militaryBenefits' ).trigger( 'change' );
+                            j$( '.indicate_affiliation' ).trigger( 'change' );
+                        }
+                                                
+                        if( j$( '.indicate_affiliation' ).val() == 'Active Duty' ) {
+                            j$( '#estimation_date' ).show();
+                        }
+                        
+                        j$( '.indicate_affiliation' ).change( function() {
+                            j$( '#estimation_date' ).hide();
+                            if( j$(this).val() == 'Active Duty' ) {
+                                j$( '#estimation_date' ).show();
+                            }
+                            else {
+                                j$( '#estimationDate' ).val('');
+                                j$( '.apexEstimationDate' ).val(''); 
+                                
+                            }
+                        });
+                        
+                        j$( '#authorize' ).change( function() {
+                            j$( '.authorize_chk' ).val( 'No' );            
+                            if( j$(this).val() == 'Yes' ) {
+                                j$( '.authorize_chk' ).val( 'Yes' );
+                            }
+                        });
+                        
+                        j$( '#certificate' ).change( function(){
+                            j$( '.certificate' ).val( 'No' );            
+                            if( j$(this).val() == 'Yes' ) {
+                                j$( '.certificate' ).val( 'Yes' );
+                            }
+                        });
+                    }
+                    // END initializeStudentInfo
+
+                    // START validateStudentInfo
+                    function validateStudentInfo( prgmConcentrationValidation, stage ) {
+                        
+                        var isFormValid = true;
+                        console.log( 'validateStudentInfo-stage', stage );
+                        
+                        var firstName= j$('.firstName').val().trim();
+                        var lastName= j$('.lastName').val().trim();
+                        var Phone= j$('.phone').val().trim();
+                        var PSP= j$('.PreStatePer').val().trim();
+                        var CampusOpt= j$('.CampusOption').val().trim();
+                        
+                        var MC= j$('.MailingCountry').val();
+                        var MS= j$('.MailingStreet').val().trim();
+                        var MCTY= j$('.MailingCity').val().trim();
+                        var MPC= j$('.MailingPostalCode').val().trim();
+                        
+                        var StudentPro= j$('.studentProgram').val().trim();
+                        var citizen= j$('.ResidentialSatus').val().trim();
+                        var MailingstateInfo=j$('.MailingState').val().trim();
+                        
+                        var dateOfBirth=j$('.pastDatePicker').val();
+                        
+                        var phoneno = "[0-9\-\(\)\s]+";
+                        var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+                        var zipCodePattern =/^\d{4,10}$/ ;
+                        var pattern = "^(0[1-9]|1[012])[-/.](0[1-9]|[12][0-9]|3[01])[-/.](19|20)\\d\\d$" ;
+                            
+                        if(!firstName){
+                            document.getElementById("demo").innerHTML ="{!$Label.NewApp_Error_FirstName}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("demo").innerHTML= '';
+                        }
+                        
+                        if(!lastName){
+                            document.getElementById("lName").innerHTML ="{!$Label.NewApp_Error_LastName}";
+                            isFormValid=false;
+                        }else{
+                            document.getElementById("lName").innerHTML= ''; 
+                        }
+                        
+                        if(!Phone.match(phoneno)){
+                            document.getElementById("pnum").innerHTML ="{!$Label.NewApp_Error_Phone}";
+                            
+                            isFormValid=false;
+                        }else{
+                            document.getElementById("pnum").innerHTML= ''; 
+                        }
+                        
+                        if(!MC||MC=='Select'){
+                            document.getElementById("mc").innerHTML ="{!$Label.NewApp_Error_MailingCountry}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("mc").innerHTML= ''; 
+                        }
+                        
+                        if(!MailingstateInfo){
+                            document.getElementById("mstate").innerHTML ="{!$Label.NewApp_Error_HighSchoolState}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("mstate").innerHTML= ''; 
+                        } 
+                        
+                        if(!MS){
+                            document.getElementById("ms").innerHTML ="{!$Label.NewApp_Error_MailingStreet}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("ms").innerHTML= ''; 
+                        }
+                        
+                        if(!MCTY){
+                            document.getElementById("mcty").innerHTML ="{!$Label.NewApp_Error_MailingCity}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("mcty").innerHTML= ''; 
+                        }
+                        
+                        if(!MPC.match(zipCodePattern)){
+                            document.getElementById("mpc").innerHTML ="{!$Label.NewApp_Error_MailingPostalCode}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("mpc").innerHTML= ''; 
+                        }
+                        
+                        if(!citizen){
+                            document.getElementById("citizenstatus").innerHTML ="{!$Label.NewApp_Error_CitizenshipStatus}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("citizenstatus").innerHTML='';
+                        }
+                        
+                        if(!PSP){
+                            document.getElementById("PreStartPeriod").innerHTML ="{!$Label.NewApp_Error_preferredstartperiod}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("PreStartPeriod").innerHTML= '';
+                        }
+                        
+                        if(j$(".CampusOption").val() == "Online" && j$(".MailingCountry").val() == "United States" && (j$(".MailingState").val() == "Arkansas" || j$(".MailingState").val() == "Delaware" || j$(".MailingState").val() == "Washington DC" || j$(".MailingState").val() == "Minnesota" || j$(".MailingState").val() == "Puerto Rico"))
+                        {
+                            
+                            document.getElementById("mstate").innerHTML ="{!$Label.NewApp_Error_LAFSOnlineProgramErrorMessageForState}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("mstate").innerHTML= '';
+                        }
+                        
+                        if(!CampusOpt){
+                            document.getElementById("stdCampusOption").innerHTML ="{!$Label.NewApp_Error_CampusOption}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("stdCampusOption").innerHTML= '';
+                        }
+                        
+                        if(!StudentPro || StudentPro == "---None---" ){
+                            document.getElementById("stdstudentProgram").innerHTML = "{!$Label.NewApp_Error_StudentProgram}";
+                            isFormValid=false;
+                        }
+                        else {
+                            document.getElementById("stdstudentProgram").innerHTML= '';
+                        }
+                        if(!dateOfBirth){
+                            document.getElementById("htmlDate").innerHTML = "{!$Label.NewApp_Error_DateOfBirth}";
+                            isFormValid=false;
+                        }
+                        else {
+                            document.getElementById("htmlDate").innerHTML= '';
+                        }
+                        // VALIDATE CONCENTRATION FIELD ONLY WHEN CONCENTRATION FIELD IS DISPLAYED.
+                        if( prgmConcentrationValidation == "true" ) {
+                            var concentrationField = j$('.programconsideration');
+                            if( concentrationField && concentrationField.length > 0 ) {
+                                concentrationField.removeClass( 'required_error' ); 
+                                
+                                var prgmConcentration=concentrationField.val().trim();
+                                if( prgmConcentration == "---None---" ) {
+                                    document.getElementById("stdProgramopconsideration").innerHTML ="Please Select Concentration Option";
+                                    isFormValid=false;
+                                    concentrationField.addClass( 'required_error' );
+                                }
+                                else {
+                                    document.getElementById("stdProgramopconsideration").innerHTML= '';
+                                }
+                            }
+                        }
+                        
+                        // MAKE INTERNATION FIELDS BLANK IF RESIDENTIAL STATUS IS NOT INTERNATIONAL STUDENT.
+                        var residentInputField = j$( '.ResidentialSatus' );
+                        if( residentInputField && residentInputField.length > 0 ) {
+                            var residentStatusValue = residentInputField.val();
+                            console.log( 'validateStudentInfo-residentStatusValue', residentStatusValue );
+                            if( residentStatusValue != 'Non-citizen' ) {
+                                j$( '.internationStudent' ).val( '' );
+                            }
+                            
+                            if( residentStatusValue == 'US Citizen' ) {
+                                var ssnApexField = j$( '.ssnApex' );
+                                var ssnErrorSpan = j$( '#ssn' );
+                                if( ssnApexField && ssnApexField.length > 0 && ssnErrorSpan && ssnErrorSpan.length > 0 ) {
+                                    var ssnValue = ssnApexField.val();
+                                    if( !ssnValue ) {
+                                        j$( '#ssn').html( 'Please provide Social Security Number' );
+                                        isFormValid=false;
+                                    }
+                                    else {
+                                        j$( '#ssn').html( '' );
+                                    }
+                                }
+                            }
+                            
+                            if( residentStatusValue != 'US Citizen' && residentStatusValue != 'Eligible Non-citizen' ) {
+                                var ssnApexField = j$( '.ssnApex' );
+                                console.log( 'validateStudentInfo-ssnApexField-length', ssnApexField.length );
+                                if( ssnApexField && ssnApexField.length > 0 ) {
+                                    ssnApexField.val( '' );
+                                    console.log( 'validateStudentInfo-ssnApexField-value', ssnApexField.val() );
+                                }
+                                var militaryBenefitsHtmlField = j$( '#militaryBenefits' );
+                                if( militaryBenefitsHtmlField && militaryBenefitsHtmlField.length > 0 ) {
+                                    militaryBenefitsHtmlField.val( '' );
+                                }
+                            }
+                            
+                            if( residentStatusValue != 'Eligible Non-citizen' ) {
+                                var alianNumberField = j$( '.alianNumber' );
+                                if( alianNumberField && alianNumberField.length > 0 ) {
+                                    alianNumberField.val( '' );
+                                }
+                            }
+                            
+                           // IF STUDENT IS INTERNATIONAL STUDENT
+                            if( residentStatusValue == 'Non-citizen' ) {
+                                var countryOfCitizenship = j$( '.countriesRef' ).html();
+                                if( !countryOfCitizenship) {
+                                    j$( '.countryOfCitizenship' ).addClass( 'required_error' );
+                                    j$( '#multiSel').html( 'Select Country of Citizenship' );
+                                     isFormValid=false;
+                                     
+                                }
+                                else {
+                                    j$( '.countryOfCitizenship' ).removeClass( 'required_error' );
+                                    
+                                }
+                            }
+                            
+                            // MAKE MILITARY FIELDS BLANK IF MILITARY STATUS IS NOT APPLIED.
+                            var militaryBenefitsHtmlField = j$( '#militaryBenefits' );
+                            if( militaryBenefitsHtmlField && militaryBenefitsHtmlField.length > 0 ) {
+                                var militaryHtmlCheckbox = militaryBenefitsHtmlField.val();
+                                if( militaryHtmlCheckbox != 'Yes' ) {
+                                    j$( '.hide_military' ).val( '' );
+                                    j$( '.militaryBenefits' ).val( 'false' );
+                                    j$( '.certificate' ).val( 'No' );
+                                    j$( '.authorize_chk' ).val( 'No' );
+                                }
+                                else if( militaryHtmlCheckbox == 'Yes' ) {
+                                    j$('.militaryBenefits').val( 'true' );
+                                }
+                            }
+                        }
+                        
+                        for( var i=0; i < htmlDateToApexDateField.length; i++ ) {
+                            if( stage == htmlDateToApexDateField[i].stage ) { // VALIDATE DATE FIELDS ONLY FOR CURRENT SCREEN/STEP.
+                                
+                                if( isFormValid ) {
+                                    isFormValid = saveApexDateFields( htmlDateToApexDateField[i].htmlInputDateFieldId, 
+                                                                     htmlDateToApexDateField[i].apexInputDateClass,
+                                                                     htmlDateToApexDateField[i].htmlSpanErrorId,
+                                                                     htmlDateToApexDateField[i].errorMessage,
+                                                                     htmlDateToApexDateField[i].required
+                                                                    );
+                                }
+                            }
+                        }
+                        
+                        // MAKE isFormValid FALSE CONDITIONALLY.
+                        var areFieldsValid = check_validations();
+                        if( isFormValid && !areFieldsValid ) {
+                            isFormValid = false;
+                        }
+                        return isFormValid;
+                    }
+                    // END validateStudentInfo
+                    
+                    // START populateHtmlFieldValue
+                    function populateHtmlFieldValue( apexInputClass, htmlInputId ) {
+                        
+                        var apexInputField = j$( '.' + apexInputClass );
+                        if( apexInputField && apexInputField.length > 0 ) {
+                            var apexInputValue = apexInputField.val();
+                            
+                            if( apexInputValue ) {
+                                var htmlInputField = j$( '#' + htmlInputId );
+                                if( htmlInputField && htmlInputField.length > 0 ) {
+                                    htmlInputField.val( apexInputValue );
+                                }
+                            }
+                        }
+                    }
+                    // END populateHtmlFieldValue
+                    
+                    // START phoneDialCodemethod
+                    // WHENEVER PAGE IS LOADED OR SCREEN IS CHANGED, POPULATE COUNTRY CODES AND FLAGS BASED ON STAGE/STEP NUMBER.
+                    function phoneDialCodemethod() {
+                        
+                        var stage = '{!stage}';
+                        console.log( 'phoneDialCodemethod', stage );
+                        if( stage == '1' ) {
+                            var countryData_tel;
+                            if( itiPhone_1 ) {
+                                countryData_tel = itiPhone_1.getSelectedCountryData();
+                                if( countryData_tel && countryData_tel.dialCode ) {
+                                    console.log( 'hiddenPhoneFirst', countryData_tel.dialCode );
+                                    j$("[id$='hiddenPhoneFirst']").val( countryData_tel.dialCode );
+                                }
+                            }
+                            var countryData_alttel;
+                            if( itiPhone_2 ) {
+                                countryData_alttel = itiPhone_2.getSelectedCountryData();
+                                if( countryData_alttel && countryData_alttel.dialCode ) {
+                                    console.log( 'hiddenPhoneAlt', countryData_alttel.dialCode );
+                                    j$("[id$='hiddenPhoneAlt']").val( countryData_alttel.dialCode );
+                                }
+                            }
+                        }
+                        else if( stage == '3' ) {
+                            var suppliData_tel;
+                            if( FriendContact ) {
+                                suppliData_tel = FriendContact.getSelectedCountryData();
+                                if( suppliData_tel && suppliData_tel.dialCode ) {
+                                    console.log( 'hiddenPhoneFriend', suppliData_tel.dialCode );
+                                    j$("[id$='hiddenPhoneFriend']").val( suppliData_tel.dialCode );
+                                }
+                            }
+                            var suppliData_alttel;
+                            if( EmargencyContact ) {
+                                suppliData_alttel = EmargencyContact.getSelectedCountryData();
+                                if( suppliData_alttel && suppliData_alttel.dialCode ) {
+                                    console.log( 'hiddenPhoneEmrg', suppliData_alttel.dialCode );
+                                    j$("[id$='hiddenPhoneEmrg']").val( suppliData_alttel.dialCode );
+                                }
+                            }
+                        }
+                    }
+                    // END phoneDialCodemethod
+                    
+                    // START saveApexDateFields
+                    // VALIDATE HTML DATE FIELDS AND SAVE IN APEX FIELDS IF FOUND VALID.
+                    function saveApexDateFields( htmlInputDateFieldId, apexInputDateClass, htmlSpanErrorId, errorMessage, required ) {
+                        
+                        var isFormValid = true;
+                        var htmlInputDateField = j$( '#' + htmlInputDateFieldId );
+                        var apexInputDateField = j$( '.' + apexInputDateClass );
+                        var htmlSpanErrorField = j$( '#' + htmlSpanErrorId );
+                        
+                        if( htmlInputDateField && htmlInputDateField.length > 0 && apexInputDateField && apexInputDateField.length > 0 &&
+                           htmlSpanErrorField && htmlSpanErrorField.length > 0
+                          ) {
+                            htmlSpanErrorField.html( '' );
+                            var formattedDate = getFormattedDate( htmlInputDateField.val() );
+                            if( formattedDate ) {
+                                apexInputDateField.val( formattedDate );
+                            }
+                            else if( required ) {
+                                htmlSpanErrorField.html( errorMessage );
+                                isFormValid = false;
+                            }
+                                else {
+                                    apexInputDateField.val( '' );
+                                }
+                        }
+                        return isFormValid;
+                    }
+                    // END saveApexDateFields
+                    
+                    // START getFormattedDate
+                    function getFormattedDate( dateValue ) {
+                        
+                        var formattedDate;
+                        dateValue = new Date( dateValue );
+                        
+                        if( dateValue != 'Invalid Date' ) {
+                            var year = dateValue.getYear() + 1900;
+                            var month = dateValue.getMonth()+1;
+                            if( month < 10 ) {
+                                month = '0' + month;
+                            }
+                            var day = dateValue.getDate();
+                            if( day < 10 ) {
+                                day = '0' + day;
+                            }
+                            formattedDate = year + '-' + month + '-' + day;
+                        }
+                        return formattedDate;
+                    }
+                    // END getFormattedDate
+                    
+                    // START check_validations
+                    function check_validations() {
+                        
+                        var areFieldsValid = true;
+                        j$('.validate').removeClass('required_error');
+                        j$('.validate').each(function(){
+                            if( !j$(this).val() || j$(this).val().trim() == ''|| j$(this).val() == '---None---') {
+                                j$(this).addClass('required_error');
+                                j$(this).focus();
+                                areFieldsValid = false;
+                            }
+                        });
+                        return areFieldsValid;
+                    }
+                    // END check_validations
+                    
+                    // START manageMilitaryDetails
+                    function manageMilitaryDetails() {
+                        
+                        var residentInputField = j$( '.ResidentialSatus' );
+                        var alienBlock = j$( '#alienBlock' );
+                        var ssnBlock = j$( '#ssnBlock' );
+                        var citizenUsaRequired = j$( '#citizenUsaRequired' );
+                        var ssnApex = j$( '.ssnApex' );
+                        var countryBlock= j$('#countryCitizenship');
+                        var militaryBlock = j$( '#militaryBlock' );
+                        var militaryBenefits = j$( '.militaryBenefits' );
+                        
+                        if( residentInputField && residentInputField.length > 0 && alienBlock && alienBlock.length > 0 &&
+                           ssnBlock && ssnBlock.length > 0 && citizenUsaRequired && citizenUsaRequired.length > 0 &&
+                           ssnApex && ssnApex.length > 0 && countryBlock && countryBlock.length >0 &&
+                           militaryBlock && militaryBlock.length > 0 && militaryBenefits && militaryBenefits.length > 0
+                          ) {
+                            alienBlock.addClass( 'hideField' );
+                            ssnBlock.addClass( 'hideField' );
+                            citizenUsaRequired.addClass( 'hideField' );
+                            ssnApex.removeClass( 'validate' );
+                            countryBlock.addClass('hideField');
+                            
+                            militaryBlock.addClass( 'hideField' );
+                            j$('.militaryBenefits').prop('checked', false);
+                            
+                            
+                            var residentStatusValue = residentInputField.val();
+                            
+                            if( residentStatusValue == 'US Citizen' ) {
+                                ssnBlock.removeClass( 'hideField' );
+                                citizenUsaRequired.removeClass( 'hideField' );
+                                ssnApex.addClass( 'validate' );
+                                militaryBlock.removeClass( 'hideField' );
+                            }
+                            else if( residentStatusValue == 'Eligible Non-citizen' ) {
+                                alienBlock.removeClass( 'hideField' );
+                                ssnBlock.removeClass( 'hideField' );
+                                militaryBlock.removeClass( 'hideField' );
+                            }
+                                else if( residentStatusValue == 'Non-citizen' ) {
+                                    countryBlock.removeClass('hideField');
+                                }
+                        }
+                    }
+                    // END manageMilitaryDetails
+                    
+                    // START updateMilitaryInformation
+                    function updateMilitaryInformation() {
+                        
+                        var militaryBenefitsHtmlField = j$( '#militaryBenefits' );
+                        var militaryBenefitsApexField = j$( '.militaryBenefits' );
+                        var militaryEduBlock= j$('#militaryEducationBlock');
+                        if( militaryBenefitsHtmlField && militaryBenefitsHtmlField.length > 0 &&
+                           militaryBenefitsApexField && militaryBenefitsApexField.length > 0  &&
+                           militaryEduBlock && militaryEduBlock.length > 0 
+                          ) {
+                            var militaryBenefitsHtmlFieldValue = militaryBenefitsHtmlField.val();
+                            militaryBenefitsApexField.val( militaryBenefitsHtmlFieldValue == 'Yes' );
+                            militaryBenefitsHtmlField.removeClass('hideField');
+                            militaryEduBlock.addClass( 'hideField' );
+                            
+                            j$('.militaryBenefits').prop('checked', true);
+                            var militaryHtmlCheckbox = militaryBenefitsHtmlField.val();
+                            
+                            if( militaryHtmlCheckbox == 'Yes' ) {
+                                militaryEduBlock.removeClass( 'hideField' );
+                            }
+                        }
+                    }
+                    // END updateMilitaryInformation
+                    /**********************---------------- END STUDENT INFORMATION ----------------**********************/
+                    
+                    /**********************---------------- START EDUCATION INFORMATION ----------------**********************/
+                    function initializeEducationInfo() {
+                        
+                        if( j$('.disability_services').val() == 'true' ) {
+                            j$('.disability_services_fld').removeClass('hideField');
+                            j$('.disbalityAccomodations').val('Yes');
+                        }
+                        else {   
+                            if( j$('.highSchoolName').val() ) {
+                                j$('.disbalityAccomodations').val('No');
+                            }
+                            else {
+                                j$('.disbalityAccomodations').val('Select');
+                            }
+                            j$('.disability_services_fld').addClass('hideField');
+                        }
+                        
+                        if(j$('.disability_services1').val() == 'true') {
+                            j$('.disability_services_fld1').removeClass('hideField');
+                            j$('.disbalityAccomodations1').val('Yes');
+                        }
+                        else if(j$('.disability_services1').val() == 'false') {
+                            if( j$('.highSchoolName').val() ) {
+                                j$('.disbalityAccomodations1').val('No');
+                            }  
+                            else {
+                                j$('.disbalityAccomodations1').val('Select');
+                            } 
+                            j$('.disability_services_fld1').addClass('hideField');
+                            
+                        }    
+                        
+                        if( j$('.disability_services2').val() == 'true' ) {
+                            j$('.disability_services_fld2').removeClass('hideField');
+                            j$('.disbalityAccomodations2').val('Yes');
+                        }
+                        else {
+                            if( j$('.highSchoolName').val() ) {
+                                j$('.disbalityAccomodations2').val('No');
+                            }
+                            else {
+                                j$('.disbalityAccomodations2').val('Select');
+                            }
+                            j$('.disability_services_fld2').addClass('hideField');
+                        }
+                    }
+                    
+                    function validateEducationInfo( stage ) {
+                        
+                        var isFormValid = true;
+                        
+                        var hghSchName = j$('.highSchoolName').val().trim(); 
+                        var cityInfo = j$('.city').val().trim(); 
+                        var stateInfo = j$('.state').val().trim();
+                        var countryInfo = j$('.ctry').val().trim(); 
+                        var disacc = j$('#disbalityAccomodation').val();
+                        var disTextacc = j$('.disbalityAccomodationExplaination').val();
+                        var hsGradDate = j$('.pastDatePicker').val();
+                        if( !disacc||disacc=='Select' ) {
+                            j$('#disbalityAccomodation').addClass('errordropDownBorder');
+                             document.getElementById("disAccomodation").innerHTML= 'Select Disability Services';
+                            isFormValid=false;
+                        }
+                        else {
+                            document.getElementById("disAccomodation").innerHTML= '';
+                            j$('#disbalityAccomodation').addClass('successdropDownBorder');
+                        }
+                        
+                        if( !disTextacc && disacc == 'Yes' ) {
+                            document.getElementById( "disTextAccomodation" ).innerHTML ="{!$Label.NewApp_disabilityExplanation}";
+                            isFormValid=false;
+                        }
+                        else {
+                            document.getElementById( "disTextAccomodation" ).innerHTML= '';
+                        } 
+                        
+                        var criminalHis = j$( '#criminalHistory' ).val();
+                        var crimalText = j$( '.criminalHistoryExplaination' ).val();
+                        if( !criminalHis || criminalHis =='Select' ) {
+                            j$('#criminalHistory').addClass('errordropDownBorder');
+                             document.getElementById("criminalHist").innerHTML= 'Select Criminal History';
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("criminalHist").innerHTML= '';
+                            j$('#criminalHistory').addClass('successdropDownBorder');
+                        }
+                        
+                        if(!crimalText && criminalHis == 'Yes' ){
+                            document.getElementById("criminalExplanation").innerHTML ="{!$Label.NewApp_disabilityExplanation}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("criminalExplanation").innerHTML= '';
+                        }
+                        
+                        var academic=j$('#academicMisconduct').val();
+                        var academicText=j$('.academicMisconductExplaination').val();
+                        if(!academic || academic=='Select'){
+                            
+                            j$('#academicMisconduct').addClass('errordropDownBorder');
+                             document.getElementById("academicMiscnduct").innerHTML= 'Select Academic Misconduct';
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("academicMiscnduct").innerHTML= '';
+                            j$('#academicMisconduct').addClass('successdropDownBorder');
+                        }
+                        
+                        if(!academicText && academic == 'Yes' ){
+                            document.getElementById("academicExplanation").innerHTML ="{!$Label.NewApp_disabilityExplanation}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("academicExplanation").innerHTML= '';
+                        } 
+                        
+                        if(!hghSchName){
+                            document.getElementById("highSchName").innerHTML ="{!$Label.NewApp_Error_HighSchoolName}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("highSchName").innerHTML= '';
+                        }
+                        
+                        if(!cityInfo){
+                            document.getElementById("cty").innerHTML ="{!$Label.NewApp_Error_HighSchoolCity}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("cty").innerHTML= '';
+                        } 
+                        
+                        if(!stateInfo){
+                            document.getElementById("sta").innerHTML ="{!$Label.NewApp_Error_HighSchoolState}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("sta").innerHTML= '';
+                        } 
+                        
+                        if(!countryInfo||countryInfo=='Select'){
+                            document.getElementById("selCountry").innerHTML ="{!$Label.NewApp_Error_HighSchoolCountry}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("selCountry").innerHTML= '';
+                        }
+                        if(!hsGradDate){
+                            document.getElementById("GraduationDate").innerHTML ="{!$Label.NewApp_Error_DateOfBirth}";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("GraduationDate").innerHTML= '';
+                        }
+
+                        for( var i=0; i < htmlDateToApexDateField.length; i++ ) {
+                            if( stage == htmlDateToApexDateField[i].stage ) { // VALIDATE DATE FIELDS ONLY FOR CURRENT SCREEN/STEP.
+                                
+                                if( isFormValid ) {
+                                    isFormValid = saveApexDateFields( htmlDateToApexDateField[i].htmlInputDateFieldId, 
+                                                                     htmlDateToApexDateField[i].apexInputDateClass,
+                                                                     htmlDateToApexDateField[i].htmlSpanErrorId,
+                                                                     htmlDateToApexDateField[i].errorMessage,
+                                                                     htmlDateToApexDateField[i].required
+                                                                    );
+                                }
+                            }
+                        }
+                        
+                        // MAKE isFormValid FALSE CONDITIONALLY.
+                        var areFieldsValid = check_validations();
+                        if( isFormValid && !areFieldsValid ) {
+                             
+                            isFormValid = false;
+                        }
+                        return isFormValid;
+                    }
+                    
+                    function showExplainationFields( originalFieldId, dependantFieldClass, dependentDivId ) {
+                        
+                        var originalFieldInput = j$( '#' + originalFieldId );
+                        var dependantField = j$( '.' + dependantFieldClass );
+                        var dependentDiv = j$( '#' + dependentDivId );
+                        
+                        if( originalFieldInput && originalFieldInput.length > 0 && 
+                           dependantField && dependantField.length > 0 && 
+                           dependentDiv && dependentDiv.length > 0
+                          ) {
+                            var originalFieldValue = originalFieldInput.val();
+                            if( originalFieldValue != 'Select'  ) {
+                                originalFieldInput.removeClass('errordropDownBorder');
+                                originalFieldInput.addClass('successdropDownBorder');
+                            }
+                            
+                            if( originalFieldValue == 'Yes' ) {
+                                dependentDiv.removeClass( 'hideField' );
+                                dependantField.addClass( 'validate' );
+                            }
+                            else {
+                                dependentDiv.addClass( 'hideField' );
+                                dependantField.removeClass( 'validate' );
+                                if( !originalFieldValue || originalFieldValue == 'Select' ) {
+                                    originalFieldInput.removeClass('successdropDownBorder');
+                                    originalFieldInput.addClass('errordropDownBorder');
+                                }
+                            }
+                        }
+                    }
+                    
+                    function bindWithExplainationApexFields( apexInputFieldClass, dependentApexInputFieldClass ) {
+                        
+                        var htmlField = j$( '#' + apexInputFieldClass );
+                        var apexField = j$( '.' + apexInputFieldClass );
+                        
+                        if( htmlField && htmlField.length > 0 && apexField && apexField.length > 0 ) {
+                            var isAgreed = ( htmlField.val() == 'Yes' );
+                            apexField.val( isAgreed );
+                            if( !isAgreed ) {
+                                var dependentApexInputField = j$( '.' + dependentApexInputFieldClass );
+                                if( dependentApexInputField && dependentApexInputField.length > 0 ) {
+                                    dependentApexInputField.val( '' );
+                                }
+                            }
+                        }
+                    }
+                    /**********************---------------- END EDUCATION INFORMATION ----------------**********************/
+                    
+                    /**********************---------------- START SUPPLIMENT INFORMATION ----------------**********************/
+                    
+                    function initializeSupplimentInfo() {
+                    
+                        var FriendContactPhone = document.querySelector( ".Frndphone" );
+                        console.log( 'initializeSupplimentInfo-FriendContactPhone', FriendContactPhone );
+                        if( FriendContactPhone ) {
+                            FriendContact = window.intlTelInput( FriendContactPhone );
+                            console.log( 'initializeSupplimentInfo-FriendContact', FriendContact );
+                        }
+                        var EmargencyContactPhone = document.querySelector(".Emcontact");
+                        console.log( 'initializeSupplimentInfo-EmargencyContactPhone', EmargencyContactPhone );
+                        if( EmargencyContactPhone ) {
+                            EmargencyContact = window.intlTelInput(EmargencyContactPhone);
+                            console.log( 'initializeSupplimentInfo-EmargencyContact', EmargencyContact );
+                        }
+                        
+                        if( j$('.FrdFirstname').val() ) {
+                            j$('.intrestedval').val('Yes');
+                            showFriendDetails( 'friendSelect', 'friendDetails', 'isDisabled' );
+                        }else{
+                            j$('.intrestedval').val('No');
+                        }
+                        
+                           if( j$('.Fsubmit').is(':checked')){
+                            var fullname ='{!recordContact.FirstName}'+' '+'{!recordContact.LastName}';
+                           j$('#ApplicantSignature').val(fullname);
+                         }else {
+                          j$('#ApplicantSignature').val('');
+                        }
+                        
+                        
+                    }
+                    
+                    function showFriendDetails( friendSelect,friendDetails, friendDetailInfo ) {
+            
+                        var frndSelect = j$( '#' + friendSelect);
+                        var frndDetails = j$( '.' + friendDetails );
+                        var frndDetailInfo = j$( '#' + friendDetailInfo );
+                        
+                        if( frndSelect && frndSelect.length > 0 && 
+                            frndDetails && frndDetails.length > 0 && 
+                            frndDetailInfo && frndDetailInfo.length > 0
+                        ) {
+                            var frndSelectValue = frndSelect.val();
+                            if( frndSelectValue != 'Select'  ) {
+                                frndSelect.removeClass('errordropDownBorder');
+                                frndSelect.addClass('successdropDownBorder');
+                            }
+                            if( frndSelectValue == 'Yes' ) {
+                                
+                                frndDetailInfo.removeClass( 'hideField' );
+                                frndDetails.addClass( 'validate' );
+                                j$('.friendSelect').val('true');
+                            } 
+                            else {
+                                var FrdFirstname = j$('.friendDetails').val();
+                                j$('.friendDetails').val('');
+                                updateFriend();
+                                frndDetailInfo.addClass( 'hideField' );
+                                frndDetails.removeClass( 'validate' );
+                                j$('.friendSelect').val('false');
+                                
+                            }
+                        }
+                    } 
+                    
+                    function validateSupplementInfo() {
+                        
+                        var isFormValid=true;
+                        
+                        /*  var gender= j$('.gender').val().trim();
+                        var ethnicity= j$('.ethnicity').val().trim();
+                        var nationality= j$('.nationality').val().trim(); */
+                        var EfName= j$('.EfName').val().trim();
+                        var ElName= j$('.ElName').val().trim();
+                        var relationto= j$('.relationto').val().trim();
+                        var Emcontact= j$('.Emcontact').val().trim();
+                        var phonenoformat = "[0-9\-\(\)\s]+";
+                        var emailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+                        var intrestedval= j$('.intrestedval').val().trim();
+                        var Fsubmit= j$('.Fsubmit').prop('checked');
+                        
+                        /* if(!gender){
+                            document.getElementById("gen").innerHTML ="Please Enter Gender";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("gen").innerHTML= '';
+                        }
+                        
+                        if(!ethnicity){
+                            document.getElementById("etncty").innerHTML ="Please Enter Ethinicity";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("etncty").innerHTML= '';
+                        }
+                        if(!nationality){
+                            document.getElementById("natlty").innerHTML ="Please Enter Nationality";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("natlty").innerHTML= '';
+                        }*/
+                        if(!EfName){
+                            document.getElementById("emergencyFirstName").innerHTML ="Please Enter First Name";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("emergencyFirstName").innerHTML= '';
+                        }
+                        if(!ElName){
+                            document.getElementById("emergencyLastName").innerHTML ="Please Enter Last Name";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("emergencyLastName").innerHTML= '';
+                        }
+                        if(!relationto){
+                            document.getElementById("emergencyRelation").innerHTML ="Please Enter Relationship";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("emergencyRelation").innerHTML= '';
+                        }
+                        if(!Emcontact.match(phonenoformat)){
+                            document.getElementById("emergencyPhone").innerHTML ="Please Enter valid Emergency Telephone";
+                            isFormValid=false;
+                        }
+                        else{
+                            document.getElementById("emergencyPhone").innerHTML= '';
+                        }
+                        
+                        if(intrestedval=='Yes'){
+                            
+                            var FrdFirstname= j$('.FrdFirstname').val().trim();
+                            var Frdlastname= j$('.Frdlastname').val().trim();
+                            var Frndemail= j$('.Frndemail').val().trim();
+                            var Frndphone= j$('.Frndphone').val().trim();
+                            
+                            if(!FrdFirstname){
+                                document.getElementById("ffname").innerHTML ="Please Enter First Name";
+                                isFormValid=false;
+                            }
+                            else{
+                                document.getElementById("ffname").innerHTML= '';
+                            }
+                            if(!Frdlastname){
+                                document.getElementById("flname").innerHTML ="Please Enter Last Name";
+                                isFormValid=false;
+                            }
+                            else{
+                                document.getElementById("flname").innerHTML= '';
+                            }
+                            if(!Frndemail.match(emailformat)){
+                                document.getElementById("femail").innerHTML ="Please Enter Valid Email id";
+                                isFormValid=false;
+                            }
+                            else{
+                                document.getElementById("femail").innerHTML= '';
+                            }
+                            if(!Frndphone.match(phonenoformat)){
+                                document.getElementById("fphone").innerHTML ="Please Enter Valid phone Number";
+                                isFormValid=false;
+                            }
+                            else{
+                                document.getElementById("fphone").innerHTML= '';
+                            }
+                        }
+                        if(!Fsubmit){
+                            document.getElementById("fsub").innerHTML ="Please click on final Submit";
+                            isFormValid=false;
+                        }
+                        check_validations();
+                        return isFormValid;
+                    }
+                    
+                    // START AcceptandSubmit
+                    function AcceptandSubmit() {
+                        if(validateForm()){
+                            phoneDialCodemethod();
+                            updateContactAndApponAcceptandSubmitFunction();
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+                    // END AcceptandSubmit
+                    
+                    function disableBox( surveyCompletedFieldFieldClass, signatureDivId ) {
+            
+                        var surveyCompletedField = j$( '.' + surveyCompletedFieldFieldClass );
+                        if( surveyCompletedField && surveyCompletedField.length > 0 ) {
+                            var surveyCompletedValue = surveyCompletedField.prop('checked');
+                            if( surveyCompletedValue ) {
+                                var fullname ='{!recordContact.FirstName}'+' '+'{!recordContact.LastName}';
+                                j$('#ApplicantSignature').val(fullname);
+                            } 
+                            else {
+                                j$('#ApplicantSignature').val('');
+                            }
+                        }
+                    }
+                    
+                    /**********************---------------- END SUPPLIMENT INFORMATION ----------------**********************/
+                    
+                    /**********************---------------- START PAYMENT INFORMATION ----------------**********************/
+                         var maxStringSize = 6000000;    //Maximum String size is 6,000,000 characters
+                    var maxFileSize = 4350000;      //After Base64 Encoding, this is the max file size
+                    var chunkSize = 950000;         //Maximum Javascript Remoting message size is 1,000,000 characters
+                    var attachment;
+                    var attachmentName;
+                    var fileSize;
+                    var positionIndex;
+                    var doneUploading;
+                    
+                    //Method to prepare a file to be attached to the Account bound to the page by the standardController
+                    function uploadFile() {
+                       
+                        j$(".upload_submit").attr('disabled',true);
+                        var file = document.getElementById('file_upload').files[0];
+                        console.log(file);
+                        document.location.href = '#focusHeader';
+                        if(file != undefined) {
+                            if(file.size <= maxFileSize) {
+                                attachmentName = file.name;
+                                var fileReader = new FileReader();
+                                fileReader.onloadend = function(e) {
+                                    attachment = window.btoa(this.result);  //Base 64 encode the file before sending it
+                                    positionIndex=0;
+                                    fileSize = attachment.length;
+                                    console.log("Total Attachment Length: " + fileSize);
+                                    doneUploading = false;
+                                    if(fileSize < maxStringSize) {
+                                        
+                                        uploadAttachment(null);
+                                    } else {
+                                        alert("Base 64 Encoded file is too large.  Maximum size is " + maxStringSize + " your file is " + fileSize + ".");
+                                         j$(".custom-file-input").siblings(".custom-file-label").removeClass("selected").html('');
+                                            j$(".custom-file-input").val('');
+                                        
+                                    }
+                                    
+                                }
+                                fileReader.onerror = function(e) {
+                                    alert("There was an error reading the file.  Please try again.");
+                                     j$(".custom-file-input").siblings(".custom-file-label").removeClass("selected").html('');
+                                            j$(".custom-file-input").val('');
+                                            
+                                    
+                                }
+                                fileReader.onabort = function(e) {
+                                    alert("There was an error reading the file.  Please try again.");
+                                     j$(".custom-file-input").siblings(".custom-file-label").removeClass("selected").html('');
+                                            j$(".custom-file-input").val('');
+                                           
+                                    
+                                }
+                                
+                                fileReader.readAsBinaryString(file);  //Read the body of the file
+                                
+                            } else {
+                                alert("File must be under 4.3 MB in size.  Your file is too large.  Please try again.");
+                                 j$(".custom-file-input").siblings(".custom-file-label").removeClass("selected").html('');
+                                            j$(".custom-file-input").val('');
+                                            
+                                
+                            }
+                        } else {
+                            alert("You must choose a file before trying to upload it");
+                             
+                        }
+                         $("#file_upload").attr('disabled',false);
+                    }
+                    
+                    //Method to send a file to be attached to the Account bound to the page by the standardController
+                    //Sends parameters: Account Id, Attachment (body), Attachment Name, and the Id of the Attachment if it exists to the controller   
+                    function uploadAttachment(fileId) {
+                        var attachmentBody = "";
+                        var currentUrl = window.location.href;
+                       j$('#submit_upload_doc').html(j$('#submit_upload_doc').attr('data-loading-text'));
+                        if(fileSize <= positionIndex + chunkSize) {
+                            attachmentBody = attachment.substring(positionIndex);
+                            doneUploading = true;
+                        } else {
+                            attachmentBody = attachment.substring(positionIndex, positionIndex + chunkSize);
+                        }
+                        console.log("Uploading " + attachmentBody.length + " chars of " + fileSize);
+                        NewApplicationDetailComponentController.doUploadAttachment(
+                            '{!recordApplication.id}', attachmentBody, attachmentName, fileId, 
+                            
+                            function(result, event) {
+                                
+                                console.log(result);
+                                if(event.type === 'exception') {
+                                    console.log("exception");
+                                    console.log(event);
+                                } 
+                                else if(event.status) { // TRUE
+                                    var response = JSON.parse( result );
+                                    
+                                    if(response.isSucceeded) {
+                                        if(doneUploading == true) {
+                                             document.getElementById("messagespay").innerHTML ="File uploaded successfully; Refreshing the page";
+                                            
+                                            j$('#submit_upload_doc').html("<i class='fa fa-upload ' style='color: #FFF; background: #000;'></i>&nbsp; CHOOSE &amp; UPLOAD");
+                                             j$('#pendingmsg .alert-dismissible').hide();
+                                             j$('#pendingmsg').show();
+                                            j$('.hsupload').hide();
+                                            
+                                               j$('#pendingmsg .alert-suces').show();
+                                                setTimeout( function() {
+                               
+                                                j$('#pendingmsg').hide();
+                               
+                                                },4000);
+                                         
+                                            
+                                             j$(".file_upload").siblings(".upload-file-label").removeClass("selected").html('');
+                                            j$(".file_upload").val('');
+                                         
+                                            console.log('doc uploaded successfully');
+                                            window.setTimeout(
+                                               function()
+                                               {
+                                                  window.location.reload(true);
+                                                    //window.location.href = window.location;
+                                                 },1000
+                                            );
+                                         
+                                        } else {
+                                            positionIndex += chunkSize;
+                                            uploadAttachment(result);
+                                        }
+                                    }
+                                    else {
+                                        document.getElementById("messagespay").innerHTML = response.message;
+                                    }
+                                } else {
+                                    console.log(event.message);
+                                }
+                            },
+                            {buffer: true, escape: false, timeout: 120000}
+                        );
+                    }
+                
+                function initializePaymentInfo(){
+                        var payconfirm='{!recordApplication.Application_Fee_Paid__c}';
+                        var appstatus='{!recordApplication.Application_Status__c}';
+                        var hsdiploma='{!recordApplication.HS_Diploma_Received__c}';
+                        if(payconfirm!='false'){
+                            j$('.paynownew').hide();
+                            j$('.paylater').hide();
+                            j$('.paylater_chk').hide();
+                            j$('.paydone').show();
+                        }else{
+                            j$('.paydone').hide();
+                        }
+                         if(hsdiploma=='Accepted'){
+                            j$('.hsupload').hide();
+                             //  j$('.hslable').hide();
+                             // j$('.doclable').hide();
+                        }
+                      if(hsdiploma=='Received'){
+                            j$('.hsupload').hide();
+                              
+                        }
+                        if(appstatus=='Denied'){
+                            j$('.paynownew').hide();
+                            j$('.paction').hide();
+                            j$('.payLat').hide();
+                            j$('.paylaterChk').hide();
+                            j$('.paydone').hide();
+                             j$('.hsupload').hide();
+                        }
+                        if(appstatus=='Cancel'){
+                            j$('.paynownew').hide();
+                            j$('.paction').hide();
+                            j$('.payLat').hide();
+                            j$('.paylaterChk').hide();
+                            j$('.paydone').hide();
+                            j$('.hsupload').hide();
+                        }
+                    }
+                    /**********************---------------- END PAYMENT INFORMATION ----------------**********************/
+               
+                </script>
+                <!-- END SCRIPT -->
+                
+            </apex:outputPanel>
+            <!-- END PROGRESS PATH PANEL -->
+            
+        </apex:form>
+        
+        <script type="text/javascript">
+            
+            var j$ = jQuery.noConflict();
+            j$(document).ready(function() {
+                
+                console.log( 'document ready phone fix going on by sourabh' );
+                refreshProgressBar();
+            });
+                    
+        </script>
+        
+    </body>   
+    
+</apex:component>

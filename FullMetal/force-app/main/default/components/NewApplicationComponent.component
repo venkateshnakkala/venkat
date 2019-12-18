@@ -1,0 +1,408 @@
+<apex:component Controller="NewApplicationController" allowDML="true" >
+    <apex:attribute name="applicationSelected" type="Application__c" description="Application"/>
+    <apex:attribute name="schoolId" type="String" description="school Id"/>
+    
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+        <title>LAFS</title>
+        <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+        <meta charset="UTF-8"/>
+        <meta content="width=device-width,initial-scale=1,shrink-to-fit=no" name="viewport"/>
+        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet"/>
+        
+        
+        <!-- <link href="images/ico/favicon.ico" rel="shortcut icon" />
+<link href="css/bootstrap.css" rel="stylesheet" />
+<link href="css/style.css" rel="stylesheet" />
+<link href="css/zocial.css" rel="stylesheet" />  -->
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <link rel="stylesheet" href="/resources/demos/style.css" />
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />
+        <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/themes/base/jquery-ui.css" rel="stylesheet"/>
+        
+        
+        <link href="{!URLFOR($Resource.LAFilmsApplication, '/img/ico.ico')}" rel="shortcut icon" />
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/style.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/bootstrap.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/prism.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/intlTelInput.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/zocial.css')}"/>
+        
+        <!-- <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/zocial.css')}"/> -->
+        
+        
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+    </head>
+    
+    <script type="text/javascript">
+    
+    function check_validations(frm)
+    {
+        
+        var isFormValid = true;
+        $(frm + ' .validate').removeClass('required_error');
+        
+        $(frm + ' .validate').each(function(){
+            
+            if($(this).val().trim() == '')
+            {
+                isFormValid = false;
+                $(this).addClass('required_error');
+            }
+            
+        });
+        
+        return isFormValid;
+    }
+    
+    
+    $(document).on('blur keyup', '.validate', function(){        
+        
+        if($(this).val().trim() == '')
+            $(this).addClass('required_error');
+        else
+            $(this).removeClass('required_error');
+    }); 
+    
+    
+    
+    
+    function validateFunction(jsvarbl){
+       if(!confirm("Please double-check the entries, Some fields cannot be editable on later screens"))
+           {
+             
+               return false;
+           }
+       
+        
+        var first = document.getElementById('{!$Component.form.studentFirstName}').value;
+        var email = document.getElementById('{!$Component.form.studentEmail}').value;
+        var last = document.getElementById('{!$Component.form.studentLastName}').value;
+        var cnfmail = document.getElementById('{!$Component.form.studentEmailconformation}').value;
+        var phone = document.getElementById('{!$Component.form.studentPhone}').value;
+        var pwd = document.getElementById('{!$Component.form.password}').value;
+        var cnfpwd = document.getElementById('{!$Component.form.cnfpassword}').value;
+        var campusoption = document.getElementById('{!$Component.form.CampusOption}').value;
+        var studentProgram = document.getElementById('{!$Component.form.studentProgram}').value;
+        /*  var programConcentration = document.getElementById('{!$Component.form.Programconsideration}').value;*/
+        var phnNum = "[0-9\-\(\)\s]+";
+        var emailFormat= /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;      
+        var pwdformat= /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,29}$/;
+        var validatecheck = true;
+        
+       
+        if(!first){
+            document.getElementById("stdFirstName").innerHTML ="{!$Label.NewApp_Error_FirstName}";
+            
+            validatecheck = false;
+        }
+        else {
+            document.getElementById("stdFirstName").innerHTML = "";
+        }
+        
+        if(campusoption == ""){
+            document.getElementById("stdCampusOption").innerHTML ="{!$Label.NewApp_Error_CampusOption}";
+            validatecheck = false;
+        }
+        else {
+            document.getElementById("stdCampusOption").innerHTML = "";
+        }
+        
+        if(studentProgram == ""){
+            document.getElementById("stdstudentProgram").innerHTML ="{!$Label.NewApp_Error_StudentProgram}";
+            validatecheck = false;
+        }
+        else {
+            document.getElementById("stdstudentProgram").innerHTML = "";
+        }
+
+        /*  if(programConcentration == "---None---"){
+            document.getElementById("stdProgramopconsideration").innerHTML ="Please Enter";
+            validatecheck = false;
+        }
+        else {
+            document.getElementById("stdProgramopconsideration").innerHTML = "";
+        }
+        //*/
+        
+        if(!email.match(emailFormat)){    
+            document.getElementById("stdemail").innerHTML ="{!$Label.NewApp_Error_Email}"; 
+            validatecheck = false;   
+        }
+        else {
+            document.getElementById("stdemail").innerHTML = "";
+        }
+        
+        if(!last){
+            
+            document.getElementById("stdLastName").innerHTML ="{!$Label.NewApp_Error_LastName}"; 
+            validatecheck = false;
+        }
+        else {
+            document.getElementById("stdLastName").innerHTML = "";
+        }
+        
+        if(!cnfmail){
+            document.getElementById("stdCnfrmEmail").style.color = 'red';
+            document.getElementById("stdCnfrmEmail").innerHTML = "{!$Label.NewApp_Error_StudentEmailConformation}";
+            validatecheck = false;
+        } 
+        else {
+            document.getElementById("stdCnfrmEmail").innerHTML = "";
+            
+            if(email != cnfmail) {
+                document.getElementById("stdCnfrmEmail").style.color = 'red';
+                document.getElementById("stdCnfrmEmail").innerHTML ="Email does not match with Confirm Email";
+                validatecheck=false;
+            }
+            else{
+                
+                document.getElementById("stdCnfrmEmail").style.color = 'green';
+                document.getElementById("stdCnfrmEmail").innerHTML = "Matching";
+                document.getElementById("stdCnfrmEmail").innerHTML = "";
+            }
+            
+        }
+        if(!phone.match(phnNum)){
+            
+            document.getElementById("stdPhone").innerHTML = "{!$Label.NewApp_Error_Phone}";
+            validatecheck=false;
+        }else{
+            document.getElementById("stdPhone").innerHTML= ''; 
+        }
+        
+        if(pwd.length < 8 ){
+            document.getElementById("stdpassword").innerHTML = "{!$Label.NewApp_Error_Password}";
+            validatecheck = false;
+        } 
+        else {
+            document.getElementById("stdpassword").innerHTML = "";
+            
+        }
+      
+        if(cnfpwd.length < 8 ){
+             document.getElementById("stdcnfpassword").innerHTML = "{!$Label.NewApp_Error_Password}";
+             validatecheck = false;
+        }else{
+            document.getElementById("stdcnfpassword").innerHTML = "";
+            
+            if(pwd != cnfpwd) {
+                document.getElementById("stdcnfpassword").style.color = 'red';
+                document.getElementById("stdcnfpassword").innerHTML ="Password does not match with Confirm Password";
+                validatecheck=false;
+            }
+            else{
+                
+                document.getElementById("stdcnfpassword").style.color = 'green';
+                document.getElementById("stdcnfpassword").innerHTML = "Matching";
+                document.getElementById("stdcnfpassword").innerHTML = "";
+            }
+        }
+        
+        if(jsvarbl == "true"){
+            
+            var programConcentration = document.getElementById('{!$Component.form.Programconsideration}').value;
+            if(programConcentration == ""){
+            document.getElementById("stdProgramopconsideration").innerHTML ="Select concentration Option";
+            validatecheck = false;
+                
+        }
+        else {
+            document.getElementById("stdProgramopconsideration").innerHTML = "";
+        }
+        }
+        if(validatecheck){
+            setHiddenPhone();
+            test();
+            
+        }
+        check_validations('.form2');
+        return validatecheck;
+    }
+    
+    </script>
+    
+    
+    <body class="">
+        
+        <div class="container register-form;" >
+            <apex:form id="form" styleclass="form2" forceSSL="true">
+                
+                <!-- START SPINNER -->
+                <apex:actionStatus id="ProcessStatus">
+                    <apex:facet name="start">
+                        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.25; z-index: 1000; background-color: #000;">
+                            &nbsp;
+                        </div>
+                        <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 30% 50%">
+                            <img src="http://upload.wikimedia.org/wikipedia/commons/e/ed/Cursor_Windows_Vista.gif" />
+                        </div>
+                    </apex:facet>
+                </apex:actionStatus>
+                <!-- END SPINNER -->
+                
+                
+                <br/>
+                <br/>    
+                  
+                
+                <div class="form">
+                    <!--changes By venkatesh -->
+                    <apex:inputHidden id="hiddenPhone" value="{!hiddenPhone}"/>
+                    <div class="note account_title">
+                        
+                        <p><b>{!$Label.NewApp_AccountCreation}</b></p>
+                    </div>
+                    
+                    <apex:pageblock >
+                         <apex:pageMessages ></apex:pageMessages> 
+                    </apex:pageblock>
+                    <div class="fields_required">
+                        <p><strong>Please note:</strong> Fields with an <span class="requiredField" >*</span> are required.</p>
+                    </div>
+                    <div class="form-content">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="required">{!$Label.NewApp_FirstName}<sup>*</sup></label> 
+                                    <apex:inputText value="{!studentFirstName}" id="studentFirstName" tabindex="1" html-placeholder="First Name" styleclass="form-control validate" />
+                                   <span id="stdFirstName" style="color:red;font-size:11px;"></span>
+                                   <!--   <apex:outputText id="stdFirstName" value="{!$Label.NewApp_StudentFirstName}" style="color:red;font-size:11px;"/> --> 
+                                   </div>
+                                <div class="form-group">
+                                    <label class="required">{!$Label.NewApp_Email}<sup>*</sup></label> 
+                                    <apex:inputText value="{!studentEmail}" id="studentEmail" tabindex="3" html-placeholder="Email" styleclass="form-control validate"  />
+                                    <span id="stdemail" style="color:red;font-size:11px;"></span>
+                                    <!-- <input placeholder="Email *" type="email" id="studentEmail" class="form-control" data-bind="value : studentEmail, valueUpdate: 'afterkeydown'"/>
+--> </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="required">{!$Label.NewApp_LastName}<sup>*</sup></label> 
+                                    <apex:inputText value="{!studentLastName}" id="studentLastName" tabindex="2" html-placeholder="Last Name" styleclass="form-control validate"   />
+                                    <span id="stdLastName" style="color:red;font-size:11px;"></span>
+                                    <!--  <input placeholder="Last Name *" type="text" class="form-control"  data-bind="value : studentLastName, valueUpdate: 'afterkeydown'" id="studentLastName" />
+-->   </div>
+                                <div class="form-group">
+                                    
+                                    <label class="required" >{!$Label.NewApp_StudentEmailConformation}<sup>*</sup></label> 
+                                    <apex:inputText value="{!studentEmailconformation}" id="studentEmailconformation" html-placeholder="Email Confirmation" tabindex="4" styleclass="form-control validate"  />
+                                    <span id="stdCnfrmEmail" style="color:red;font-size:11px;"></span>
+                                    <!--  <input placeholder="Email Confirmation *" type="email" id="studentEmail" class="form-control" data-bind="value : studentEmail, valueUpdate: 'afterkeydown'"/>
+--> </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="required">{!$Label.NewApp_Phone}<sup>*</sup></label>
+                                    <apex:inputText value="{!studentPhone}" id="studentPhone" tabindex="5" html-placeholder="Phone" styleclass="form-control studentPhone validate" maxlength="10"  />
+                                    <span id="stdPhone" style="color:red;font-size:11px;"></span>
+                                    <!-- <input placeholder="Phone *" type="text" class="form-control"  data-bind="value : studentPhone, valueUpdate: 'afterkeydown'" id="studentPhone" />
+-->  </div>
+                                
+                                <div class="form-group">
+                                    
+                                    <label class="required">{!$Label.NewApp_Password}<sup>*</sup></label>
+                                    <apex:inputSecret value="{!password}" id="password" tabindex="7" html-placeholder="Password" styleclass="form-control validate"   />
+                                    <span id="stdpassword" style="color:red;font-size:11px;"></span>
+                              
+                                </div>
+                                 
+                                <div class="form-group">
+                                    
+                                    <label class="required">CONFIRM PASSWORD<sup>*</sup></label>
+                                    <apex:inputSecret value="{!password}" id="cnfpassword" tabindex="7" html-placeholder="Confirm Password" styleclass="form-control validate"   />
+                                    <span id="stdcnfpassword" style="color:red;font-size:11px;"></span>
+                              
+                                </div>
+                                <div class="form-group">
+                                    {!$Label.NewApp_PasswordDescription}
+                                    
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="required">{!$Label.NewApp_CampusOption}<sup>*</sup></label>
+                                    <apex:selectList value="{!CampusOption}" id="CampusOption"  size="1" tabindex="6" html-placeholder="Campus Option" styleclass="form-control input-lg validate">
+                                        <apex:selectOption itemValue="" itemLabel="---None---" />
+                                        <apex:selectOption itemValue="On Campus" itemLabel="On Campus" />
+                                        <apex:selectOption itemValue="Online" itemLabel="Online" />
+                                        <apex:actionSupport status="ProcessStatus" event="onchange" action="{!changeconsentration}"
+                                                            reRender="studentProgram,Programconsideration,Pgmconsinpanel,prgpanel"/>
+                                    </apex:selectList> 
+                                    <i class="fa fa-chevron-down"></i>
+                                    <span id="stdCampusOption" style="color:red;font-size:11px;"></span>
+                                </div>
+                                <apex:outputPanel id="prgpanel"> 
+                                    <div class="form-group">
+                                        <apex:outputPanel >
+                                            <label class="required">{!$Label.NewApp_StudentProgram}<sup>*</sup></label>
+                                            <apex:selectList value="{!studentProgram}" id="studentProgram"  size="1" tabindex="6"
+                                                             styleclass="form-control input-lg validate">
+                                                <apex:selectOptions value="{!Programoptions}"></apex:selectOptions>
+                                                <apex:actionSupport status="ProcessStatus" event="onchange"
+                                                                    reRender="Pgmconsinpanel,Programconsideration,test"/>
+                                            </apex:selectList> 
+                                            <i class="fa fa-chevron-down"></i>
+                                            <span id="stdstudentProgram" style="color:red;font-size:11px;"></span>
+                                        </apex:outputPanel>
+                                    </div>
+                                   
+                                    <div class="form-group">                                        
+                                        <apex:outputPanel id="Pgmconsinpanel">
+                                            <apex:outputPanel rendered="{!checkpgmconsideration}">
+                                                
+                                                <label class="required">{!$Label.NewApp_ProgramConcentration}<sup>*</sup></label>
+                                                <apex:selectList value="{!Programconsideration}" id="Programconsideration"  size="1"
+                                                                 tabindex="6" styleclass="form-control input-lg validate">
+                                                    <apex:selectOptions value="{!Programconsiderations}"></apex:selectOptions>
+                                                </apex:selectList> 
+                                                <i class="fa fa-chevron-down"></i>
+                                                <span id="stdProgramopconsideration" style="color:red;font-size:11px;"></span>
+                                                
+                                            </apex:outputPanel>
+                                        </apex:outputPanel>
+                                    </div>
+                                </apex:outputPanel>
+                            </div>
+                        </div>
+                        <!--  <apex:commandbutton onChange="return validateFunction()" action="{!createsiteuser}" value="CREATE" id="createuser" styleClass="btn btn-primary" /> -->
+                        <apex:actionfunction name="test" action="{!createsiteuser}" reRender="form" status="ProcessStatus" />
+                       <apex:outputPanel id="test">
+                        
+                        <button type="button" id="createuser" Class="btn btn-primary" onclick="return validateFunction('{!checkpgmconsideration}')">{!$Label.NewApp_CreateUserButton}</button>
+                       </apex:outputPanel> 
+                        <br/>
+                        <br/>                     
+                        <br/>
+                        
+                        
+                        
+                        
+                    </div>
+                </div>
+            </apex:form>
+        </div>
+        <apex:includeScript value="{!URLFOR($Resource.LAFilmsApplication, 'js/prism.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.LAFilmsApplication, 'js/intlTelInput.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.LAFilmsApplication, 'js/displayNumber.js')}"/>
+        <script>
+        // var input1 = document.querySelector(".phone");
+        
+        var input = document.querySelector(".studentPhone");
+       
+        var iti_1=window.intlTelInput(input);
+        
+        function setHiddenPhone () {
+           
+        var countryData_tel = iti_1.getSelectedCountryData();           
+             
+            $("[id$='hiddenPhone']").val(countryData_tel.dialCode);
+            }
+        </script>
+        
+    </body>
+    
+</apex:component>

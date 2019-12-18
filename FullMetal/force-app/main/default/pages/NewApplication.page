@@ -1,0 +1,308 @@
+<apex:page docType="HTML-5.0"  Controller="NewApplicationController" showHeader="FALSE"
+           standardStylesheets="FALSE" sidebar="FALSE" title="Apply" cache="false" action="{!tryRedirectToLandingPage}">
+    
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+        <title>LAFS</title>
+        <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+        <meta charset="UTF-8"/>
+        <meta content="width=device-width,initial-scale=1,shrink-to-fit=no" name="viewport"/>
+         <script src="https://code.jquery.com/jquery-3.4.1.js"/> 
+          <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.3/js/bootstrap.min.js'></script>
+   
+        <link href="{!URLFOR($Resource.LAFilmsApplication, '/img/ico.ico')}" rel="shortcut icon" />
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/style.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/bootstrap.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/zocial.css')}"/>
+      
+        
+        
+        <style>
+            .signInModal { display : none; }
+            
+            .back_shadow{
+            background: #000;
+            padding: 20px;
+            opacity: 0.7;
+            }
+            .back_shadow .body-3{
+            font-size: 0.8rem !important;
+            line-height: 1.3rem;
+            }
+            .home_apply_now{
+                text-decoration: none;
+                
+            }
+            .home_apply_now:hover{
+                color: #FFF;
+            }
+            
+            .hero-content .btn.btn-primary.btn-blue{
+            background-image: linear-gradient(to right, #1295D8 0, #0e2a47 50%) !important;
+            }
+            
+  .home_link-list ul , .home_link-list ul li {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0rem !important;
+}
+.home_link-list ul li {
+    position: relative;
+    margin-bottom: 0.2rem;
+    padding-left: 15px !important;
+    border: none;
+    color: #4b4b4b;
+}
+.home_link-list ul li::before {
+    content: '';
+    color: #4b4b4b;
+    font-weight: 700 !important;
+    border: solid;
+    border-width: 0 2px 2px 0;
+    display: block;
+    left: 0;
+    top: 9px;
+    background-color: transparent;
+    position: absolute;
+    height: 2px;
+    width: 2px;
+    padding: 1px;
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+}
+.home_link-list ul li a{
+    text-decoration: none;
+    padding-bottom: 1px;
+    border-bottom-width: 0px;
+    border-bottom-style: dotted;
+    border-bottom-color: inherit;
+    color: inherit
+}
+.home_link-list ul li a:hover,
+.home_link-list ul li a:focus
+{
+    border-bottom-style: solid
+}
+
+.home_right_bar{
+    width: 100%;
+}
+.home_right_bar img {
+    width: 100%;
+}
+.home_right_bar.have_question {
+    padding: 10px;
+    background: #FFB511;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+.hero-content.apply_now_btn .btn-blue {
+  font-size: 2rem !important;
+   line-height: 35px !important;
+}
+.hero-content.apply_now_btn {
+  text-align: center;
+}
+
+.home_first {
+    margin-top: 0px !important;
+}
+
+.inner-content{
+    text-align: justify;
+}
+
+@media only screen and (max-width: 400px) {
+    .hero-content.apply_now_btn .btn-blue {
+      font-size: 1.5rem !important;
+      line-height: 35px !important;
+    }
+}
+        </style>
+        
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+    </head>
+    <body class="">
+    <!--
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+    <div class="navbar-header page-scroll">                         
+    <a class="navbar-brand page-scroll" href="http://www.lafilm.edu/">                
+    <img class="img-fluid" id="imgLogo" 
+    src="images/logo.png" style="display:inline-block;" height="50px !important;"/>            
+    </a>
+    </div>
+    </div>
+    </nav>
+    -->
+        
+        
+        <c:NewApplicationHeaderComponent />  
+        
+        <!-- START SIGN-IN MODAL -->
+        <div>
+            <c:NewApplicationSignInComponent />    
+        </div>
+        <!-- END SIGN-IN MODAL -->
+        
+        <apex:form >       
+            <div class="container-hybrid main" id="main-content">
+                <div class="banner hero hero-2 bg-image-cover  text-white" 
+                     style="background-image: url({!myimageurl});">
+                    
+                    <div class="video-container12">
+                        
+                    </div>
+                    <div class="hero-body container">
+
+                        
+                        <div class="row">
+                            <div class="col-sm-4 col-lg-3 col-xl-3 back_shadow">
+                                
+                         <nav aria-label="breadcrumb" id="">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a href="https://www.lafilm.edu/">Home</a>
+                                </li>
+                                <li aria-current="page" class="breadcrumb-item active">
+                                <apex:commandLink action="{!startapplication}" value="Apply now" id="theCommandLink1"/>
+                                </li>
+                            </ol>
+                        </nav>                               
+                                
+                                
+                                <div class="hero-content" id="main-content">
+                               <!--     <h1 class="mb-2" >Apply now</h1>  -->
+                                  
+                                    <h1 class="mb-2" >  
+                                    <apex:commandLink action="{!startapplication}" value="Apply now" id="theCommandLink" styleClass="home_apply_now"/>
+                                    </h1> 
+
+                                    <div class="hero-content" id="main-content">
+                                        <p class="font-weight-bold body-3">{!$Label.NewApp_BatchStartMonth}</p>
+                                        <p class="font-weight-bold body-3">It’s time to turn your plans into action.<br/>Get your LA Films application in by November 30.</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <apex:commandbutton action="{!startapplication}" value="Start your application" id="startapplication" styleClass="btn btn-primary btn-blue" />
+                                    </div>
+                                    
+                                    <h3 class="h6">{!$Label.NewApp_AlreadyHaveAnApp}
+                                    </h3>
+                                    <ul class="link-list">
+                                        <li><a href="javascript:showSignUpScreen();">{!$Label.NewApp_SignInHere}</a></li> 
+                                      <!--    <li><a href="javascript: void(0);" data-toggle="modal" data-target="#myModal">Sign in to your application</a></li> -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                
+                <div class="container">
+                    <div class="row layout-2col">
+                        <div class="col-12 col-md-7 pb-5">
+                            <div class="pb-5 content wysiwyg inner-content">
+                                <div class="mt-2">
+                                    <c:NewApplicationKnowledgeBase />
+                                    <!--<h2>Article List</h2>
+
+                                <ul class="list-group">
+                                <knowledge:articleList articleVar="article" pageNumber="{!currentPageNumber}"   Keyword="{!searchstring}" hasMoreVar="false" pageSize="10">
+
+                                <li class="list-group-item">
+                                    <apex:outputLink target="_blank" value="{!URLFOR($Action.KnowledgeArticle.View, article.id,['popup' = 'true'])}">{!article.title}</apex:outputLink>
+
+                                </li>
+                                </knowledge:articleList>
+                                </ul>-->
+                                    
+                                <div class="hero-content apply_now_btn">
+                                 <!--   <a href="#" aria-label="Start your application" class="btn btn-primary btn-blue " role="button">Apply Now For 2020</a> -->
+                                      <apex:commandbutton action="{!startapplication}" styleClass="btn btn-primary btn-blue " Value="Apply Now For 2020" />
+                                </div>    
+                                </div>
+                                 
+                                <apex:repeat value="{!LandingPageSections}" var="section">                                
+                                <h2 class="home_first_1">{!section.Title}</h2>
+                                <div class="home_link-list">
+                                <apex:outputText value="{!section.content}" escape="false"/>
+                                  </div>
+                                </apex:repeat>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 col-md-4 sidebar offset-md-1">
+                            <div class="d-none d-md-block text-uc-black">
+                                
+                            </div>
+                            <div class="tile-stack right-column-blocks">
+                             
+                                      <apex:repeat value="{!banners}" var="banner"> 
+                                
+                                    <div class="home_right_bar" style="{!banner.background}">
+                                        <apex:outputText value="{!banner.content}" escape="false"/>
+
+                                        
+                                    </div><br/>
+                                </apex:repeat>   
+                                
+                         <!--     <div class="home_right_bar" >
+                                    <a href="javascript:void(0);">
+                                        <img src="{!URLFOR($Resource.LAFilmsBanners, '/images/EMPTYROOMS.jpg')}" />
+                                    </a>
+                                </div><br/>
+                                <div class="home_right_bar">
+                                    <a href="javascript:void(0);">
+                                        <img src="{!URLFOR($Resource.LAFilmsBanners, '/images/animation.jpg')}" />
+                                    </a>
+                                </div>
+                                <div class="home_right_bar have_question">
+                                    {!$Label.NewApp_BookappointmentwithAdmissionCounsellor}
+                                </div>   -->
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- end container -->
+                <div class="tile-group footer-blocks">
+                </div>
+                <!-- end tile-group -->
+                <div class="container d-block d-md-none text-dark" id="mobile-right-nav">
+                    <div class="row">
+                        <div class="col">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                
+                function showSignUpScreen() {
+      
+                    var x = document.getElementById( 'signInModal' );
+                    x.style.display = 'block';
+                    
+                    $( '.focus_userName' ).focus();
+                    $('.focus_userName').val('');
+                    $('.focus_password').val('');
+                    
+                    
+                    $('#signInModal').find('.required_error ').removeClass('required_error');
+                    $('#signInModal').find('.form-group span').html('');
+                 }
+                
+                
+        </script>
+           
+        </apex:form>
+        
+        <c:NewApplicationFooterComponent />
+    </body>
+</apex:page>

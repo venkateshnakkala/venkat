@@ -1,0 +1,16 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+	<lightning:accordion allowMultipleSectionsOpen="true"  > 
+        <lightning:accordionSection name="A" label="Accordion Title A">
+           <p>This is the content area for section A.</p>
+        </lightning:accordionSection>
+        <lightning:accordionSection name="B" label="Accordion Title B">
+            <p>This is the content area for section B.</p>
+        </lightning:accordionSection>
+        <lightning:accordionSection name="C" label="Accordion Title C">
+            <p>This is the content area for section C.</p>
+        </lightning:accordionSection>
+    </lightning:accordion>
+
+
+    /*venkat*/
+</aura:component>

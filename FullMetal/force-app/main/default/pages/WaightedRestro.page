@@ -1,0 +1,107 @@
+<apex:page standardController="contact" extensions="WaightedRestro" action="{!createDataSet}" showHeader="false" sidebar="false" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false">
+<style>
+    * {
+        font-size:12px;
+        font-family:Arial;
+    }
+    table {
+        border-collapse:collapse;
+    }
+    .head td{
+        font-weight:normal;
+        text-decoration:underline;
+        text-align:center;
+    }
+    .head td:first-child{
+        text-align:left;
+        min-width:120px;
+    }
+        
+    table td:not(:first-child){
+        text-align:center;
+        min-width:60px;
+    }
+    
+    .head td, table td {
+        border:#ccc dotted 1px;
+        padding:3px;
+    }
+    
+    div {
+        clear:both;
+        padding-top:10px;
+        padding-left:3px;
+        font-weight:bold;
+    }
+    .total td{
+        font-weight:bold;
+    }
+    input, select {
+        margin:0px;
+        box-sizing: border-box;
+        height:20px;
+    }
+</style>
+
+
+<apex:form >
+    <table>
+        <tr>
+            <td>
+            <apex:selectList value="{!thisDate}" size="1">
+                <apex:selectOptions value="{!selectDates}" />
+            </apex:selectList>
+            </td>
+            <td>
+                <apex:commandButton action="{!createDataSet}" value="Run Report" />
+            </td>
+        </tr>
+    </table>
+</apex:form>
+
+    
+<apex:repeat value="{!managers}" var="man">
+    <div>{!managers[man].name}</div>
+    <table>
+        <tr class="head">
+            <td></td>
+            <td colspan="3">Lead-App 7 Days</td>
+            <td colspan="3">Lead-App 30 Days</td>
+        </tr>
+        <tr class="head">
+            <td>Name</td>
+            <td>Apps</td>
+            <td>Leads</td>
+            <td>%</td>
+            <td>Apps</td>
+            <td>Leads</td>
+            <td>%</td>
+        </tr>
+    <apex:repeat value="{!reps[man]}" var="rep">
+        <tr>
+            <td><apex:outputText value="{!reps[man][rep].admName}"></apex:outputText></td>
+            <td><apex:outputText value="{!reps[man][rep].day7Apps}"></apex:outputText></td>
+            <td><apex:outputText value="{!reps[man][rep].day7Leads}"></apex:outputText></td>
+            <td><apex:outputText value="{!reps[man][rep].WPercent}"></apex:outputText></td>
+            
+            <td><apex:outputText value="{!reps[man][rep].day30Apps}"></apex:outputText></td>
+            <td><apex:outputText value="{!reps[man][rep].day30Leads}"></apex:outputText></td>
+            
+            <td><apex:outputText value="{!reps[man][rep].MPercent}"></apex:outputText></td>
+        </tr>
+    </apex:repeat>
+        <tr class="total">
+            <td><apex:outputText value="{!total[man].admName}"></apex:outputText></td>
+            <td><apex:outputText value="{!total[man].day7Apps}"></apex:outputText></td>
+            <td><apex:outputText value="{!total[man].day7Leads}"></apex:outputText></td>
+            <td><apex:outputText value="{!total[man].WPercent}"></apex:outputText></td>
+            
+            <td><apex:outputText value="{!total[man].day30Apps}"></apex:outputText></td>
+            <td><apex:outputText value="{!total[man].day30Leads}"></apex:outputText></td>
+            
+            <td><apex:outputText value="{!total[man].MPercent}"></apex:outputText></td>
+        </tr>
+    </table>
+</apex:repeat>
+
+</apex:page>

@@ -1,0 +1,126 @@
+<apex:component allowDML="TRUE" controller="NewApplicationHeaderComponentController">
+    
+    <header>
+        
+        <meta http-equiv="content-type" content="text/html;" charset="UTF-8"/>
+        <title>LAFS</title>
+        <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+        <meta charset="UTF-8"/>
+        <meta content="width=device-width,initial-scale=1,shrink-to-fit=no" name="viewport"/>
+        
+        <script src="https://code.jquery.com/jquery-3.4.1.js"/>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <apex:includeScript value="{!URLFOR($Resource.LAFilmsApplication, 'js/prism.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.LAFilmsApplication, 'js/intlTelInput.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.LAFilmsApplication, 'js/displayNumber.js')}"/>
+        
+        <script src="https://cdn.ckeditor.com/4.13.0/standard-all/ckeditor.js"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/style.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/bootstrap.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/prism.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/intlTelInput.css')}"/>
+        
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet"/>
+        <link href="{!URLFOR($Resource.LAFilmsApplication, '/imgages/ico.ico')}" rel="shortcut icon" />        
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />
+        <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/themes/base/jquery-ui.css" rel="stylesheet"/>        
+        
+        <style>
+            .hideField {
+            display:none;
+            }
+            .errordropDownBorder {
+            border-color : red !important; 
+            }
+            .successdropDownBorder {
+            border-color : #ccc !important;
+            }
+            .scrollbar
+            {   
+            
+            height: 100px;
+            width: 570px;
+            overflow-y: scroll;
+            
+            }
+        </style>
+        
+        <div class="nav-desktop d-none d-md-block navbar-light" id="focusHeader">
+            <div class="nav-main container-hybrid">
+                <div class="container">
+                    <nav class="navbar navbar-expand-md navbar-light">
+                        <a class="navbar-brand page-scroll" href="http://www.lafilm.edu/">                
+                            <img class="img-fluid" id="imgLogo" 
+                                 src="{!URLFOR($Resource.LAFilmsApplication, '/images/logo.png')}" style="display:inline-block;"
+                                 height="50px !important;"/>            
+                        </a>
+                        <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent-desktop">
+                            <ul class="navbar-nav navbar-items-menu">
+                                <li class="nav-item">
+                                    <span>
+                                        <apex:outputPanel rendered="{!loggedInUser.Id == NULL }">
+                                            <apex:outputPanel >
+                                                <a class="signInHyperLink" href="javascript:showSignUpScreen();"
+                                                   style="color:#FFF;text-decoration: underline;">
+                                                    <b>Sign in now</b>
+                                                </a>
+                                            </apex:outputPanel>
+                                            <span style="color:#FFF">to continue</span>
+                                            <span class="hidden-xs" style="color:#FFF">your online application</span>
+                                            <span class="visible-xs-inline" style="color:#FFF">working</span>.
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!loggedInUser.Id != NULL}">
+                                            <b>Welcome, {!loggedInUser.Name}!</b>
+                                        </apex:outputPanel>
+                                    </span>
+                                </li>                                                       
+                            </ul>
+                            
+                            <ul class="navbar-nav navbar-items-icon">
+                                <li class="nav-item">
+                                    <apex:outputPanel rendered="{!loggedInUser.Id == NULL}">
+                                        <h5 style="font-size: 15px; margin-bottom: 5px; margin-top: 0; line-height: 1.0em;color:#FFF">Already started your application?</h5>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!loggedInUser.Id != NULL}">
+                                        <a style="margin-bottom: 5px; margin-top: 0; line-height: 1.0em;color:#FFF;color:#FFF;text-decoration: underline;" 
+                                           href="{!$Site.Prefix}/secur/logout.jsp">Logout</a>
+                                    </apex:outputPanel>
+                                </li>
+                            </ul>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        
+        <apex:outputPanel rendered="{!resetpassmodal}">
+            <div id="resetPasswordModal" class="modal" role="dialog">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">                   
+                        <div class="modal-header"><center>
+                            <a class="pull-right" href="javascript:void(0);"><span class="glyphicon glyphicon-remove"></span></a>
+                            <h4 class="modal-title">    &nbsp;  &nbsp;  &nbsp;  &nbsp;   Reset Password</h4></center>
+                        </div>
+                        <div class="modal-body">
+                            <p class="ng-binding">You already have a User, we have just reset your password. Please check your email for next steps.</p>
+                            <div class="btn-panel text-right">
+                                <a class="vw-button" href="/NewApplication">Close</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </apex:outputPanel>        
+    </header>
+    
+    <script type="text/javaScript">
+        var userNotFound = '{!$CurrentPage.parameters.userNotFound}';
+        if(userNotFound == 'true'){
+            // showSignUpScreen(); 
+        }
+    </script>
+</apex:component>

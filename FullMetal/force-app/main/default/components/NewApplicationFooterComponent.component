@@ -1,0 +1,65 @@
+<apex:component allowDML="TRUE">
+<apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/zocial.css')}"/>
+  <Body>
+  <footer class="footer container-hybrid text-white">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 my-auto">
+                        <div class="footer-logo">
+                            <img class="img-fluid" id="imgLogo" src="{!URLFOR($Resource.LAFilmsApplication, '/images/logo.png')}" style="display:inline-block;" height="50px !important;"/>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="footer-content">
+                            <a class="footer-site-link" href="http://lafilm.edu/">lafilm.edu</a>
+                            <div class="footer-legal">
+                                <p class="footer-copyright mb-0">Copyright © Regents of the Los Angeles Film School &nbsp; &nbsp;</p>
+                                <ul class="footer-support-links">
+                                   <!-- <li>    <a href="#">Terms of use</a>
+                                    </li>
+                                    <li>    <a href="#">Counselors</a>
+                                    </li> -->
+                                    <li>    <a href="https://www.lafilm.edu/contact/" target="_blank">Contact us</a>
+                                    </li>
+                                </ul>
+                            </div>
+
+
+                            <div class="social-profile">
+                                    <a class="social-profile-icon social-facebook" title="Facebook"
+                                       href="https://www.facebook.com/losangelesfilmschool" target="_blank" >
+                                        <i class="icon-social-facebook"></i>
+                                    </a>
+                                    <a class="social-profile-icon social-instagram" title="Instagram"
+                                       href="https://www.instagram.com/losangelesfilmschool" target="_blank">
+                                        <i class="icon-social-instagram"></i>
+                                    </a>
+                                    <a class="social-profile-icon social-linkedin" title="LinkedIn"
+                                       href="https://www.linkedin.com/school/the-los-angeles-film-school" target="_blank">
+                                        <i class="icon-social-linkedin"></i>
+                                    </a>
+                                    <a class="social-profile-icon social-pinterest" title="Pinterest"
+                                       href="https://www.pinterest.com/lafilmschool" target="_blank">
+                                        <i class="icon-social-pinterest"></i>
+                                    </a>
+                                    <a class="social-profile-icon social-tumblr" title="Tumblr"
+                                       href="https://lafilmschool.tumblr.com" target="_blank">
+                                        <i class="icon-social-tumblr"></i>
+                                    </a>
+                                    <a class="social-profile-icon social-twitter" title="Twitter"
+                                       href="https://twitter.com/lafilmschool" target="_blank">
+                                        <i class="icon-social-twitter"></i>
+                                    </a>
+                                    <a class="social-profile-icon social-youtube" title="Youtube"
+                                       href="https://www.youtube.com/losangelesfilmschool" target="_blank">
+                                        <i class="icon-social-youtube"></i>
+                                    </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </body>
+
+</apex:component>

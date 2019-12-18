@@ -1,0 +1,7 @@
+<apex:page >
+    <apex:form >
+    <script src="countries.js"></script>
+    <select id="country" name="country">countries</select>
+    <select name="state" id="state">states</select>
+    </apex:form>
+</apex:page>

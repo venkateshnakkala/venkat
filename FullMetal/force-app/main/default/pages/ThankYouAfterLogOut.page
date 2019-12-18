@@ -1,0 +1,372 @@
+<apex:page cache="false" sidebar="false" showHeader="false" standardStylesheets="false"  docType="html-5.0"> <!-- action="{!chkLogIn}"-->
+<html>
+  <head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-52V7KK');</script>
+    <!-- End Google Tag Manager -->
+    <title>New Student Application</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, minimum-scale=1, user-scalable=yes"/>
+
+    <apex:stylesheet value="{!URLFOR($Resource.static, 'css/bootstrap.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.static, 'css/jquery-ui.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.static, 'css/scrolling-nav.css')}"/> 
+    <apex:stylesheet value="{!URLFOR($Resource.static, 'css/laFilmStyle.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.static, 'css/zebra_tooltips.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.static, 'css/bootstrap-progressbar-3.3.4.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.IntlTelFomat, 'css/intlTelInput.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.IntlTelFomat, 'css/demo.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.DevRySteps)}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.LoadingIconCss)}"/>
+    <style>
+         .floatRight{
+            float: right;
+         }
+         .floatCenter{
+            float: none;
+         }
+         canvas {
+             height:200px !important;
+             border:1px solid #000000 !important;
+             max-width:600px !important;
+         }
+           section {
+                position: relative;
+                float: left;
+                width: 100%;
+                padding-left: 15px;
+                padding-right: 15px;
+                min-height: 100vh;
+               /* padding-top: 100px;*/
+            }           
+            /*input[type="submit"], .btn-submit {
+                min-width: 162px;
+                font-size: 15px;
+                text-transform: uppercase;
+                color: #FFFFFF;
+                height: 40px;
+                /*border-radius: 5px;
+                box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.5);
+                padding-left: 20px;
+                padding-right: 20px;
+                border: none;
+                -webkit-transition: all 0.3s;
+                transition: all 0.3s;
+            }*/
+            h2{
+                color:#222;
+            }
+            ul{
+                padding-left:0px;
+            }
+            .answer, .question, .textAnswer, .zipAnswer{
+                height: 40px;
+                margin-bottom: 5px;
+                padding: 5px;
+                /*padding-left:10px;*/
+                font-size: 2rem;
+                border-color: rgb(51, 51, 51);
+                /*border-radius: 0px;*/
+            }   
+            ul.noStyle li{
+                list-style:none;
+                width:100%;
+            }     
+            .textAnswer{
+                width:98%;
+                /*border-radius:6px;*/
+            }    
+            textarea{
+                resize:none;
+                width:100%;
+                /*border-radius: 5px;*/
+                padding: 5px 10px 5px 10px;
+            }
+            select{
+                width:98%;
+                margin-bottom:5px;
+                padding:5px 38px 5px 5px;
+                height:40px;
+                font-size: 2rem;
+                text-align: center;
+                border-color: rgb(51, 51, 51);
+                border-width:1px;
+                /*border-style:inset;*/
+            }       
+            div.bottom{
+                margin-top: 20px;
+                clear:both;
+            }
+            .btn-default{
+                background: linear-gradient(to bottom, #FFFFFF 0%, #FFFFFF 50%, #000000 50%, #F1F1F1 50%, #F1F1F1 100%);
+                color: #003087;
+                background-color: #F1F1F1;
+            }   
+            .validationElement {
+                border: 2px solid red !important;
+            }
+            #ui-datepicker-div{
+                z-index:2000;
+            }
+            .input-group .form-control {    
+                z-index: 1;
+            }
+            .col-md-6{
+                color: rgb(51, 51, 51);
+            }
+            /*::-webkit-input-placeholder {
+               color: rgb(51, 51, 51);
+            }               
+            :-ms-input-placeholder {  
+               color: rgb(51, 51, 51);
+            } */          
+            .vw-page-title-box {
+                padding-left: 15px;
+                background-color: rgba(0, 0, 0, 0.4);
+                padding: 25px 15px 25px 0;
+            }
+            .vw-page-title{
+                font-size:40px;
+                font-weight:bold;
+                color:rgb(255,255,255);
+                text-align:center;
+                padding:0px;
+            }
+            .vw-button {
+                cursor: pointer;
+                text-align: center;
+                background-color: rgba(0, 0, 0, 0.4);
+                border: 2px solid #000000;
+                font-size: 16px;
+                width: 232px;
+                font-weight: bold;
+                height: 44px;
+                color:#fff;
+                max-width: 49%;
+             }
+             .vwspc-section-full-page-link {
+                cursor:default;
+                padding-top:118px;
+             }
+             .vw-button:hover {
+                background-color: #e3d583;
+             }
+            /* ::-webkit-input-placeholder {
+               color: rgb(51, 51, 51);
+            }       
+            :-moz-placeholder { /* Firefox 18- 
+               color: rgb(51, 51, 51);
+            }       
+            ::-moz-placeholder {  /* Firefox 19+ 
+               color: rgb(51, 51, 51);
+            }       
+            :-ms-input-placeholder {  
+               color: rgb(51, 51, 51);
+            }*/
+            .ui-datepicker-month, .ui-datepicker-year{
+                padding-right: 0px;
+                padding-left: 15px;
+            }
+            input.textAnswer.validationElement{
+                border: 2px solid red !important;
+            }
+            input.zipAnswer.validationElement{
+                border: 2px solid red !important;
+            }
+            .validationElement {
+                border: 2px solid red !important;
+            }
+            .navbar{
+                background-color: #000000;
+                border-color: #000000;
+            }
+            h3.vw-full-page-link-title{
+                color: #FFFFFF;
+            }
+            .vwspc-section{
+                margin-top:0px;
+                min-height: 100vh;
+                overflow:hidden;
+                display:none;
+            }
+            .vwspc-section-full-page-link .vw-full-page-link-title{
+                margin:0px;
+                margin-top:15px;
+            }
+            .container{
+                padding-top:10px;
+            }
+            .fileUpload {
+            position: relative;
+            overflow: hidden;
+            margin: 10px;
+        }
+        .fileUpload input.upload{
+            background: -webkit-linear-gradient(top, #00449C 0%, #00449C 50%, #000000 50%, #003087 50%, #003087 100%);
+            background: linear-gradient(to bottom, #00449C 0%, #00449C 50%, #000000 50%, #003087 50%, #003087 100%);
+            background-color: #003087;
+            min-width: 162px;
+            font-size: 15px;        
+            text-transform: uppercase;
+            color: #FFFFFF;
+            height: 42px;
+           /* border-radius: 5px;*/
+            box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.5);
+            padding-left: 20px;
+            padding-right: 20px;
+            border: none;
+            -webkit-transition: all 0.3s;
+            transition: all 0.3s;
+        }
+        .docSubmitted{
+            font-size: 18px;
+            font-weight: bold;
+            color: green;
+        }
+        input[type="checkbox"]{
+            height:30px;
+            width:30px;         
+        }
+        .checkbox input[type="checkbox"]{
+            margin-left:-50px;
+        }
+        .checkbox label {
+            min-height: 27px;
+            padding-left: 0px;
+            margin-bottom: 0;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        /*::-webkit-input-placeholder {
+           opacity:0.8;
+           font-style: italic;
+           font-size: 18px;
+        }
+        
+        :-moz-placeholder { /* Firefox 18- 
+           opacity:0.8;
+           font-style: italic;
+           font-size: 18px;  
+        }
+        
+        ::-moz-placeholder {  /* Firefox 19+ 
+           opacity:0.8;
+           font-style: italic;
+           font-size: 18px;  
+        }
+        
+        :-ms-input-placeholder {  
+           opacity:0.8;
+           font-style: italic;
+           font-size: 18px;  
+        }*/
+        .summaryCheck{
+            width: 30px;
+            height: 30px;
+            border: 1px solid black;
+            font-size: 25px;
+            color: #29a53f;
+            /*margin-left:-5px;*/
+            margin-top:8px;
+            background-color: #fff;
+        }
+        .summaryText{
+             padding:10px 0px 0px 0px;
+             font-weight:bold;
+             text-align:left;
+             /*width:200px;*/
+             margin-left:-20px;
+        }
+        *{
+            font-family: "Arial" !important; /*Open Sans*/
+        }
+        .glyphicon{
+            font-family: "Glyphicons Halflings" !important;
+        }
+        .asterick{
+            color:red;
+            display:inline;
+        }
+        .backstretch {
+            background:url({!URLFOR($Resource.static, 'img/campus-1263x560.jpg')}) no-repeat;
+            background-size: 100%;
+            width: 100% !important;
+        }
+        .navbar-brand {
+            width: 80%;
+        }
+        #the_footer{
+            position:fixed;
+            background-color:#FFFFFF;
+            bottom:0;
+            min-height:30px;
+            text-align:center;
+            font-style:italic;
+            padding:8px 1px;
+            font-size:12px;
+            width:100%;
+            -webkit-box-shadow: 0px -4px 8px rgba(50, 50, 50, 0.75);
+            -moz-box-shadow:    0px -4px 8px rgba(50, 50, 50, 0.75);
+            box-shadow:         0px -4px 8px rgba(50, 50, 50, 0.75);
+            line-height: 1.5;
+        }
+        #the_footer span{
+            white-space: nowrap;
+        }
+
+        div.thank-you-header{           
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            min-height: 321px;
+            position: relative;
+        }
+
+         
+    </style>
+    <apex:includeScript value="{!URLFOR($Resource.static, 'js/jquery-2.1.4.js')}" />  
+    <apex:includeScript value="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"/>
+    <apex:includeScript value="{!URLFOR($Resource.IntlTelFomat, 'js/intlTelInput.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.static, 'js/bootstrap.js')}" />    
+    <script type="text/javascript">var __sfdcSessionId = '{!GETSESSIONID()}';</script>
+      
+    <script src="/soap/ajax/32.0/connection.js" type="text/javascript"></script>
+    
+    
+    
+
+  </head>
+  <body id="page-top"  data-spy="scroll" data-target=".navbar-fixed-top">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-52V7KK"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <c:ApplicationHeaderComponent />
+    <div class="container thank-you-header" style="margin-top: 7%;">
+    <div class="row">
+        <div class="col-sm-6 col-sm-offset-3 text-center">
+            <h1>Thank you !</h1>
+            <p>Your information has been saved to your account.</p>
+            <p>
+                You may login to continue your application.
+            </p>
+            
+        </div>
+    </div>
+</div>
+    <script type="text/javascript">
+        j$ = jQuery.noConflict();  
+            j$(document).ready(function(){
+                j$('html').niceScroll({cursorcolor:"#000000"});
+            });
+    </script>
+    </body>
+    </html>
+    
+</apex:page>

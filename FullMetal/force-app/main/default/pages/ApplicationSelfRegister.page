@@ -1,0 +1,185 @@
+<apex:page id="ApplicationSelfRegPage" docType="html-5.0" controller="CommunitiesSelfRegController" showHeader="false" sidebar="false" standardStylesheets="false">
+<html>
+  <head>
+    <title>Register</title>
+    <!-- Bootstrap -->
+    <apex:stylesheet value="{!URLFOR($Resource.static, 'css/bootstrap.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.static, 'css/jquery-ui.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.static, 'css/scrolling-nav.css')}"/> 
+    <apex:stylesheet value="{!URLFOR($Resource.static, 'css/laFilmStyle.css')}"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>   
+    <script type="text/javascript">var __sfdcSessionId = '{!GETSESSIONID()}';</script>
+    <script src="/soap/ajax/32.0/connection.js" type="text/javascript"></script>   
+    <style>
+        #the_footer{
+            position:fixed;
+            background-color:#FFFFFF;
+            bottom:0;
+            min-height:30px;
+            text-align:center;
+            font-style:italic;
+            padding:8px 1px;
+            font-size:12px;
+            width:100%;
+            -webkit-box-shadow: 0px -4px 8px rgba(50, 50, 50, 0.75);
+            -moz-box-shadow:    0px -4px 8px rgba(50, 50, 50, 0.75);
+            box-shadow:         0px -4px 8px rgba(50, 50, 50, 0.75);
+            line-height: 1.5;
+        }
+        #the_footer span{
+            white-space: nowrap;
+        }
+    </style>
+  </head>
+  <body  id="page-top" data-spy="scroll" data-target=".navbar-fixed-top" >
+    <c:ApplicationHeaderComponent /> 
+    <style>
+        @media (max-width : 380px) {
+            .vwspc-section-full-page-link{
+                    padding-top:30px !important;
+            }
+        }
+    
+    </style> 
+        <div class="vw-page-wrapper clearfix">
+        <div class="vwspc-section vwspc-section-full-page-link"  style="position: relative; z-index: 0; background: none;" >        
+        <div class="vw-full-page-link-header">
+                <h3 class="vw-full-page-link-title">Register To Apply</h3>          
+                <apex:image url="{!URLFOR($Resource.static, 'img/bg-welcome-1263x560.jpg')}"  styleClass="vw-full-page-link-background hidden"/>            
+            </div>
+            <div class="backstretch" style="left: 0px; top: 0px; overflow: hidden; margin: 0px; padding: 0px; height: 250px; width: 100%; z-index: -999998; position: absolute; background-image: url(/resource/1484566260000/static/img/bg-welcome-1263x560.jpg); background-size: cover;">
+                <apex:image url="{!URLFOR($Resource.static, 'img/bg-welcome-1263x560.jpg')}"  style="position: absolute; margin: 0px; padding: 0px; border: none; width: 1903px; height: 843.769px; max-height: none; max-width: none; z-index: -999999; left: 0px; top: -211.384px;"/>     
+            </div>          
+            <div class="container" id="registerInputs">
+                    <div class="row" >
+                    <apex:form id="resendForm" forceSSL="true"> 
+                    <div style="display:{!if(codeSet==true,'','none')};border:#000000 solid 1px; padding:5px; text-align:left">
+                        <p>We found your email <span style="display:{!if(email==''|| email==null,'none','')}">({!email})</span> already in our system. To ensure the system's security, we need you to confirm this email address by providing an extra piece of information. 
+                        Please find the email we have sent to you and kindly enter the validation code below.</p> 
+                        <span style="display:{!if(email==''|| email==null,'none','block')}; font-size:10px">Did not receive the code? <apex:commandLink action="{!resend}"  value="Resend" id="theCommandLink"/></span>
+                    </div>
+                     </apex:form> 
+                        <div class="col-sm-4 col-sm-offset-4">
+                            <apex:form id="theForm" forceSSL="true"> 
+                            <apex:pageMessages id="error"/>
+                            <ul class="noStyle">                                    
+                                <li>
+                                    <h4 style="text-align: left; font-weight:bold;">First Name:</h4>
+                                </li>                        
+                                <li>
+                                    <apex:inputText required="true" id="firstName" value="{!firstName}" styleClass="textAnswer "/>
+                                </li>
+                                <li>
+                                    <h4 style="text-align: left; font-weight:bold;">Last Name:</h4>
+                                </li>
+                                <li>
+                                    <apex:inputText required="true" id="lastName" value="{!lastName}" styleClass="textAnswer "/>
+                                </li> 
+                                <li style="display:{!if(codeSet==true,'none','')}">
+                                    <h4 style="text-align: left; font-weight:bold;">Email:</h4>
+                                </li>   
+                                
+                                <li style="display:{!if(codeSet==true,'none','')}">
+                                    <apex:inputText required="true" id="email" value="{!email}" styleClass="textAnswer"/>
+                                </li>
+                                <!-- 
+                                    <li style="text-align:left; font-size:12px; font-style:italic;display:{!if(codeSet==true,'none','')};">Do you have Validation Code? <a href="#" id="show_code">Click Here</a></li> 
+                                -->
+                                <li style="display:{!if(codeSet==true,'','none')}" class="v_code">
+                                    <h4 style="text-align: left; font-weight:bold;">Validation Code:</h4>
+                                </li>  
+                                <li style="display:{!if(codeSet==true,'','none')}" class="v_code">
+                                     <apex:inputText id="validationCode" value="{!ValidCode}" styleClass="textAnswer" required="{!codeSet}"/>
+                                </li>                                
+                                <li>
+                                    <h4 style="text-align: left; font-weight:bold; float:left;">Create Password:<sup>*</sup></h4>
+                                </li>   
+                                <li>
+                                    <apex:inputSecret id="password" value="{!password}" styleClass="textAnswer"/>
+                                </li>
+                                <li>
+                                    <h4 style="text-align: left; font-weight:bold;">Confirm Password:</h4>
+                                </li>   
+                                <li>
+                                    <apex:inputSecret id="confirmPassword" value="{!confirmPassword}" styleClass="textAnswer"/>
+                                </li>
+                                <li>
+                                    <span style="font-size:12px;font-style:italic;">
+                                        <sup>*</sup> Password must be 8 or more characters, 1 letter, 1 number
+                                    </span>
+                                </li>           
+                                <li style="margin-top:25px;">
+                                    <apex:commandLink action="{!registerUser}" value="{!$Label.site.submit}" id="submit" styleClass="vw-button"/>
+                                </li> 
+                                <li>
+                                    <!-- <a href="https://sandbox-lafs.cs44.force.com/Application/ApplicationForgotPassword?sId={!schoolId}"  >Forgot your password?</a> -->
+                                    <!-- <apex:commandLink action="{!forwardToForgotPassPage}" value="Forgot your password?"/> -->
+                                    <!-- <a href="https://sandbox-lafs.cs44.force.com/Application/ApplicationLogin?sId={!schoolId}"  >Login to application</a> -->
+                                    <!-- <apex:commandLink action="{!forwardToLoginPage}" value="Login to application"/> -->
+                                    
+                                    <a href="https://lafilmschool.force.com/ApplicationForgotPassword{!paras}" >Forgot your password?</a>
+                                    &nbsp;|&nbsp;
+                                    <a href="https://lafilmschool.force.com/ApplicationLogin{!paras}">Existing Users Login</a>
+                                </li>                                     
+                            </ul>
+                            </apex:form> 
+                        </div>    
+                    </div>
+                    
+                <script>          
+                    ( function($) {
+                        function ucwords(str,force){
+                          str=force ? str.toLowerCase() : str;  
+                          return str.replace(/(\b)([a-zA-Z])/g,
+                                   function(firstLetter){
+                                      return   firstLetter.toUpperCase();
+                                   });
+                        }                       
+                        $(document).ready(function(){
+                            $('input[type="text"].cap').keyup(function(evt){  
+                                var cp_value= ucwords($(this).val(),true) ;     
+                                $(this).val(cp_value ); 
+                             });  
+                        });   
+                    } ) ( jQuery );     
+                </script>
+                <apex:includeScript value="{!URLFOR($Resource.static, 'js/jquery-2.1.4.js')}" />                
+                <apex:includeScript value="{!URLFOR($Resource.static, 'js/jquery-ui.js')}" />
+                <apex:includeScript value="{!URLFOR($Resource.static, 'js/jquery.mask.js')}" />
+                <apex:includeScript value="{!URLFOR($Resource.static, 'js/bootstrap.js')}" />
+                <apex:includeScript value="{!URLFOR($Resource.static, 'js/jquery.easing.min.js')}" />
+                <apex:includeScript value="{!URLFOR($Resource.static, 'js/scrolling-nav.js')}" />            
+                <apex:includeScript value="{!URLFOR($Resource.static, 'js/knockout.js')}" /> 
+                <apex:includeScript value="{!URLFOR($Resource.static, 'js/knockout.validation.js')}" /> 
+                <apex:includeScript value="{!URLFOR($Resource.static, 'js/autoresize.jquery.min.js')}" />
+                <apex:includeScript value="{!URLFOR($Resource.static, 'js/bootstrap-filestyle.js')}"/>      
+                <c:ApplicationJSComponent /> 
+                <script>
+                    j$ = jQuery.noConflict();       
+                    j$(document).ready(function() {
+                        //Application.pageName('self reg');//hides logout link
+                        
+                    /*
+                    j$('#show_code').click(function(){
+                        var show=j$('.v_code').is(':visible');
+                        
+                        if(show){
+                            j$('.v_code').slideUp();
+                        }else{
+                            j$('.v_code').slideDown();
+                       }
+                     });
+                     */
+                   });
+                </script>    
+             </div><!--container end -->
+             <div style="font-size:11px; line-height:12px; font-style:italic;">Disclaimer: By submitting this form, you give The Los Angeles Film School and its partner schools (Full Sail University and RMCAD) your consent to<br/> 
+             contact you via phone, email and/or text using automated technology at the information above, including your wireless number, if provided, regarding educational services.<br/>
+             Please note that you are not required to provide this consent to receive educational services.</div>
+        </div>
+    </div> 
+    <div id="the_footer">For the best experience, <span>please use Google Chrome or Mozilla Firefox browsers.</span></div>   
+  </body>  
+</html> 
+</apex:page>

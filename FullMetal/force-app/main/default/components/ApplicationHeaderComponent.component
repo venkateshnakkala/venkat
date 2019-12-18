@@ -1,0 +1,1122 @@
+<apex:component Controller="ApplicationController" allowDML="true">
+        <apex:includeScript value="{!URLFOR($Resource.static, 'js/jquery-2.1.4.js')}" />   
+        <apex:includeScript value="{!URLFOR($Resource.static, 'js/bootstrap.js')}" />
+        <apex:includeScript value="{!URLFOR($Resource.static, 'js/flashcanvas.js')}" /> 
+        <apex:includeScript value="{!URLFOR($Resource.static, 'js/moment.js')}" />  
+        <apex:includeScript value="{!URLFOR($Resource.CkEditor, 'ckeditor.js')}" />
+        <apex:includeScript value="{!URLFOR($Resource.NiceScroll)}"/>  
+        <script>
+            j$ = jQuery.noConflict();
+            $ = jQuery.noConflict();
+            j$(document).ready(function(){
+                
+                var exitURL;
+                if ({!schoolId}=='01'){
+                    exitURL = 'http://www.lafilm.edu/campus-life/';
+                }
+                else if ({!schoolId}=='02'){ 
+                    exitURL = 'http://www.larecordingschool.com/campus/'; 
+                    j$('#imgLogo').css('margin-top','-10px');            
+                }
+                else{
+                     exitURL = 'http://www.lafilm.edu/campus-life/';
+                }
+                j$('#exitLink').attr("href", exitURL);           
+                j$(".dropdown").click(            
+                    function() {
+                        if(j$('.dropdown-menu').is(':visible')){
+                            j$('.dropdown-menu').not('.in .dropdown-menu').slideDown();
+                        }
+                        else{
+                            j$('.dropdown-menu').not('.in .dropdown-menu').slideUp();
+                        } 
+                    }
+                );
+            });
+        </script>
+        <style>
+            #countryCitizen{
+                text-align:left;
+            }
+            #countryCitizen option{
+                text-align:left;
+            }
+            .progress {
+                position: relative;
+                width: 70%;
+                height: 20px;
+                background-color: #FFFFFF;
+                margin-left:auto;
+                margin-right:auto;
+                border-radius:0px;
+            }
+
+            .setPasswordError{
+                font-size: 11px;
+                color: red;
+            }
+            .bar {
+                position: absolute;
+                left:0;
+                width: 0%;
+                height: 100%;
+                background-color: #0000FF;
+                text-align:right;
+                color:#FFF;
+            }
+            .mega-dropdown {
+              position: static !important;
+            }
+            .mega-dropdown-menu {
+                padding: 20px 0px;
+                width: 100%;
+                box-shadow: none;
+                -webkit-box-shadow: none;
+            }
+            .mega-dropdown-menu > li > ul {
+              padding: 0;
+              margin: 0;
+            }
+            .mega-dropdown-menu > li > ul > li {
+              list-style: none;
+            }
+            .mega-dropdown-menu > li > ul > li > a {
+              display: block;
+              color: #222;
+              padding: 3px 5px;
+            }
+            .mega-dropdown-menu > li ul > li > a:hover,
+            .mega-dropdown-menu > li ul > li > a:focus {
+              text-decoration: none;
+            }               
+            .dropdown-header{
+                font-size:20px;
+                font-weight:bold;
+                color:  Black;
+            }
+            .floatRight{
+                float: right;
+            }
+            .floatCenter{
+                float: none;
+            }
+            section {
+                position: relative;
+                float: left;
+                width: 100%;
+                padding-left: 15px;
+                padding-right: 15px;
+                min-height: 100vh;  
+            }   
+            /*input[type="submit"], .btn-submit {
+                min-width: 162px;
+                font-size: 15px;
+                text-transform: uppercase;
+                color: #FFFFFF;
+                height: 40px;
+                /*border-radius: 5px;
+                box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.5);
+                padding-left: 20px;
+                padding-right: 20px;
+                border: none;
+                -webkit-transition: all 0.3s;
+                transition: all 0.3s;
+            }*/
+            h2{
+                color:#222;
+            }
+            ul{
+                padding-left:0px;
+            }        
+            .textAnswer{
+                height: 40px;
+                margin-bottom: 5px;
+                padding: 5px;
+                font-size: 2rem;
+                border-color: rgba(51, 51, 51,0.50);
+                border-radius:3px !important;
+                width:97.5% !important;
+                float:left;
+            }
+            .phone1{
+                width:48%;
+            }
+            .phone1NoAst{
+                margin-right:7px;
+                width:48%;
+            }
+            .phoneRightNoAst{
+                width:49.25%;
+            }
+            .phoneRight{
+                width:49.25%; 
+            }
+            .asterick{
+                color:red;
+                display:inline;
+                /*float:left;*/
+                padding-top:12px;
+            }
+            .noComputer{
+                float:left;
+                margin-top: 8px;                
+            }
+            .noComputerCheck{
+                float:right;
+                text-align:left;
+                width:50%;
+            }
+            .docTitle{              
+                float:left;
+            }
+            .docTitleDiv{
+                float:left;
+            }
+            
+            /*from page */
+
+            ul.noStyle li{
+                list-style:none;
+                width:100%;
+                display:block;
+                /*overflow:hidden;*/
+                clear:both;
+                
+            }     
+            ul.noStyle li h4 {
+                margin-bottom:5px; !important;
+            }
+            textarea{
+                resize:none;
+                width:100%;
+                /*border-radius: 5px;*/
+                padding: 5px 10px 5px 10px;
+            }
+            select{
+                width:98%;
+                margin-bottom:5px;
+                padding:5px 38px 5px 5px;
+                height:40px;
+                font-size: 2rem;
+                text-align: center;
+                border-color: rgb(51, 51, 51);
+                border-width:1px;
+                /*border-style:inset;*/
+            }       
+            div.bottom{
+                margin-top: 20px;
+            }
+            .btn-default{
+                background: linear-gradient(to bottom, #FFFFFF 0%, #FFFFFF 50%, #000000 50%, #F1F1F1 50%, #F1F1F1 100%);
+                color: #003087;
+                background-color: #F1F1F1;
+            }   
+            .validationElement {
+                border: 2px solid red;
+            }
+            #ui-datepicker-div{
+                z-index:2000;
+            }
+            .input-group .form-control {    
+                z-index: 1;
+            }
+            .col-md-6{
+                color: rgb(51, 51, 51);
+            }
+            ::-webkit-input-placeholder {
+               color: rgb(51, 51, 51);
+            }               
+            :-ms-input-placeholder {  
+               color: rgb(51, 51, 51);
+            }           
+            .vw-page-title-box {
+                padding-left: 15px;
+                background-color: rgba(0, 0, 0, 0.4);
+                padding: 25px 15px 25px 0;
+            }
+            .vw-page-title{
+                font-size:40px;
+                font-weight:bold;
+                color:rgb(255,255,255);
+                text-align:center;
+                padding:0px;
+            }
+            .vw-button {
+                cursor: pointer;
+                text-align: center;
+                background-color: #000;
+                border: 2px solid #fff;
+                font-size: 16px;
+                width: 232px;
+                font-weight: bold;
+                height: 44px;
+                color:#fff;
+                max-width: 48%;
+                border-radius:5px;
+             }
+             .docButton{
+                padding: 0px;
+                height: auto;
+                max-width: 100%;
+             }
+             .ccaf{
+                text-align:left;
+             }
+             
+             
+             .vwspc-section-full-page-link {
+                cursor:default;
+                padding-top:118px;
+             }
+             .vw-button:hover {
+                background-color: #e3d583;
+             }
+             ::-webkit-input-placeholder {
+               color: rgb(51, 51, 51);
+            }       
+            :-moz-placeholder { /* Firefox 18- */
+               color: rgb(51, 51, 51);
+            }       
+            ::-moz-placeholder {  /* Firefox 19+ */
+               color: rgb(51, 51, 51);
+            }       
+            :-ms-input-placeholder {  
+               color: rgb(51, 51, 51);
+            }
+            .ui-datepicker-month, .ui-datepicker-year{
+                padding-right: 0px;
+                padding-left: 15px;
+            }
+            input.textAnswer.validationElement{
+                border: 2px solid red;
+            }
+            .validationElement {
+                border: 2px solid red;
+            }
+            .navbar{
+                background-color: #000000;
+                border-color: #000000;
+            }
+            h3.vw-full-page-link-title{
+                color: #FFFFFF;
+            }
+            .vwspc-section{
+                margin-top:0px;
+                /*min-height: 100vh;*/
+            }
+            .vwspc-section-full-page-link .vw-full-page-link-title{
+                margin:0px;
+                margin-top:15px;
+            }
+            .container{
+                padding-top:10px;
+            }
+            .fileUpload {
+            position: relative;
+            overflow: hidden;
+            margin: 10px;
+        }
+        .fileUpload input.upload{
+            background: -webkit-linear-gradient(top, #00449C 0%, #00449C 50%, #000000 50%, #003087 50%, #003087 100%);
+            background: linear-gradient(to bottom, #00449C 0%, #00449C 50%, #000000 50%, #003087 50%, #003087 100%);
+            background-color: #003087;
+            min-width: 162px;
+            font-size: 15px;        
+            text-transform: uppercase;
+            color: #FFFFFF;
+            height: 42px;
+           /* border-radius: 5px;*/
+            box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.5);
+            padding-left: 20px;
+            padding-right: 20px;
+            border: none;
+            -webkit-transition: all 0.3s;
+            transition: all 0.3s;
+        }
+        .docSubmitted{
+            font-size: 18px;
+            font-weight: bold;
+            color: green;
+            float:right;
+            text-align:right;
+        }
+        input[type="checkbox"]{
+            height:30px;
+            width:30px;         
+        }
+        .checkbox input[type="checkbox"]{
+            margin-left:-50px;
+        }
+        .checkbox label {
+            min-height: 27px;
+            padding-left: 0px;
+            margin-bottom: 0;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        /*::-webkit-input-placeholder {
+           opacity:0.8;
+           font-style: italic;
+           font-size: 18px;
+        }
+        
+        :-moz-placeholder { /* Firefox 18-/
+           opacity:0.8;
+           font-style: italic;
+           font-size: 18px;  
+        }
+        
+        ::-moz-placeholder {  /* Firefox 19+ 
+           opacity:0.8;
+           font-style: italic;
+           font-size: 18px;  
+        }
+        
+        :-ms-input-placeholder {  
+           opacity:0.8;
+           font-style: italic;
+           font-size: 18px;  
+        }*/
+        .summaryCheck{
+            width: 30px;
+            height: 30px;
+            border: 1px solid black;
+            font-size: 25px;
+            color: #29a53f;
+            /*margin-left:-5px;*/
+            margin-top:8px;
+            border-radius:4px;
+        }
+        .summaryText{
+             padding:10px 0px 0px 0px;
+             font-weight:bold;
+             text-align:left;
+             width:150px;
+             margin:0px !important;
+             white-space:nowrap;
+        }
+        *{
+            font-family: "Arial" !important; /*Open Sans*/
+        }
+        .glyphicon{
+            font-family: "Glyphicons Halflings" !important;
+        }
+        
+        
+    
+        .clearDiv{
+            padding:0px;
+            /*clear:both;*/
+            float:left;
+            width: 40px !important;
+            
+        }
+        .summary{
+            max-width:80%;
+            float:left;
+            /*min-width:110px;*/
+            border-radius:5px;
+        }
+         .summaryBox{
+            clear:none;
+            overflow:hidden;
+            float: left;
+            width: 350px !important;
+        }
+        .col-md-12 {
+            padding-left:5px !important;
+            padding-right:5px !important;
+            overflow: hidden;
+            display: flex;
+            display: -webkit-flex;
+            flex-wrap: wrap;
+            -webkit-flex-wrap: wrap;
+            justify-content: center;
+            -webkit-justify-content: center;
+        }
+        .checkboxDiv{
+            padding:0px;    
+        }
+        /*==================================================
+        =            Bootstrap 3 Media Queries             =
+        ==================================================*/       
+        @media only screen and (min-width : 320px) and (max-width : 568px) {
+            .navbar-header {
+                margin:0px !important;
+            }
+            .vw-full-page-link-title {
+                font-size:25px !important;
+            }
+            .vwspc-section-full-page-link {
+                padding-top: 30px !important;
+            }
+            body {
+                margin:0px !important;
+            }
+            .row {
+                margin:0px !important;
+                margin-bottom: 5% !important;
+            }
+            h1 {
+                font-size:20px;
+            }
+            /*.backstretch {
+               display:none;
+            }*/
+            .mobileOnly{
+               /* margin-top: 20% !important;*/
+            }
+            .summaryBox {
+                width: 150px !important;
+                clear: none;
+                display:inline-block;
+            }
+
+
+            
+            .checkboxDiv {
+                padding: 0px;
+                float: left;
+                display: inherit;
+                margin-left: 5px !important;
+            }
+            .clearDiv {
+                padding: 0px;
+                clear: both;
+                width: 30px;
+                display: inline-block;
+                float: left;
+            }
+            .summaryText {
+                margin: 0px;
+                display: inline-block;
+                text-align: left;
+                padding-left: 10px;
+                float: left;
+                white-space: nowrap;
+                clear: both;
+                font-weight: bold;
+                text-align: left;
+                font-size:14px;
+            }
+            .checkboxDiv {
+                padding: 0px;
+                float: left;
+                display: inherit;
+                margin-left: 10px;
+            }
+            .checkboxDiv input {
+                max-width:120px;
+            }
+            .summary {
+                width:90px !important;
+                /*min-width:90px !important;*/
+                font-size:13px !important;
+            }
+            .vw-button {
+                width: 343px;
+                font-size:13px !important;
+
+            }
+
+            .saveAndFinishLater,.nextButton{
+                width: 343px !important;
+                max-width: 5000px;
+            }
+        }
+        @media only screen and (min-width : 360px)  and (max-width : 640px) {
+            .summaryBox {
+                width:170px !important;
+            }
+            .vwspc-section-full-page-link {
+                padding-top: 30px !important;
+            }
+        }
+        @media only screen and (min-width : 375px)  and (max-width : 667px) {
+            .navbar-header {
+                margin:0px !important;
+            }
+            body {
+                margin:0px !important;
+            }
+            .row {
+                margin:0px !important;
+                margin-bottom: 5% !important;
+            }
+
+            .saveAndFinishLater,.nextButton{
+                width: 343px !important;
+                max-width: 5000px;
+            }
+           /* .backstretch {
+               display:none;
+            }*/
+            .mobileOnly{
+                /*margin-top: 20% !important;*/
+            }
+            .navbar-brand {
+                width:80%;
+            }
+            #registerInputs{
+                padding-top:40px;
+            }
+            .textAnswer{
+                width:97%;
+            }   
+            select{
+                width:97%;
+                padding-right:5px;
+            } 
+            fullSelect{
+                width:96%;
+            }
+            .phone1{
+                width:46%;
+            }
+            .phone1NoAst{
+                margin-right:7px;
+                width:46%;
+            }
+            .phoneRight{
+                width:49%;
+            }
+            .phoneRightNoAst{
+                width:49%;
+            }
+            .phone2{
+                width:49%;
+            }
+            .noComputer{
+                float:left;
+                width:100%;
+                font-size:20px;
+                padding-top:7px;             
+            }
+            .noComputerCheck{
+                float:none;
+                text-align:center;
+                width:100%;
+                padding-top:10px;
+            }
+            .docTitle{              
+                width:100%;
+            }
+            .docTitleDiv{
+                width:100%;
+                clear:both;
+                margin-bottom:7px;
+            }
+            /*sup{
+                float:right !important;
+                top: .3em;
+            }*/
+            
+            .docButton{
+                height:44px;
+                max-width:48%;
+                padding-top:5px;
+            }
+             .ccaf{
+                text-align:center;
+             }
+            .vwspc-section-full-page-link .vw-full-page-link-title{
+                margin-top:0px;
+                text-align:center;
+                font-size:24px;
+            }
+            .vwspc-section-full-page-link .vw-full-page-link-header{
+                padding:20px 5px;
+                text-align:center;
+                width:100%;
+            }
+            /*.backstretch{
+                display:none;
+            }*/
+
+            .mobileOnly{
+               /* margin-top: 20% !important;*/
+            }
+            .summary{
+                max-width:150px !important;
+                float:none;     
+            }
+            .clearDiv{
+                padding: 0px;
+                clear: both;
+                width: 30px;
+                display: inline-block;
+                float: left;
+            }
+            .summaryBox{
+                width: 170px !important;
+                display:inline-block;
+            }
+            .checkboxDiv{
+                padding: 0px;
+                float: left;
+                display: inherit;
+                margin-left: 5px;
+            }
+            .summaryText{
+                margin: 0px;
+                display: inline-block;
+                text-align: left;
+                float: left;
+                white-space: nowrap;
+                clear: both;
+            }
+            h1{
+                font-size:20px;
+            }
+            .vwspc-section-full-page-link {
+                padding-top: 30px !important;
+            }
+        }
+        @media only screen and (min-width : 412px) and (max-width : 732px) {
+            .summaryBox {
+                width: 200px !important;
+            }
+            .vwspc-section-full-page-link {
+                padding-top: 30px !important;
+            }
+            .summary {
+                width: 140px !important;
+            }
+        }
+        @media only screen and (min-width : 414px) and (max-width : 736px) {
+            body {
+                margin:0px !important;
+            }
+            .vwspc-section-full-page-link {
+                padding-top: 30px !important;
+            }
+            .row {
+                margin:0px !important;
+                margin-bottom: 5% !important;
+            }
+
+            .saveAndFinishLater,.nextButton{
+                width: 343px !important;
+                max-width: 5000px;
+            }
+
+            .navbar-header {
+                margin:0px !important;
+            }
+            /*.backstretch {
+               display:none;
+            }*/
+
+            .mobileOnly{
+               /* margin-top: 20% !important;*/
+            }
+
+            h1 {
+                font-size:22px;
+            }
+            .summaryBox {
+                width: 200px !important;
+                clear: none;
+                display:inline-block;
+            }
+            .checkboxDiv {
+                padding: 0px;
+                float: left;
+                display: inherit;
+                margin-left: 5px !important;
+            }
+            .clearDiv {
+                padding: 0px;
+                clear: both;
+                width: 30px;
+                display: inline-block;
+                float: left;
+            }
+            .summaryText {
+                margin: 0px;
+                display: inline-block;
+                text-align: left;
+                padding-left: 10px;
+                float: left;
+                white-space: nowrap;
+                clear: both;
+                font-weight: bold;
+                text-align: left;
+            }
+            .checkboxDiv {
+                padding: 0px;
+                float: left;
+                display: inherit;
+                margin-left: 10px;
+            }
+            .summary {
+                width:120px;
+            }
+        }
+        @media only screen and (min-width: 768px)  and (max-width : 1024px){
+            .navbar-nav {
+                float: right;   
+            }
+            .checkboxDiv {
+                width:250px;
+            }
+            .summaryBox:nth-child(odd) {
+                margin-left:50px;
+            }
+        }  
+            
+        /* Medium Devices, Desktops */
+        @media only screen and (min-width : 992px) {
+        
+        }
+        
+        /* Large Devices, Wide Screens */
+        @media only screen and (min-width : 1200px) {
+        
+        }
+
+        .signInHyperLink:hover{
+            color: #FFF;            
+        }
+   
+            
+            
+            
+            
+            
+            
+            
+        </style>
+        
+        
+         <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+            
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>                
+                <a class="navbar-brand page-scroll" href="http://www.lafilm.edu/">                
+                
+                <img id="imgLogo" src="{!CASE(schoolId, '01', URLFOR($Resource.static, 'img/logo.png'),
+                            '02', URLFOR($Resource.static,'/img/LARS_logo.png'),                           
+                            URLFOR($Resource.static,'/img/logo.png'))}"  style="display:inline-block;" class="img-responsive" height="50px !important;"/>             
+                </a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse navbar-ex1-collapse">
+                <ul class="nav navbar-nav pull-right">
+                    <!-- Hidden li included to remove active class from about link when scrolled up past about section -->
+                    
+                    <li class="hidden">
+                        <a class="page-scroll" href="#page-top"></a>
+                    </li>
+                    <li style="{!IF(NOT(ISPICKVAL($User.UserType,'Guest')),'display: block','display:none')}">
+                        <ul class="list-unstyled" style="text-align: right; margin: 0; bottom: 0;" data-ng-if="applicant.userType == 'new'">
+                            <li>
+                                <h5 style="font-size: 15px; margin-bottom: 5px; margin-top: 0; line-height: 1.5em;color:#FFF">Welcome, {!$User.FirstName}!</h5>
+                            </li>
+                            <li>
+                                <span>
+                                    <a href="/TotalApplications"><b style="color:#FFFFFF">Home</b></a>
+                                </span>
+                                &nbsp;&nbsp;
+                                <span>
+                                    <apex:outputLink value="{!$Site.Prefix}/secur/logout.jsp" rendered="{!NOT(ISPICKVAL($User.UserType,'Guest'))}"><b style="color:#FFFFFF">Sign Out</b></apex:outputLink>
+                                </span>
+                            </li>
+                        </ul>
+                        
+                          
+                    </li>                     
+                    <li id="signInLink" style="{!IF(ISPICKVAL($User.UserType,'Guest'),'display: block','display:none')}"> <!-- data-bind="visible: notApp()"-->
+                        <ul class="list-unstyled" style="text-align: right; margin: 0; bottom: 0;" data-ng-if="applicant.userType == 'new'">
+                            <li>
+                                <h5 style="font-size: 15px; margin-bottom: 5px; margin-top: 0; line-height: 1.5em;color:#FFF">Already started your application?</h5>
+                            </li>
+                            <li>
+                                <span>
+                                    <a class="signInHyperLink" style="color:#FFF;text-decoration: underline;" href="javascript:void(0);" onclick="j$('#signInModal').modal('show');" onload="alert()">
+                                        <b>Sign in now</b>
+                                    </a>
+                                        <span style="color:#FFF">to continue</span>
+                                        <span style="color:#FFF" class="hidden-xs">your online application</span>
+                                        <span style="color:#FFF" class="visible-xs-inline">working</span>.
+                                </span>
+                            </li>
+                        </ul>
+                    </li>                                  
+                </ul>                
+            </div>            
+        </div>                
+    </nav>
+    
+        <div id="signInModal" class="modal fade" role="dialog">
+            <apex:form >
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Have an account?</h4>
+                    </div>
+                    <div class="modal-body container-fluid">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <p>Sign in if you have an account. Otherwise, close this window.</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12 form-group">
+                                <label class="required">Email Address</label>
+                                <apex:input value="{!username}" styleClass="form-control" html-placeholder="Your Email Address" required="true"/>
+                            </div>
+                        </div> 
+                        <div class="row">
+                            <div class="col-xs-12 form-group">
+                                <label class="required">Password
+                                    <a class="pull-right" href="javascript:void(0);" onclick= "onForgotPassword()" style="margin-left: 67px;"><small>Forgot password?</small></a>
+                                </label>
+                                <apex:inputSecret value="{!password}" styleClass="form-control" html-placeholder="Your Password" required="true"/>
+                            </div>
+                        </div>
+                        <div id="userNotFoundErrorMessage" class="row" style="display:none">
+                            <div class="col-xs-12 form-group">
+                                <span class="text-danger">Your sign in attempt has failed. Please check your entries and try again.</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12 btn-panel text-right">
+                                <a href="javascript:void(0);" class="btn btn-link" data-dismiss="modal">Close</a>
+                                
+                                <apex:commandButton styleClass="vw-button" action="{!loginToApplicationTanmay}" value="Sign In" id="loginToApplication"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <apex:actionFunction name="loginToApplicationTanmay" action="{!loginToApplicationTanmay}"/>
+            </apex:form>
+        </div>
+
+         <div id="applicationAlreadyExistsModal" class="modal fade" role="dialog">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <a class="pull-right" href="javascript:void(0);" onclick= "j$('#applicationAlreadyExistsModal').modal('hide');"><span class="glyphicon glyphicon-remove"></span></a>
+                        <h4 class="modal-title">Save Failed</h4>
+                    </div>
+                    <div class="modal-body container-fluid">
+                        <p>Your application could not be saved because an application already exists with the specified email address.</p>
+                        <p><a href="javascript:void(0);" onclick= "onSignInClicked()" >Sign-in</a> &nbsp;to start working with your existing application.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="loadingModal" class="modal fade" role="dialog">
+            <div class="modal-dialog modal-sm"  style="margin-top: 20%;">
+                <div class="modal-content">                   
+                    <div class="modal-body container-fluid">
+                        <div class="row" style="text-align: center;">                            
+                            <div class="ld ld-hourglass ld-spin-fast" style="font-size:64px;color:#000"></div>                            
+                        </div>
+                        <div class="row" id="loadingIconText" style="text-align: center;">
+                            Saving your information...                            
+                        </div>                                                
+                    </div>
+                </div>
+            </div>
+        </div>
+        <apex:form >
+            <div id="forgotPasswordModal" class="modal fade" role="dialog">
+                <div class="modal-dialog modal-md"  >
+                    <div class="modal-content">                   
+                        <div class="modal-header">
+                            <a class="pull-right" href="javascript:void(0);" onclick= "j$('#forgotPasswordModal').modal('hide');"><span class="glyphicon glyphicon-remove"></span></a>
+                            <h4 class="modal-title">Reset Password</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Forgot your password?</strong></p>
+                            <p>Enter your email address below, and we'll send you an email with a link to reset your password.</p>
+                            <div class="row">
+                                <div class="col-sm-8 col-xs-12 form-group">
+                                    <label class="required">Email Address</label>
+                                    <!--<input name="emailAddress" type="email" class="form-control ng-pristine ng-invalid ng-invalid-required ng-valid-email ng-valid-pattern" placeholder="Your email address" data-ng-model="view.emailAddress" data-ng-required="true" data-ng-pattern="/(\w+)([\.+-]?\w+)*@\w+([\.-]?\w+)*(\.(\w)+)+/" required="required"/> -->
+                                    <apex:input styleClass="form-control" value="{!forgotPasswordEmail}" required="true" html-placeholder="Your email address" type="email"/>
+                                </div>
+                            </div>
+                            <!-- ngIf: view.stage == 'failed' -->
+                            <div class="btn-panel text-right">
+                                <a class="btn btn-link" >Go Back</a>
+                                <apex:commandButton styleClass="vw-button" value="Reset Password" action="{!resetPassword}"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </apex:form>
+
+
+        <div id="resetPasswordModal" class="modal fade" role="dialog">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">                   
+                    <div class="modal-header">
+                        <a class="pull-right" href="javascript:void(0);" onclick= "j$('#forgotPasswordModal').modal('hide');"><span class="glyphicon glyphicon-remove"></span></a>
+                        <h4 class="modal-title">Reset Password</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Your password has been reset. Please check your email.</strong></p>
+                        <p class="ng-binding">We've sent an email with a link to reset your password. Please note this link will expire shortly.</p>
+                        <div class="btn-panel text-right">
+                            <button class="vw-button" onclick= "j$('#resetPasswordModal').modal('hide');">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div id="resetPasswordNotFoundModal" class="modal fade" role="dialog">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">                   
+                    <div class="modal-header">
+                        <a class="pull-right" href="javascript:void(0);" onclick= "j$('#resetPasswordNotFoundModal').modal('hide');"><span class="glyphicon glyphicon-remove"></span></a>
+                        <h4 class="modal-title">Reset Password</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>User Not Found</strong></p>
+                        <p class="ng-binding">Email address does not exist. Please try a different email address.</p>
+                        <div class="btn-panel text-right">
+                            <button class="vw-button" onclick= "j$('#resetPasswordNotFoundModal').modal('hide');">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div id="setPasswordModal" class="modal fade" role="dialog">
+            <form onkeydown="return function(event){if(event.keyCode==13){return false;}}">
+            <div class="modal-dialog modal-sm"  > <!-- style="margin-top: 20%;" -->
+                <div class="modal-content">   
+                    <div class="modal-header">
+                        <a class="pull-right" href="javascript:void(0);" data-bind="click:goBackSetPasswordModal"><span class="glyphicon glyphicon-remove"></span></a>
+                        <h4 class="modal-title">Create an Account</h4>
+                    </div>                
+                    <div class="modal-body">
+                        <p>Choose a password to save your progress.</p>
+                        <p id="setPasswordErrorMessage" class="setPasswordError" style="display: none"> Your password should not contain your username.</p>
+                        <p id="passwordsDoNotMatch" class="setPasswordError" style="display: none">Passwords do not match.</p>
+                        
+                        <div class="row">
+                            <div class="form-group col-xs-12">
+                                <label class="required">Password</label>
+                                <input name="password" id="password" type="password" class="form-control" maxlength="40" placeholder="Your new password" required="required"/>                                
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-xs-12">
+                                <label class="required">Confirm Password</label>
+                                <input name="passwordConfirm" id="passwordConfirm" type="password" class="form-control" maxlength="40" placeholder="Retype your new password" required="required"/>
+                            </div>
+                        </div>
+                        <div class="btn-panel text-right">
+                            <input type="button" class="btn btn-blue" value="Go Back" data-bind="click:goBackSetPasswordModal"/>
+                            <input type="button" class="btn btn-blue" value="Continue" data-bind="click:onContinue" id="createAccountContinue" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <small><strong>Already have an account?</strong> <a href="javascript:void(0);" onclick= "onSignInClicked()">Sign in now</a>.</small>
+                    </div>
+                </div>
+            </div>
+            </form>
+        </div>
+
+        <div id="accountSavedModal" class="modal fade" role="dialog">
+            <div class="modal-dialog modal-md"  > <!-- style="margin-top: 20%;" -->
+                <div class="modal-content">   
+                    <div class="modal-header">
+                        <a class="pull-right" href="javascript:void(0);" onclick= "goToNextSection();"><span class="glyphicon glyphicon-remove"></span></a>
+                        <h4 class="modal-title">Create an Account</h4>
+                    </div>                
+                    <div class="modal-body">
+                        <p><strong>Your account has been successfully created.</strong></p>
+                        <p>Sign in anytime to complete your application.</p>                    
+                        <!-- <div class="btn-panel text-right">
+                            <a href="javascript:void(0);" class="vw-button" onclick= "j$('#accountSavedModal').modal('hide');">Continue Application</a>
+                            <a href="http://www.lafilm.edu/" class="vw-button" >Finish Later</a>
+                        </div> -->
+                        <div class="row">
+                            <div class="col-xs-6 btn-panel" >
+
+                                <a href="javascript:void(0);"  class="vw-button" onclick= "j$('#accountSavedModal').modal('hide');">Continue Application</a>
+                            </div>
+                            <div class="col-xs-6 btn-panel text-right" >
+                                <!-- <input type="submit" onclick="loginToApplicationTanmay();"  class="btn btn-info btn-xs" value="Sign In" style="width:60px;" /> <!-- type="submit" -->
+                                <a href="AlmostDoneSaveAndFinishLater" style="max-width: 400px;width: 150px;" class="vw-button" >Finish Later</a>
+                            </div>
+                        </div>
+                    </div>                    
+                </div>
+            </div>
+        </div>
+        <script>
+            j$ = jQuery.noConflict();  
+            j$(document).ready(function(){
+                
+               var userType = "{!IF(NOT(ISPICKVAL($User.UserType,'Guest')),'loggedInApplicant','guest')}";
+                if(userType == 'guest'){
+                    j$('#signInModal').modal('show');    
+                }
+
+                var img01Src = '{!URLFOR($Resource.static, "img/logo.png")}';
+                var img02Src = '{!URLFOR($Resource.static,"/img/LARS_logo.png")}';
+                var schoolIdTanmay = '{!$CurrentPage.parameters.sId}';
+                if(schoolIdTanmay == '' || schoolIdTanmay == undefined || schoolIdTanmay == null ){ 
+                    var tempHeader = document.cookie.split(';');
+                        for(var i =0; i<tempHeader.length;i++){
+                          if(tempHeader[i].indexOf('latestViewedApplicationSchoolId') > -1){
+                            var temp2Header = tempHeader[i].split('=');
+                            if(temp2Header[1] == '01'){
+                                j$('#imgLogo').attr('src',img01Src);
+                            }else if(temp2Header[1] == '02'){
+                                j$('#imgLogo').attr('src',img02Src);
+                            }else{
+                                j$('#imgLogo').attr('src',img01Src);
+                            }
+                        }
+                    }
+                }
+
+                var userNotFound = '{!$CurrentPage.parameters.userNotFound}';
+                var pageSection='{!$CurrentPage.parameters.pageSection}';
+                
+                if(userNotFound === 'true'){
+                    j$('#userNotFoundErrorMessage').css('display','block');
+                    j$('#signInModal').modal('show');                    
+                }
+
+
+                var isPasswordReset = '{!$CurrentPage.parameters.resetPassword}';
+                if(isPasswordReset === 'true'){
+                    j$('#resetPasswordModal').modal('show');
+                }
+                else if(isPasswordReset === 'false')
+                {
+                    j$('#resetPasswordNotFoundModal').modal('show');
+                }
+                j$('#loadingModal').modal('hide');
+                j$('html').niceScroll({cursorcolor:"#000000"});
+                j$('#acceptanceAgreement').niceScroll({cursorcolor:"#000000"});
+                
+            });
+        </script>    
+</apex:component>

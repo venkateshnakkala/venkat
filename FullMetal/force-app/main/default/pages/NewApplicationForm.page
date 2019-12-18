@@ -1,0 +1,56 @@
+<apex:page showHeader="FALSE" standardStylesheets="FALSE" Controller="NewApplicationController" sidebar="FALSE" title="Apply" docType="HTML-5.0" cache="false" >
+    
+    <style>
+        .signInModal { display : none; }
+    </style>
+    
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+        <title>LAFS</title>
+        <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+        <meta charset="UTF-8"/>
+        <meta content="width=device-width,initial-scale=1,shrink-to-fit=no" name="viewport"/>
+        <link href="{!URLFOR($Resource.LAFilmsApplication, '/images/ico.ico')}" rel="shortcut icon" />
+        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/style.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/bootstrap.css')}"/>
+      
+        <apex:includeScript value="{!URLFOR($Resource.static, 'js/jquery-2.1.4.js')}" />  
+        <apex:includeScript value="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"/>
+      
+    </head>
+    
+   <c:NewApplicationHeaderComponent /> 
+   <!-- START SIGN-IN MODAL -->
+        <div>
+            <c:NewApplicationSignInComponent />    
+        </div>
+        <!-- END SIGN-IN MODAL -->
+  
+  <c:NewApplicationComponent applicationSelected="{!applicationSelected}" schoolId="{!$CurrentPage.Parameters.sId}"  />
+  <c:NewApplicationFooterComponent />
+  <apex:form >
+            <!-- <apex:actionFunction name="loginToApplicationAfterResettingPassword" action="{!loginToApplicationAfterResettingPassword}"/> -->
+            <apex:inputHidden id="sectionName" value="{!sectionName}"/>        
+            <!--  <apex:inputHidden id="applicantUserName" value="{!applicantUserName}"/>        
+            <apex:inputHidden id="applicantPassword" value="{!applicantpassword}"/>        
+            <apex:inputHidden id="applicationIdAfterLogin" value="{!applicationIdAfterLogin}"/> 
+            <apex:inputHidden id="studentInfoJSON" value="{!studentDetailsJSON}"/>                            
+            <apex:inputHidden id="under24String" value="{!under24String}"/>                            
+            <apex:actionFunction name="saveStudentInfo" action="{!saveStudentInfo}" reRender="dummy" oncomplete="j$('#loadingModal').modal('hide');"/>   -->                        
+         
+        <script>
+           function showSignUpScreen() {
+                 var x = document.getElementById( 'signInModal' );
+                  x.style.display = 'block';
+                    $( '.focus_userName' ).focus();
+                    $('.focus_userName').val('');
+                    $('.focus_password').val('');
+                    
+                    
+                    $('#signInModal').find('.required_error ').removeClass('required_error');
+                    $('#signInModal').find('.form-group span').html('');
+                }
+            </script></apex:form>     
+ 
+</apex:page>

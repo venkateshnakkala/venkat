@@ -1,0 +1,21 @@
+<apex:page controller="TOG_UPLOADS">
+    <apex:form >
+        <apex:pagemessages />
+        <apex:pageBlock >
+            <apex:pageBlockSection columns="4"> 
+                  <apex:inputFile value="{!csvFileBody}"  filename="{!csvAsString}"/>
+                  <apex:commandButton value="Re-Assign Users" action="{!importCSVFile}"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <!--
+        <apex:pageBlock >
+           <apex:pageblocktable value="{!con}" var="c">
+              <apex:column value="{!c.id}" />
+              <apex:column value="{!c.owner.id}" />
+              <apex:column value="{!c.owner.name}" />
+              <apex:column value="{!c.Exclude_TOG__c}" />
+        </apex:pageblocktable>
+     </apex:pageBlock>
+     -->
+   </apex:form>
+</apex:page>

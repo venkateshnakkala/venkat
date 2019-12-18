@@ -1,0 +1,122 @@
+<apex:page Controller="Knowledgeviewcontroller" showHeader="false">
+
+    
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+        <title>Knowledge</title>
+        <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+        <meta charset="UTF-8"/>
+        <meta content="width=device-width,initial-scale=1,shrink-to-fit=no" name="viewport"/>
+        <link href="{!URLFOR($Resource.LAFilmsApplication, '/images/ico.ico')}" rel="shortcut icon" />
+        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/style.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.LAFilmsApplication, '/css/bootstrap.css')}"/>
+      
+        <apex:includeScript value="{!URLFOR($Resource.static, 'js/jquery-2.1.4.js')}" />  
+        <apex:includeScript value="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"/>
+        <apex:includeScript value="{!URLFOR($Resource.static, 'js/knockout.js')}" />
+        <apex:includeScript value="{!URLFOR($Resource.static, 'js/knockout.validation.js')}" />
+        <c:NewApplicationHeaderComponent />
+        
+   <style>
+        .signInModal { display : none; }
+    .brandZeronaryFgr{display : none !important; }
+    .footer .container{
+        background: #000 !important;
+        }
+    #knowledg{
+        margin-left: 20px; 
+       }
+    .sidebar_links{
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.link-primary {
+    border: 1px solid #000 !important;
+    line-height: 45px;
+    color: #fff;
+    background-color: #000;
+    border-color: #000;
+}
+
+.link-primary:hover {
+  color: #fff;
+  background-color: #e3d583;
+  border-color: #e3d583;
+  border: 1px solid #e3d583 !important;
+  
+  }
+.knowledge_base{
+    padding-top: 20px;
+}
+.knowledge_base .inner-content h2{
+    margin-top: 10px !important;
+}
+
+.breadcrumb{
+   margin-top: 20px;
+}
+
+.knowledgebase ol li{
+    margin-left: 0px !important;
+}
+    </style>     
+    </head>
+    <div>
+            <c:NewApplicationSignInComponent />    
+        </div>
+    <apex:form >
+        <div class="container-hybrid main" id="main-content">
+    <div class="container knowledgebase">
+        <div class="row">
+            <nav aria-label="breadcrumb" id="">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="http://www.lafilm.edu/">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="https://banana-lafilmschool.cs1.force.com">Apply now</a>
+                    </li>
+                    <li aria-current="page" class="breadcrumb-item active"><apex:outputText value="{!knowledgedata.title}" /></li>
+                </ol>
+            </nav>
+        </div>
+        <div class="row knowledge_base mt-3">
+
+            <div class="col-12 col-md-7 pb-5">
+                <div class="pb-5 content wysiwyg inner-content">
+                    <div class="">
+                        <h2><apex:outputText value="{!knowledgedata.title}" /></h2>
+                        <p class="p1"><apex:outputText value="{!bodycontent}" escape="false" > </apex:outputText></p>
+                    </div>
+
+                    
+
+                </div>
+            </div>
+            <div class="col-12 col-md-4 sidebar offset-md-1" style="text-align: center;">
+                <div class="sidebar_links">
+                    <a href="https://banana-lafilmschool.cs1.force.com"><div class="link-primary">APPLY NOW</div></a>
+                    <a href="https://www.lafilm.edu/international-students/faq/"><div class="link-primary mt-3">INTERNATIONAL STUDENTS</div></a>
+                    <a href="https://www.lafilm.edu/military/military-student-resources/"><div class="link-primary mt-3">MILITARY STUDENTS</div></a>
+                    <a href="https://banana-lafilmschool.cs1.force.com/KnowledgeArticleViewpage?id=kA0S0000000EmrE"><div class="link-primary mt-3">OTHER ARTICLE</div></a>
+               
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    
+       <script>
+                
+                function showSignUpScreen() {
+                   
+                    var x = document.getElementById( 'signInModal' );
+                    x.style.display = 'block';
+                }
+            </script>
+            
+    </apex:form>
+<c:NewApplicationFooterComponent />
+</apex:page>

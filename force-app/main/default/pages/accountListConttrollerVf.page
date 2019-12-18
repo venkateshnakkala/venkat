@@ -1,0 +1,25 @@
+<apex:page controller="accountListController" showHeader="false" sidebar="false">
+ 
+    <apex:pageblock >
+       
+    <apex:pageBlockSection >   
+        <apex:repeat value="{!accounts}" var="account">
+          
+                <apex:outputLabel value="{!account.Name}"> </apex:outputLabel>
+             
+                 <apex:pageBlockTable value="{!account.children}" var="contact">
+                  <apex:repeat value="{!contact}" var="contact">   
+                     
+                    <apex:column value="{!contact.Name}" />  
+                   </apex:repeat>  
+                  </apex:pageBlockTable>
+                 <apex:pageBlockTable value="{!account.children}" var="contact">
+                  <apex:repeat value="{!contact}" var="contact">   
+                     
+                    <apex:column value="{!contact.Name}" />  
+                   </apex:repeat>  
+                  </apex:pageBlockTable> 
+                </apex:repeat>
+         </apex:pageBlockSection>
+    </apex:pageblock>
+</apex:page>

@@ -1,0 +1,768 @@
+<apex:page docType="html-5.0" Controller="NewApplicationController"  action="{!verifyApplication}" showHeader="false" sidebar="false" standardStylesheets="false">
+    <c:NewApplicationHeaderComponent />
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+        <head>
+            <title>Documents &amp; Agreements</title>
+            <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+            <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+            <meta charset="UTF-8"/>
+            <meta content="width=device-width,initial-scale=1,shrink-to-fit=no" name="viewport"/>
+            <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet"/>
+            <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet"/>
+            <apex:stylesheet value="{!URLFOR($Resource.SigninandUpload, 'slick/slick.css')}"/>
+            <apex:stylesheet value="{!URLFOR($Resource.SigninandUpload, 'slick/slick-theme.css')}"/>
+            
+            <style type="text/css">
+                
+                .slider {
+                width: 100%;
+                margin: 100px auto;
+                }
+                
+                .slick-slide {
+                margin: 0px 20px;
+                }
+                
+                .slick-slide img {
+                width: 100%;
+                height: 180px;
+                }
+                
+                .slick-prev:before,
+                .slick-next:before {
+                color: black;
+                }
+                
+                
+                .slick-slide {
+                transition: all ease-in-out .3s;
+                opacity: .2;
+                }
+                
+                .slick-active {
+                opacity: .5;
+                }
+                
+                .slick-current {
+                opacity: 1;
+                }
+                
+                span.img-text {
+                text-decoration: none;
+                outline: none;
+                transition: all 0.4s ease;
+                -webkit-transition: all 0.4s ease;
+                -moz-transition: all 0.4s ease;
+                -o-transition: all 0.4s ease;
+                cursor: pointer;
+                width: 100%;
+                font-size: 20px;
+                display: block;
+                text-transform: capitalize;
+                text-align: center;
+                }
+                span.img-text:hover {
+                color: #2caae1;
+                }
+                
+                
+                .wrapper{
+                width: 15px; 
+                height: 15px;
+                border-radius: 100%;
+                border: 1px solid #AFADA8;
+                overflow: hidden;
+                margin-right: 10px;
+                margin-top: 10px;
+                }
+                
+                .progess_incomplete{
+                /*display: inline-block;*/
+                background-color: #AFADA8;
+                height: 15px; 
+                width: 15px;
+                }
+                
+                .progess_pending{
+                /*display: inline-block;*/
+                background-color: #F46742;
+                height: 15px; 
+                width: 0.45rem;
+                }
+                
+                .progess_completed{
+                /*display: inline-block;*/
+                background-color: #F46742;
+                 height: 15px; 
+                width: 15px;
+                }
+                
+                .progess_rejected{
+                background-color: #FF0000;
+                height: 15px; 
+                width: 15px;
+                }
+                
+                .progress_circle{
+                padding: 15px 0px 5px 0px;
+                }
+                
+                .custom_img {
+                padding: 10px !important;
+                border: 1px solid #eae5e5;
+                background: #FFF;
+                -webkit-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.75);
+                -moz-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.75);
+                box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.75);
+                margin-bottom: 10px;
+                margin-top: 2px;
+                }
+                .owl-carousel .item {
+                margin: 5px !important;
+                }
+                
+                .home_progress_icon{
+                min-width: 50px !important;
+                margin-right: 20px !important;
+                cursor:pointer;
+                }
+                
+                .progress_section{
+                -webkit-box-shadow: 0 4px 6px -6px #222;
+                -moz-box-shadow: 0 4px 6px -6px #222;
+                box-shadow: 0 4px 6px -6px #222;
+                }
+                
+                .slider_section{
+                
+                }
+                
+                .todos{
+                -webkit-box-shadow: 0 4px 6px -6px #222;
+                -moz-box-shadow: 0 4px 6px -6px #222;
+                box-shadow: 0 4px 6px -6px #222;
+                margin-right: -15px;
+                margin-left: -15px; 
+                
+                padding: 10px;
+                }
+                
+                .slick-prev, .slick-next {
+                top: 40% !important;
+                }
+                
+                .show_slick_item{
+                cursor: pointer;
+                }
+                .slick-dots{
+                display: none !important;
+                }
+                
+                
+                .btn_upload {
+                background-color: #000;
+                border: 0px solid #000;
+                color: #FFF;
+                padding: 0px 20px 0px 20px;
+                line-height: 35px;
+                border-radius: 5px;
+                font-size: 14px;
+                }
+                
+                .fa-question-circle{
+                font-size: 15px !important;
+                }
+                
+                .display_flex{
+                display: flex;
+                }
+                .file_upload{
+                display: none;
+                }
+                .choose_upload_option{
+                margin-right: 20px;
+                }
+                .progress_circle .active {
+                transform: scale(1.5);
+                border: 2px solid #ffd700;
+                box-shadow: 0 0 5px #373732;
+                /*margin-left: 5px;
+                margin-right: 15px;*/
+                }
+                
+                .progress_circle .active .progess_pending{
+                width: 0.40rem !important;
+                
+                }
+                
+                
+                
+                
+                @media only screen and (max-width: 767px) {
+                
+                .slick-prev {
+                left: -15px !important;
+                }
+                .slick-next {
+                right: -15px !important;
+                }
+                
+                }
+                .message_secion .pending{
+                color: #721c24;
+                }
+                
+                .message_secion .inprogress{
+                color: #856404;
+                }
+                
+                .message_secion .success{
+                color: #088a08;
+                }
+                
+            </style>
+            
+        </head>
+        <body class="">
+            <apex:form id="form">
+                <apex:actionFunction name="selectAgreement" action="{!selectAgreementToSign}" 
+                                     reRender="signAgreementDiv" status="status">
+                    <apex:param name="selectedAgreement"  value="" assignTo="{!selectedAgreement}"/>
+                </apex:actionFunction>
+              
+           <apex:actionStatus id="status">
+                <apex:facet name="start">
+                    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.25; z-index: 1000; background-color: #000;">
+                        &nbsp;
+                    </div>
+                    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 30% 50%">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/ed/Cursor_Windows_Vista.gif" />
+                    </div>
+                </apex:facet>
+            </apex:actionStatus>
+                
+                <apex:variable value="0" var="num"/>
+                
+                <div class="container-hybrid main" id="main-content">
+                    <div class="container">
+                        <div class="row d-flex justify-content-center progress_section">
+                            
+                            <div class="progress_circle">
+                                <div class="row">       
+                                    <div id="home_progress_icon">
+                                        <a href="/apex/NewTotalApplications">
+                                            <button type="button" class="btn btn-primary home_progress_icon" disabled ="disabled"><i class='fa fa-home ' style="color: #FFF; background: #000;">
+                                                </i>
+                                            </button>
+                                        </a>
+                                    </div>
+                                    <apex:variable value="{!num}" var="shesi"/>
+                                    <apex:repeat value="{!listAgreements}" var="agreement"  id="DotsRepeat">                                        
+                                       
+                                        &nbsp; <apex:variable var="teja" value="{!VALUE(shesi) + 1}" /> 
+                                        <apex:outputPanel styleClass=""  rendered="{!agreement.Status == 'Accepted'}">
+                                            <div id="dot_{!shesi}" class="wrapper show_slick_item" slick_id="{!shesi}"
+                                                 data-toggle="tooltip" data-placement="bottom" title="{!agreement.Name}"
+                                                 onclick="agreementClicked('{!agreement.Name}');return false;">
+                                                <div class="progess_completed"></div>
+                                            </div>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel styleClass="" rendered="{!OR(agreement.Status == 'Signed', agreement.Status == 'Received')}">
+                                            <div id="dot_{!shesi}" class="wrapper show_slick_item" slick_id="{!shesi}" data-toggle="tooltip"
+                                                 data-placement="bottom" title="{!agreement.Name}"
+                                                 onclick="agreementClicked('{!agreement.Name}');return false;">
+                                                <div class="progess_pending"></div>
+                                            </div>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel styleClass=""
+                                                          rendered="{!OR(agreement.Status == 'Out for Signature', agreement.Status =='Requested', agreement.Status =='Request')}">
+                                                <div id="dot_{!shesi}" class="wrapper show_slick_item" slick_id="{!shesi}" data-toggle="tooltip"
+                                                 data-placement="bottom" title="{!agreement.Name}"
+                                                 onclick="agreementClicked('{!agreement.Name}');return false;">
+                                                <div class="progess_incomplete"></div>
+                                            </div>
+                                        </apex:outputPanel>
+                                        <apex:variable value="{!VALUE(shesi)+1}" var="shesi"/>
+                                    </apex:repeat>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <apex:variable value="0" var="sld"/>
+                        <div class="text-right todos">You have completed <strong>{!completedDocuments}</strong> out of <strong>{!totalDocuments}</strong> ToDos</div>
+                        <section class="regular slider mt-4 slider_section">
+                            
+                            <apex:variable value="{!sld}" var="slide"/>
+                            <apex:repeat value="{!listAgreements}" var="agreement"  id="carouselRepeat">
+                                
+                                <div class="item" id="slide_{!slide}" dot_active="{!slide}">
+                                    <div class="custom_img">
+                                        <apex:outputPanel layout="none" rendered="{!agreement.DocType == 'PDF'}">
+                                            <a href="{!agreement.Signurl}" target = "_blank" >
+                                                <img src="{!URLFOR($Resource.SigninandUpload, 'slick/images/download_pdf.png')}"
+                                                     name="{!agreement.Name}" onclick="openPdf('{!agreement.Signurl}')"/>
+                                            </a>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!agreement.DocType == 'Agreement'}">
+                                            <a href="javascript:void(0);" >
+                                                <img src="{!URLFOR($Resource.SigninandUpload, 'slick/images/electronic_signature.png')}"
+                                                     onclick="agreementClicked('{!agreement.Name}');return false;" name="{!agreement.Name}"/>
+                                            </a>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!agreement.DocType != 'Agreement' && agreement.DocType != 'PDF' }">
+                                            <a href="javascript:void(0);" class="action show_upload_section">
+                                                <img src="{!URLFOR($Resource.SigninandUpload, 'slick/images/upload_document.png')}"
+                                                     onclick="agreementClicked('{!agreement.Name}');return false;" name="{!agreement.Name}" />
+                                            </a>
+                                        </apex:outputPanel>
+                                    </div>
+                                    
+                                    <span class="img-text">{!agreement.Name}</span>
+                                </div>
+                                <apex:variable value="{!VALUE(slide)+1}" var="slide"/>
+                            </apex:repeat>
+                        </section>
+                    </div>
+                </div>     
+                
+                <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+                <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+                <script src="./slick/slick.js" type="text/javascript" charset="utf-8"></script>        
+                <script src="{!URLFOR($Resource.SigninandUpload, 'slick/slick.js')}" type="text/javascript"></script>
+                <script type="text/javascript">
+                    function show_upload_section(){
+                    if($('.slick-current.slick-center').find('.action').hasClass('show_upload_section')){
+                        $('.upload_secion').show();
+                    }else{
+                        $('.upload_secion').hide();
+                    }
+                    }
+                
+                    function openPdf( link ) { 
+                            window.open(link,'_blank');
+                     }
+                
+                   function agreementClicked(agreementName, agreementStatus){
+                    //alert('--agreementName--'+agreementName+'-------'+agreementStatus);
+                    if (agreementStatus == 'Out for Signature'){
+                        selectAgreement(agreementName);
+                    }
+                    if (agreementStatus != 'Out for Signature'){
+                        selectAgreement(agreementName);
+                    }
+                    
+                }
+                $(document).ready(function(){
+                    $('[data-toggle="tooltip"]').tooltip();
+                    
+                    $('#dot_0').addClass('active');
+                    $('#dot_0').find('.progess_pending').addClass('progess_completed').removeClass('progess_pending');
+                    
+                    var disp=true;
+                    
+                    var totalCount='{!totalDocuments}';
+                    
+                    if( totalCount < 3){
+                        
+                        disp=false;
+                    }
+                    $(".regular").slick({
+                        centerMode:disp,
+                        centerPadding: 0,
+                        dots: true,
+                        infinite: true,
+                        speed: 500,
+                        slidesToShow: 3,
+                        focusOnSelect: true,
+                        slidesToScroll: 1,
+                        responsive: [
+                            {
+                                breakpoint: 1024,
+                                settings: {
+                                    slidesToShow: 3,
+                                    slidesToScroll: 3,
+                                    infinite: true,
+                                    dots: true
+                                }
+                            },
+                            {
+                                breakpoint: 600,
+                                settings: {
+                                    slidesToShow: 2,
+                                    slidesToScroll: 2
+                                }
+                            },
+                            {
+                                breakpoint: 480,
+                                settings: {
+                                    slidesToShow: 1,
+                                    slidesToScroll: 1
+                                }
+                            }
+                            // You can unslick at a given breakpoint now by adding:
+                            // settings: "unslick"
+                            // instead of a settings object
+                        ]
+                    });
+                    
+                    $(document).on('click',  '.slick-slide', function(e)
+                                   {
+                                       
+                                       e.stopPropagation();
+                                       
+                                       var dot_active = $(this).find('.item').attr('dot_active');
+                                       
+                                       //alert('dot_active : ' + dot_active);
+                                       
+                                       $('.show_slick_item').removeClass('active');
+                                       $('#dot_' + dot_active).addClass('active');
+                                       
+                                       
+                                       if($('.slick-slide').length <= 3)
+                                       {
+                                           if($('.slick-current').find('.action').hasClass('show_upload_section'))
+                                           {					
+                                               $('.upload_secion').show();
+                                               $('.message_secion').hide();
+                                           }
+                                           else
+                                           {
+                                               $('.upload_secion').hide();
+                                               $('.message_secion').show();
+                                           }	
+                                           
+                                           return false;
+                                       }                                       
+                                       
+                                       var currentIndex = eval($('.slider').slick('slickCurrentSlide'));
+                                       
+                                       var slideIndex = eval($(this).attr("data-slick-index"));
+                                       
+                                       if(currentIndex == slideIndex)
+                                       {
+                                           return;
+                                       }
+                                       else if(currentIndex - 1 == slideIndex)
+                                       {
+                                           $('.slider').slick("slickPrev"); //slickPrev();
+                                       }
+                                           else if(currentIndex + 1 == slideIndex)
+                                           {
+                                               $('.slider').slick("slickNext"); //slickNext();
+                                           }
+                                               else if(currentIndex == 0)
+                                               {
+                                                   $('.slider').slick("slickPrev"); //slickPrev();
+                                               }
+                                                   else
+                                                   {
+                                                       $('.slider').slick("slickNext"); //slickNext();
+                                                   }
+                                       
+                                       show_upload_section();
+                                   });
+                    
+                    $(document).on('click',  '.show_slick_item', function(e)
+                                   {
+                                       
+                                       $('.show_slick_item').removeClass('active');
+                                       
+                                       var slick_id = $(this).attr('slick_id');
+                                       // alert('slick_id : ' + slick_id);
+                                       
+                                       //alert('slick_id length : ' + slick_id.length);
+                                       
+                                       if(slick_id.length == 1)
+                                           slick_id = '0' + slick_id;
+                                       
+                                       //alert('slick_id : ' + slick_id);
+                                       
+                                       //$('#slick-slide-control' + slick_id).click();                                       
+                                       //show_upload_section();
+                                       
+                                       
+                                       //alert($('.slick-slide').length);
+                                       
+                                       if($('.slick-slide').length > 3)
+                                       {
+                                           $('#slick-slide-control' + slick_id).click();
+                                           show_upload_section();
+                                       }
+                                       else
+                                       {
+                                           $('.slick-slide').removeClass('slick-current');
+                                           
+                                           $('#slide_' + $(this).attr('slick_id')).parent().parent().addClass('slick-current');
+                                           
+                                           $('#slide_' + $(this).attr('slick_id')).parent().parent().click();
+                                           
+                                           /*
+                                        alert($('#slide_' + $(this).attr('slick_id')).html());
+                        
+                                        if($('#slide_' + $(this).attr('slick_id')).find('.action').hasClass('show_upload_section'))
+                                        {					
+                                            $('.upload_secion').show();
+                                        }
+                                        else
+                                        {
+                                            $('.upload_secion').hide();
+                                        }	
+                                        */
+                                        
+                                    }
+                                       
+                                       $(this).addClass('active');                                       
+                                       
+                                   });
+                    
+                    
+                    //$('.slick-track').find('.slick-slide').addClass('slick-current slick-center');
+                    
+                    $('.upload_secion').hide();
+                    
+                    
+                    
+                    $(document).on("click", '.choose_click', function() {
+                        $('.file_upload').trigger('click');     
+                    });
+                    
+                    /*
+                                    // Add the following code if you want the name of the file appear on select
+                                    $(".file_upload").on("change", function() {
+                                        $('#upload_submit').removeAttr('disabled');
+                                        var fileName = $(this).val().split("\\").pop();
+                                        $(this).siblings(".upload-file-label").addClass("selected").html(fileName);
+                                    });
+                                    */
+                    
+                    
+                    $('.slick-arrow').click(function(){
+                        
+                        var dot_active = $('.slick-current.slick-center').find('.item').attr('dot_active');
+                        
+                        //alert('dot_active : ' + dot_active);
+                        
+                        $('.show_slick_item').removeClass('active');
+                        $('#dot_' + dot_active).addClass('active');  
+                        
+                        //show_upload_section();
+                        var docname=$('.slick-current.slick-center').find('img').attr('name');
+                        //alert(docname);
+                        agreementClicked(docname);
+                    });
+                    
+                    show_upload_section();
+                    
+                    
+                });
+                </script>
+             
+                
+                <apex:outputPanel id="signAgreementDiv" style="margin-top:20px;">
+                    <apex:repeat value="{!listAgreements}" var="agreement"  id="theRepeat2">
+                        <apex:outputPanel rendered="{!AND(agreement.Name == selectedAgreement, agreement.DocType == 'Agreement', agreement.Status == 'Out for Signature') }" layout="none">
+                            <iframe src="{!agreement.Signurl}" style="height:600px; width:100%;"/>         
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!AND(agreement.Name == selectedAgreement,agreement.DocType != 'PDF', agreement.DocType == 'Agreement', agreement.Status == 'Signed') }" layout="none">
+                            <div class="row message_secion justify-content-center">
+                                <div class="form-group pending">
+                            Agreement already signed. Pending review. 
+                                 </div>
+                            </div>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!AND(agreement.Name == selectedAgreement, agreement.DocType == 'Agreement', agreement.Status == 'Accepted') }" layout="none">
+                            <div class="row message_secion justify-content-center">
+                                <div class="form-group success">
+                            Agreement already signed and accepted. 
+                               </div>
+                            </div>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!AND(agreement.Name == selectedAgreement, agreement.DocType == 'Agreement', agreement.Status == 'Rejected') }" layout="none">
+                            <div class="row message_secion justify-content-center">
+                                <div class="form-group pending">
+                                    Agreement already signed and rejected.  
+                                </div>
+                            </div>   
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!AND(agreement.Name == selectedAgreement, agreement.DocType != 'Agreement', OR(agreement.Status =='Requested', agreement.Status =='Request')) }" layout="none">
+                            <!-- <div class="custom-file upload_file">
+<input type="file" id="attachmentFile" fileName="{!agreement.Name}"/> 
+</div> -->
+                            <div class="row upload_secion justify-content-center">
+                                <div class="form-group choose_upload_option">
+                                    <input type="file" class="file_upload" id="attachmentFile" filename="{!agreement.Name}"/>
+                                  <!--    <button type="button" class="btn_upload choose_click"  ><i class='fa fa-upload' style="color: #FFF; background: #000; margin-right: 10px;"></i> CHOOSE AND UPLOAD</button> -->
+                                     <button type="button" class="btn_upload choose_click" id="submit_upload_doc" data-loading-text="<i class='fa fa-spinner fa-spin'></i> Processing" ><i class='fa fa-upload' style="color: #FFF; background: #000; margin-right: 10px;"></i> &nbsp; CHOOSE AND UPLOAD</button> 
+                                    <br/>
+                                    <label class="upload-file-label" for="customFile"></label>
+                                </div>
+                            </div>
+                            <script>
+                            
+                            $("#attachmentFile").change(function(e){
+                                //$('#submit_upload_doc').html($('#submit_upload_doc').attr('data-loading-text'));
+                                uploadFile();
+                            });
+                            
+                            function show_upload_section()
+                            {
+                                
+                                //alert($('.slick-current.slick-center').html()); //action
+                                
+                                //alert($('.slick-current.slick-center').find('.action').hasClass('show_upload_section')); 
+                                
+                                if($('.slick-current.slick-center').find('.action').hasClass('show_upload_section'))
+                                {
+                                    
+                                    
+                                    $('.upload_secion').show();
+                                    
+                                    
+                                    /**/
+                                }
+                                else
+                                {
+                                    $('.upload_secion').hide();
+                                }
+                            }
+                            
+                            function uploadFile() {
+                                $("#attachmentFile").attr('disabled',true);
+                                var file = document.getElementById('attachmentFile').files[0];
+                                console.log(file);
+                                
+                                if(file != undefined) {
+                                    if(file.size <= maxFileSize) {
+                                        attachmentName = document.getElementById('attachmentFile').getAttribute('fileName');
+                                        var fileReader = new FileReader();
+                                        fileReader.onloadend = function(e) {
+                                            attachment = window.btoa(this.result);  //Base 64 encode the file before sending it
+                                            positionIndex=0;
+                                            fileSize = attachment.length;
+                                            console.log("Total Attachment Length: " + fileSize);
+                                            doneUploading = false;
+                                            if(fileSize < maxStringSize) {
+                                                
+                                                uploadAttachment(null);
+                                            } else {
+                                                alert("Base 64 Encoded file is too large.  Maximum size is " + maxStringSize + " your file is " + fileSize + ".");
+                                                $("#attachmentFile").siblings(".custom-file-label").removeClass("selected").html('');
+                                                $("#attachmentFile").val('');
+                                                
+                                            }
+                                            
+                                        }
+                                        fileReader.onerror = function(e) {
+                                            alert("There was an error reading the file.  Please try again.");
+                                            $("#attachmentFile").siblings(".custom-file-label").removeClass("selected").html('');
+                                            $("#attachmentFile").val('');
+                                            
+                                            
+                                        }
+                                        fileReader.onabort = function(e) {
+                                            alert("There was an error reading the file.  Please try again.");
+                                            $("#attachmentFile").siblings(".custom-file-label").removeClass("selected").html('');
+                                            $("#attachmentFile").val('');
+                                            
+                                            
+                                        }
+                                        
+                                        fileReader.readAsBinaryString(file);  //Read the body of the file
+                                        
+                                    } else {
+                                        alert("File must be under 4.3 MB in size.  Your file is too large.  Please try again.");
+                                        $("#attachmentFile").siblings(".custom-file-label").removeClass("selected").html('');
+                                        $("#attachmentFile").val('');
+                                        
+                                        
+                                    }
+                                } else {
+                                    alert("You must choose a file before trying to upload it");
+                                    
+                                    
+                                }
+                                
+                                $("#attachmentFile").attr('disabled',false);
+                            }
+                            var maxStringSize = 6000000;    //Maximum String size is 6,000,000 characters
+                            var maxFileSize = 4350000;      //After Base64 Encoding, this is the max file size
+                            var chunkSize = 950000;         //Maximum Javascript Remoting message size is 1,000,000 characters
+                            var attachment;
+                            var attachmentName;
+                            var fileSize;
+                            var positionIndex;
+                            var doneUploading;
+                            //Method to send a file to be attached to the Account bound to the page by the standardController
+                            //Sends parameters: Account Id, Attachment (body), Attachment Name, and the Id of the Attachment if it exists to the controller   
+                            function uploadAttachment(fileId) {
+                                var attachmentBody = "";
+                                $('#submit_upload_doc').html($('#submit_upload_doc').attr('data-loading-text'));
+                                if(fileSize <= positionIndex + chunkSize) {
+                                    attachmentBody = attachment.substring(positionIndex);
+                                    doneUploading = true;
+                                } else {
+                                    attachmentBody = attachment.substring(positionIndex, positionIndex + chunkSize);
+                                }
+                                console.log("Uploading " + attachmentBody.length + " chars of " + fileSize);
+                                NewApplicationController.doUploadAttachment1(
+                                    '{!selectedAppId}', attachmentBody, attachmentName, fileId, 
+                                    function(result, event) {
+                                        console.log(result);
+                                        if(event.type === 'exception') {
+                                            console.log("exception");
+                                            console.log(event);
+                                        } else if(event.status) {
+                                            if(result.substring(0,3) == '00P') {
+                                                if(doneUploading == true) {
+                                                    
+                                                    console.log('doc uploaded successfully');
+                                                    document.location.reload();
+                                                } else {
+                                                    positionIndex += chunkSize;
+                                                    uploadAttachment(result);
+                                                }
+                                            }
+                                        } else {
+                                            console.log(event.message);
+                                        }
+                                    },
+                                    {buffer: true, escape: true, timeout: 120000}
+                                )
+                                
+                            }
+                            </script>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!AND(agreement.Name == selectedAgreement, agreement.DocType != 'Agreement',agreement.DocType != 'PDF', agreement.Status == 'Received') }" layout="none">
+                            <!-- Document already uploaded. Pending review.  -->
+                            <div class="row message_secion justify-content-center">
+                                <div class="form-group pending">
+                                    Document already uploaded. Pending review.
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!AND(agreement.Name == selectedAgreement, agreement.DocType != 'Agreement', agreement.Status == 'Accepted') }" layout="none">
+                            <!--Document already uploaded and accepted.   -->
+                            <div class="row message_secion justify-content-center">
+                                <div class="form-group success">
+                                    Document already uploaded and accepted.
+                               </div>
+                            </div>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!AND(agreement.Name == selectedAgreement, agreement.DocType != 'Agreement', agreement.Status == 'Rejected') }" layout="none">
+                            <!--Document already uploaded and accepted.   -->
+                            <div class="row message_secion justify-content-center">
+                                <div class="form-group pending">
+                                    Document already uploaded and rejected.
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+                    </apex:repeat>
+                </apex:outputPanel>
+                
+                
+            </apex:form>
+        </body>  
+    </html> 
+</apex:page>

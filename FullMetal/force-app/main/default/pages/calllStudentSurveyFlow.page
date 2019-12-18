@@ -1,0 +1,8 @@
+<apex:page standardController="Contact" >
+    <flow:interview name="Student_Survey" finishLocation="/{!Contact.Id}">
+        <apex:param name="varStudentName" value="{!Contact.Name}" />
+        <apex:param name="varStudentOwnerName" value="{!Contact.Owner.Name}" />
+        <apex:param name="varProgramName" value="{!Contact.Program__c}" />
+        <apex:param name="varContactId" value="{!Contact.Id}" />
+    </flow:interview>
+</apex:page>

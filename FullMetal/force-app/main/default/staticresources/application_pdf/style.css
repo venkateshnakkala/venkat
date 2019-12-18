@@ -1,0 +1,74 @@
+@charset "utf-8";
+/* CSS Document */
+*{
+	font-family:Arial;
+	font-size:13px;
+}
+.ful-box{
+	width:100%;
+	display:block;
+	float:none;
+	margin:8px 0px;
+	clear:both;
+}
+.half-box{
+	width:50%;
+	display:block;
+	float:left;
+	box-sizing:border-box;
+	margin:8px 0px;
+}
+.h1{
+	font-size:22px;
+	font-weight:bold;
+}
+.h2 {
+	font-size:15px;
+	background-color:#ADADAD;
+	padding:4px;
+	width:100%;
+	float:none;
+	clear:both;
+	font-weight:bold;
+	margin:4px 0px;
+}
+.line {
+	display:block;
+	float:none;
+	font-size:12px;
+	padding:2px 0px;
+	clear:both;
+}
+.bold {
+	font-weight:bold;
+	font-size:12px;
+}
+.half-box .title {
+	font-size:16px;
+	border-bottom:1px solid #ADADAD;
+}
+.section > .title, body > .title{
+	font-size:16px;
+	border-bottom:1px solid #ADADAD;
+	padding-top:10px;
+	float:none;
+	display:block;
+	clear:both;
+}
+@media print {
+	.h2 {
+		-webkit-print-color-adjust: exact !important;
+	}
+	.section {
+		page-break-inside: avoid;
+		float:none;
+		clear:both;
+	}
+	.new-page-start{
+		page-break-before:always;
+	}
+	
+	.new-page-end{
+		page-break-after:always;
+	}
+}

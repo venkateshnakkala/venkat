@@ -1,0 +1,1982 @@
+<apex:component Controller="ApplicationController" allowDML="true">
+    <apex:attribute name="applicationSelected" type="Application__c" description="Application"/>
+    <apex:attribute name="schoolId" type="String" description="school Id"/>
+    <style>
+        select[disabled]{
+            background-color: #eee !important;
+        }
+        
+        a{
+            color: #000000;
+        }
+        
+        h1 {
+            margin-left: 15px;
+            margin-bottom: 20px;
+        }
+
+        ul.noStyle li{
+            margin-bottom: 10px;
+        }
+
+        .disclaimer{
+            margin-bottom: 2%;
+            margin-top: 1%;
+            background-color: #FFFFFF;
+            bottom: 0;
+            min-height: 30px;
+            text-align: center;
+            font-style: italic;
+            padding: 8px 1px;
+            font-size: 12px;
+            width: 100%;
+        }
+
+        /*.form-control{
+            display: inline !important;
+            width: 89% !important;
+            border-radius: 4px !important
+        }*/
+        
+        @media (min-width: 768px) {
+        
+            .brand-pills > li > a {
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 0px;
+            }
+            
+            li.brand-nav.active a:after{
+                content: " ";
+                display: block;
+                width: 0;
+                height: 0;
+                border-top: 20px solid transparent;
+                border-bottom: 20px solid transparent;              
+                position: absolute;
+                top: 50%;
+                margin-top: -20px;
+                left: 100%;
+                z-index: 2;
+            }
+        }
+        
+        
+        .nav-pills > li.active > a, .nav-pills > li.active > a:hover, .nav-pills > li.active > a:focus{
+            color: #fff;
+            background-color: #000000;
+        }
+        
+       
+        html,body{
+          height: 100%;  
+        }
+        
+        .left, .vd, .right{
+          display: block;
+          float: left;
+          height: 100%;
+        }
+        
+        .left{
+          width: 24%;         
+        }
+        .vd{
+          width: 1%;  
+          background: #000;
+          cursor: pointer;
+        }
+        .right{
+          width: 75%;         
+        }
+        .animated{
+          -webkit-transition: all 500ms cubic-bezier(0.190, 1.000, 0.220, 1.000); 
+           -moz-transition: all 500ms cubic-bezier(0.190, 1.000, 0.220, 1.000); 
+             -o-transition: all 500ms cubic-bezier(0.190, 1.000, 0.220, 1.000); 
+                transition: all 500ms cubic-bezier(0.190, 1.000, 0.220, 1.000);  
+        }
+        .not-visible{
+          width: 0%;  
+        }
+        .all-visible{
+          width: 99%;  
+        }
+        
+        #sliderLeft{
+            cursor:pointer;
+        }
+
+
+        
+        .vw-full-page-link-title{
+            margin-top: 0px1!important;
+        }
+
+        .vw-full-page-link-header{
+            display: block !important;
+            padding:20px 60px !important;
+        }
+
+        .textAnswer{
+            width : 89% !important  ;
+        }
+
+
+        .summaryCheck{
+            font-size: 15px !important;
+            width: 20px !important;
+            height: 20px !important;
+        }
+
+        .sectionLink{
+            /*width:102% !importan;t*/
+        }
+
+        
+        .form-control {
+            display: inline; 
+            border-radius: 4px !important;               
+            width: 89%;
+            height: 34px;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #555;
+            background-color: #fff;
+            background-image: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+            -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+        }
+
+        #txt_em_phone_parent > .intl-tel-input{
+            width:97% !important;
+        }
+
+        hr{
+            border:border-top: 1px solid #000;
+        }
+        
+
+</style>    
+    <script type="text/javascript">
+    
+    //find details if student already filled out information      
+        j$ = jQuery.noConflict(); 
+        
+        j$(document).ready(function() {   
+            $ = jQuery.noConflict();
+            //see if app already exists   
+           j$("#signature").jSignature('init',{'height':'250px', 'width':'598','color':'#000000'});
+            j$('#loadingIconText').hide();
+                j$('#loadingModal').modal('show');                                                
+                new j$.Zebra_Tooltips(j$('.tooltips'));   
+                CKEDITOR.replace('shortEssay');              
+                j$('.phone').mask('(999)-999-9999'); 
+           
+           j$('#clear_signature').click(function(){
+               j$("#signature").jSignature('reset');
+           });
+            var goToSection = '{!$CurrentPage.Parameters.goToSection}';        
+            if(goToSection == 'uploadDetailsSection'){
+                j$('#sectionListPanel').hide();
+            }else{
+                j$('#sectionListPanel').show();
+            }
+            
+            //Application.schoolId('{schoolId}');       
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.ApplicationController.getStudentInfo}',    
+                function(result){
+                        if(result != null){
+
+                            var student = result['StudentInfo'];
+                            j$('#secondPageNextButton').text('Next');                                                          
+                            Application.studentId(student.Id);                      
+                            Application.studentLastName(student.LastName); 
+                            Application.studentFirstName(student.FirstName);
+                            /*
+                            if(typeof student.Phone!=='undefined'){
+                                var studentPhone=student.Phone.replace(/[^0-9\.]/g, '');
+                                var stCode = studentPhone.slice(0, studentPhone.length-10);
+                                if(stCode==''){
+                                    studentPhone='+1'+studentPhone;
+                                    Application.studentPhone(studentPhone);
+                                }
+                                else{
+                                    Application.studentPhone(student.Phone);
+                                }
+                            }
+                            */
+                            Application.studentPhone(student.Phone);
+                            /*
+                            if(typeof student.OtherPhone!=='undefined'){
+                                var studentAltPhone=student.OtherPhone.replace(/[^0-9\.]/g, '');;
+                                var stAltCode = studentAltPhone.slice(0, studentAltPhone.length-10);
+                                if(stAltCode==''){
+                                    studentAltPhone='+1'+studentAltPhone;
+                                    Application.studentAltPhone(studentAltPhone);
+                                }
+                                else {
+                                    Application.studentAltPhone(student.OtherPhone);
+                                }
+                                
+                            }
+                            */
+                            Application.studentAltPhone(student.OtherPhone);
+                            Application.studentEmail(student.Email);        
+                            Application.studentHomeAddress(student.MailingStreet);                      
+                            Application.studentCity(student.MailingCity);                       
+                            Application.studentZip(student.MailingPostalCode);
+                            Application.studentCountry(student.MailingCountry);
+                            Application.emContFirstName(student.Emergency_First_Name__c);
+                            Application.emContLastName(student.Emergency_Last_Name__c);
+                            Application.emContRelation(student.Emergency_Relationship__c);
+                            Application.emContPhone(student.Emergency_Contact_Phone__c);
+                            if(student.Age__c < 24){
+                                Application.under24(true);
+                            }
+                            else{
+                                Application.under24(false);
+                            }   
+                            if(student.MailingCountry != null){
+                                if(student.MailingCountry == 'United States'){
+                                    Application.selectedUsState(student.MailingState);
+                                    Application.studentState(student.MailingState);
+                                }
+                                else{
+                                    Application.studentProvince(true);
+                                    Application.selectedProvince(student.MailingState);
+                                    Application.studentState(student.MailingState);
+                                }
+                            }                       
+                            if(student.Birthdate != null){
+                                console.log('student.Birthdate----------->>>>',student.Birthdate+60*60*8*1000); //Adding 8 hours to make the time conversion correct
+                                var dob = normalizeDate(student.Birthdate+60*60*8*1000);
+                                console.log('dob----------->>>>',dob);
+                                var dobAlt = normalizeDate2(student.Birthdate+60*60*8*1000);
+                                Application.studentDOB(dob);
+                                document.getElementById('studentDOB_alternate').value = dobAlt;
+
+                                /*var dob = new Date(student.Birthdate );
+                                console.log('dob----------------->>>>',dob);
+                                Application.studentDOB(dob);*/
+
+                            }
+                            Application.ssNumber(student.SSN__c);
+                            //if(student.Citizenship_Status__c = 'US Citizen'){
+                            if(student.Citizenship_Status__c == 'US Citizen'){
+                                Application.residentialStatus('I am a citizen of the United States');
+                                j$('#militaryInformation').show();
+                            }
+                            else if(student.Citizenship_Status__c == 'Eligible Non-citizen'){
+                                Application.residentialStatus('I am a legal resident of the United States');
+                                j$('#militaryInformation').show();
+                            }
+                            else if(student.Citizenship_Status__c == 'Non-citizen'){
+                                Application.residentialStatus('I am an international student');
+                                j$('#militaryInformation').hide();
+                            }
+                            else{
+                                Application.residentialStatus();
+                            }
+
+                            Application.householdId(student.AccountId);
+
+                            if(typeof student.Country_of_Citizenship__c!=='undefined'){
+                                Application.countryOfCitizenship(student.Country_of_Citizenship__c.split(','));
+                            }   
+                            Application.alienNumber(student.Alien_Registration_Number__c);
+                            //Application.residentialStatus(student.Citizenship_Status__c);
+                            Application.visaType(student.Visa_Type__c);
+                            Application.visaSchoolName(student.Visa_School_Name__c);
+                            Application.visaSchoolAddress(student.Visa_School_Address__c);          
+                            Application.visaSchoolCity(student.Visa_School_City__c);
+                            Application.visaSchoolState(student.Visa_School_State__c);
+                            Application.visaSchoolCountry(student.Visa_School_Country__c);
+                            if(student.Visa_Expiration_Date__c != null){
+                                var exd = normalizeDate(student.Visa_Expiration_Date__c);
+                                var exdAlt = normalizeDate2(student.Visa_Expiration_Date__c);
+                                Application.visaExpirationDate(exd);
+                                document.getElementById('visaExpirationDate_alternate').value = exdAlt;
+                            }
+                            Application.visaSchoolZip(student.Visa_School_Zip__c);
+
+                            if(student.Eligible_for_Military_Benefits__c == true && student.Citizenship_Status__c != 'Non-citizen'){
+                                Application.qualifyForBenefitsQuestion('Yes');
+                            }
+                            else {
+                                Application.qualifyForBenefitsQuestion('No');
+                            }    
+                            Application.militaryAffiliation(student.Affiliation_Code__c);
+                            
+                            Application.branchOfService(student.Military_Branch__c);
+                            if(student.Authorize__c == true){
+                                Application.authorizeTranscript('Yes');
+                            }
+                            else if(student.Authorize__c == false){
+                                Application.authorizeTranscript('No');
+                            }
+                            
+                            if(student.ETS_EAS__c != null){
+                                var etsStart = normalizeDate(student.ETS_EAS__c);
+                                var etsStartAlt = normalizeDate2(student.ETS_EAS__c);
+                                Application.militaryETS(etsStart);
+                                document.getElementById('militaryETS_alternate').value = etsStartAlt;
+                            }
+                            if(student.Start_Date_of_Service__c != null){
+                                var dosStart = normalizeDate(student.Start_Date_of_Service__c);
+                                var dosStartAlt = normalizeDate2(student.Start_Date_of_Service__c);
+                                Application.militaryStartDate(dosStart);
+                                document.getElementById('militaryStartDate_alternate').value = dosStartAlt;
+                            }
+                            if(student.End_Date_of_Service__c != null){
+                                var dosEnd = normalizeDate(student.End_Date_of_Service__c);
+                                var dosEndAlt = normalizeDate2(student.End_Date_of_Service__c);
+                                Application.militaryEndDate(dosEnd);
+                                document.getElementById('militaryEndDate_alternate').value = dosEndAlt; 
+                            }
+                            if(student.Certificate_or_NOBE__c == true){
+                                Application.currentCertificate('Yes');
+                            }
+                            else if(student.Certificate_or_NOBE__c == false) {
+                                Application.currentCertificate('No');
+                            }
+                            
+                            Application.genderQuestion(student.Gender__c);
+
+                            Application.ethnicityQuestion(student.Ethnicity__c);
+                            Application.nationalityQuestion(student.Nationality__c);   
+                            var paramMap = {};
+                            paramMap['studentId']=student.Id;
+                            var applicationSelectedTemp = '{!applicationSelected}';
+                            var newApplication = '{!$CurrentPage.Parameters.newApplication}';
+                            console.log('applicationSelectedTemp----------->>>>',applicationSelectedTemp);
+                            if(applicationSelectedTemp == null || applicationSelectedTemp == ''){
+                                if(Application.studentId() != null && Application.studentId != undefined && Application.studentId != '' & newApplication != 'true'){
+                                    var temp = document.cookie.split(';');
+                                    console.log(temp);
+                                    for(var i =0; i<temp.length;i++){
+                                      if(temp[i].indexOf('latestViewedApplication') > -1){
+                                        var temp2 = temp[i].split('=');
+                                        console.log('temp2--->>',temp2[1]);
+                                        paramMap['applicationId'] = temp2[1];
+                                      }                                      
+                                    }
+                                }
+                            }else{
+                                paramMap['applicationId'] = '{!applicationSelected}'; //this will be null in new application context     
+                            }
+                            
+                            console.log('paramMap--------------------->>>>',paramMap);
+                            // see if already have an application and if so fill in details
+                            var signature;
+                            Visualforce.remoting.Manager.invokeAction(
+                                    '{!$RemoteAction.ApplicationController.getApplicationInfo}', paramMap,  
+                                    function(result){          
+                                        var application = result.Application;
+                                        signature = result.Signature;
+                                        console.log('signature--------------------->>>>',signature)
+                                        console.log('application--------------------->>>>',application);
+                                        console.log('current Page--------------------->>>>',window.location.hostname);                                                                                                                                                                                                      
+                                        if(!application){
+                                            //Application.studentDetails(true);
+                                            console.log('inside undefined application-------------->>>>>');
+                                            Application.moveToSection('first');
+                                            Application.isReadOnly(false); 
+                                                                                   
+                                            return;
+                                        }
+                                        else{
+                                            console.log('tttttttttttttt-->'+application.Application_Submitted__c);
+                                            if(application.Application_Submitted__c){
+                                                Application.applicationSubmitted(true);
+                                            }
+                                            
+                                            if(application.Application_Finalized__c){
+                                                Application.populateSignature();
+                                            }
+                                            if(application.Application_Submitted__c){                                               
+                                                var studentFullName = Application.studentFirstName() + ' '+Application.studentLastName(); 
+                                                j$('#ApplicantSignature').val(studentFullName);     
+                                            }
+                                            Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ApplicationController.getDocusign}', application.Id,
+                                                   function(docs, event){
+                                                       Application.docuSignList(docs);
+                                                   }, {escape: true});
+                                            //Application.getDocusign(application.Id);
+                                            Application.applicationFound(true);                                       
+                                            var appStatus = application.Application_Status__c;
+                                             console.log('appStatus ----------->>>>>',appStatus);
+                                             appStatus = appStatus.toLowerCase();
+                                            if(appStatus === 'submitted' || appStatus ==='approved'){
+                                                Application.isReadOnly(true);
+                                                Application.appFinalized(true);
+                                                
+                                                if(signature){
+                                                    var signUrl = 'https://'+window.location.hostname+'/servlet/servlet.FileDownload?file='+signature.Id;
+                                                    console.log('signUrl-------------->>>>',signUrl);
+                                                    j$("#signature").html('<img src="'+signUrl+'" alt="Applicant Signature">');          
+                                                    j$('#clear_signature').attr('disabled','true');                                             
+                                                } 
+                                                j$('input[type="text"]').each(function(){
+                                                    var dataBind = j$(this).attr('data-bind');
+                                                    dataBind += ',enable:!isReadOnly';
+                                                    j$(this).attr('data-bind',dataBind);
+                                                   
+                                                    ko.cleanNode(j$(this)[0]);
+                                                    ko.applyBindings(Application,j$(this)[0]);
+                                                });
+
+                                                j$('input[type="checkbox"]').each(function(){
+                                                    var dataBind = j$(this).attr('data-bind');
+                                                    dataBind += ',enable:!isReadOnly';
+                                                    j$(this).attr('data-bind',dataBind);
+                                                    
+                                                    ko.cleanNode(j$(this)[0]);
+                                                    ko.applyBindings(Application,j$(this)[0]);
+                                                });
+
+                                                j$('input[type="email"]').each(function(){
+                                                    var dataBind = j$(this).attr('data-bind');
+                                                    dataBind += ',enable:!isReadOnly';
+                                                    j$(this).attr('data-bind',dataBind);
+                                                    
+                                                    ko.cleanNode(j$(this)[0]);
+                                                    ko.applyBindings(Application,j$(this)[0]);
+                                                });
+                                                
+                                                j$('select').each(function(){
+                                                    var dataBind = j$(this).attr('data-bind');
+                                                    dataBind += ',enable:!isReadOnly';
+                                                    j$(this).attr('data-bind',dataBind);
+                                                    
+                                                    ko.cleanNode(j$(this)[0]);
+                                                    ko.applyBindings(Application,j$(this)[0]);
+                                                });
+                                                
+                                                j$('textarea').each(function(){
+                                                    var dataBind = j$(this).attr('data-bind');
+                                                    dataBind += ',enable:!isReadOnly';
+                                                    j$(this).attr('data-bind',dataBind);
+                                                    
+                                                    ko.cleanNode(j$(this)[0]);
+                                                    ko.applyBindings(Application,j$(this)[0]);
+                                                });
+
+                                                j$('#IAcceptButton').each(function(){
+                                                    var dataBind = j$(this).attr('data-bind');
+                                                    dataBind += ',visible:!isReadOnly';
+                                                    j$(this).attr('data-bind',dataBind);
+                                                    
+                                                    ko.cleanNode(j$(this)[0]);
+                                                    ko.applyBindings(Application,j$(this)[0]);
+                                                });
+
+
+                                                
+                                            }else{
+                                                Application.isReadOnly(false);
+                                            }
+                                            console.log('Application.isReadOnly ----------->>>>>',Application.isReadOnly());
+                                            Application.applicationId(application.Id);
+                                            Application.appFinalized(application.Application_Finalized__c);
+                                            
+                                            var goToSection = '{!$CurrentPage.Parameters.goToSection}';        
+                                            console.log('goToSection---------------->>>>>',goToSection);
+                                            if(goToSection != undefined && goToSection != ''){
+                                                Application.moveToSection(goToSection);
+                                                if(goToSection == 'uploadDetailsSection'){
+                                                    j$('#sectionListPanel').hide();
+                                                }else{
+                                                    j$('#sectionListPanel').show();
+                                                }
+                                            }else{
+                                                j$('#sectionListPanel').show();
+                                                Application.moveToSection('first');    
+
+                                            }
+                                            /*if(application.Application_Finalized__c==true){
+                                                Application.goToThisSection('uploadDetailsSection');
+                                            }
+                                            else {
+                                                Application.goToThisSection('submissionSection');
+                                            }*/
+                                            
+                                            if(application.Student_Info_Complete__c == true){
+                                                Application.studentDetailsComplete(true);
+                                            }
+                                            if(application.Parent_Info_Complete__c == true){
+                                                Application.parentInfoComplete(true);
+                                            } 
+                                            
+                                            if(application.Veteran_Info_Complete__c == true){
+                                                Application.veteranInfoComplete(true);
+                                            } 
+                                            if(application.College_Info_Complete__c == true){
+                                                Application.collegeInfoComplete(true);
+                                            }
+                                            if(application.Citizen_Info_Complete__c == true){
+                                                Application.citizenInfoComplete(true); 
+                                            }                                       
+                                            if(application.Essay_Complete__c == true){                                             
+                                                Application.shortEssayComplete(true);                                            
+                                            }
+                                            if(application.Emergency_Contact_Info_Complete__c == true){
+                                                Application.emContInfoComplete(true);
+                                            }
+                                            if(application.Program_Info_Complete__c == true){ 
+                                                Application.programInfoComplete(true);
+                                            }
+                                            if(application.High_School_Info_Complete__c == true){
+                                                Application.highSchoolInfoComplete(true); 
+                                            }
+                                            if(application.Criminal_History_Complete__c == true){
+                                                Application.criminalInfoComplete(true);
+                                                if(application.Criminal_History__c == true){
+                                                    Application.criminalHistoryQuestion('Yes');
+                                                }
+                                                else{
+                                                    Application.criminalHistoryQuestion('No');
+                                                }                                       
+                                                Application.criminalHistoryExplain(application.Criminal_History_Explanation__c);
+                                            }
+                                            if(application.Discipline_Section_Complete__c == true){
+                                                Application.disciplineInfoComplete(true);
+                                                if(application.Academic_Misconduct__c == true){
+                                                    Application.educationDisiplineQuestion('Yes');
+                                                }
+                                                else{
+                                                    Application.educationDisiplineQuestion('No');
+                                                }
+                                                Application.educationDisciplineExplain(application.Academic_Misconduct_Explanation__c);
+                                            }
+                                            if(application.Disability_Info_Complete__c == true){
+                                                Application.disabilityInfoComplete(true);
+                                                if(application.Disability_Accomodations__c == true){
+                                                    Application.disabilityServicesQuestion('Yes, I will be requesting the use of auxiliary aids and/or services as described above.');
+                                                }
+                                                else{
+                                                    Application.disabilityServicesQuestion('No, I will NOT by requesting the use of auxiliary aids and/or services as described above.');
+                                                }
+                                                Application.disabilityServicesExplain(application.Disability_Explanation__c);
+                                            }
+                                            if(application.Statistical_Info_Complete__c == true){
+                                                Application.statisticalInfoComplete(true);
+                                            } 
+                                            if(application.Referral_Info_Complete__c == true){
+                                                Application.referralInfoComplete(true);
+                                            }
+                                            if(application.Acceptance_Info_Complete__c == true){
+                                                Application.acceptanceInfoComplete(true);
+                                            }                                                                   
+                                            Application.acceptedAgreement(application.Accepted_Agreement__c);
+                                            
+                                            Application.representative(application.Addmission_Representative__c);
+                                            /*
+                                            if(application.Addmissions_Representative__c != null){
+                                                Application.addmissionsRep(false);                                          
+                                                setRep(application.Addmissions_Representative__c);
+                                            }  
+                                            */                                     
+                                            Application.college1DegreeReceived(application.College_1_Degree__c);
+                                                                            
+                                            if(application.College_1_Graduation_Date__c != null){
+                                                var col1Grad = normalizeDate(application.College_1_Graduation_Date__c);
+                                                var col1GradAlt = normalizeDate2(application.College_1_Graduation_Date__c);
+                                                Application.college1GraduationDate(col1Grad);
+                                                document.getElementById('college1GraduationDate_alternate').value = dosStartAlt;
+                                                
+                                            }
+                                            Application.college1Name(application.College_1_Name__c);
+                                            Application.college2DegreeReceived(application.College_2_Degree__c);
+                                            if(application.College_2_Graduation_Date__c != null){
+                                                var col1Grad = normalizeDate(application.College_2_Graduation_Date__c);
+                                                var col1GradAlt = normalizeDate2(application.College_2_Graduation_Date__c);
+                                                Application.college2GraduationDate(col1Grad);
+                                                document.getElementById('college2GraduationDate_alternate').value = dosStartAlt;
+                                            }
+                                            
+                                            Application.college2Name(application.College_2_Name__c);
+                                            Application.collegeNotes(application.College_Notes__c);
+
+                                            
+                                            Application.degreeReceived(application.HS_Degree_Received__c);
+                                            if(application.Friend_Referral__c == true){
+                                                Application.referFriendQuestion('Yes');
+                                            }
+                                            else{
+                                                Application.referFriendQuestion('No');
+                                            }
+                                            if(application.HS_Graduation_Date__c != null){                                          
+                                                var hsGrad = normalizeDate(application.HS_Graduation_Date__c);
+                                                var hsGradAlt = normalizeDate2(application.HS_Graduation_Date__c);
+                                                Application.graduationDate(hsGrad);
+                                                document.getElementById('graduationDate_alternate').value = hsGradAlt;
+                                            }
+                                            Application.highSchoolAddress(application.High_School_Address__c);
+                                            Application.highSchoolAddress2(application.High_School_Address_2__c);
+                                            Application.highSchoolCity(application.High_School_City__c);
+                                            Application.highSchoolName(application.High_School_Name__c);
+                                            Application.highSchoolState(application.High_School_State__c);
+                                            Application.highSchoolCountry(application.High_School_Country__c);  
+                                            if(application.High_School_Country__c != null){
+                                                if(application.High_School_Country__c == 'United States'){
+                                                    Application.selectedHighSchoolUsState(application.High_School_State__c);
+                                                    Application.highSchoolState(application.High_School_State__c);
+                                                }
+                                                else{
+                                                    Application.highSchoolProvince(true);
+                                                    Application.selectedHighSchoolProvince(application.High_School_State__c);
+                                                    Application.highSchoolState(application.High_School_State__c);
+                                                }
+                                            }   
+                                            Application.highSchoolZip(application.High_School_Zip__c);
+
+                                            /*if(application.Preferred_Start_Date__c != null){
+                                                var startd = normalizeDate(application.Preferred_Start_Date__c);
+                                                var startdAlt = normalizeDate2(application.Preferred_Start_Date__c);
+                                                Application.prefStartDate(startd);
+                                                document.getElementById('prefStartDate_alternate').value = startdAlt;
+                                            }*/
+                                            
+                                            
+
+                                            //Application.prefStartDate(application.Preferred_Start_Date__c);
+                                            Application.prefStartPeriod(application.Preferred_Start_Period__c);
+                                            //Application.selectedProgram(application.Program__c);
+                                                                                 
+                                            //put program selectionin based on code   
+                                            var pcode=application.Program_Code__c;
+                                            console.log('pcode------------>>>',pcode);
+                                            if(pcode != undefined){
+                                                if(pcode.substring(pcode.length-2)=="-O"){
+                                                    Application.selectedCampus('Online');
+                                                }
+                                                else
+                                                {
+                                                    Application.selectedCampus('On Campus');
+                                                }   
+                                            
+                                            }                                        
+                                            Application.programCode(application.Program_Code__c);  
+                                            Application.programVersion(application.Program_Version__c);
+                                            if(application.Student_Info_Complete__c == true){
+                                                Application.studentDetailsComplete(true);
+                                            }
+
+                                                
+                                            Visualforce.remoting.Manager.invokeAction(
+                                                '{!$RemoteAction.ApplicationController.getReferralInfo}', Application.studentId(),  
+                                                function(referral){                                                                                                                                              
+                                                    Application.friendFirstName(referral.Referral_First_Name__c);
+                                                    Application.friendLastName(referral.Referral_Last_Name__c);
+                                                    Application.friendEmail(referral.Referral_Email__c);
+                                                    Application.friendPhone(referral.Referral_Phone__c);
+                                                    Application.friendOther(referral.Referral_Notes__c);  
+                                                    
+                                                    if(referral.Referral_Email__c!=null){
+                                                        Application.referFriendQuestion('Yes');
+                                                    }      
+                                                },{escape : false});
+
+
+                                            Visualforce.remoting.Manager.invokeAction(
+                                                '{!$RemoteAction.ApplicationController.getEmerContInfo}', Application.studentId(),  
+                                                function(emCont){                                                                                                                                                
+                                                    Application.emContFirstName(emCont.Emergency_First_Name__c);
+                                                    Application.emContLastName(emCont.Emergency_Last_Name__c);
+                                                    Application.emContRelation(emCont.Emergency_Relationship__c);
+                                                    Application.emContPhone(emCont.Emergency_Contact_Phone__c);      
+                                            },{escape : false});
+
+
+                                            Visualforce.remoting.Manager.invokeAction(
+                                                '{!$RemoteAction.ApplicationController.getParentInfo}', Application.studentId(),  
+                                                function(parent){                                                                                                                                               
+                                                    Application.studentParentFirstName(parent.Parent_First_Name__c);
+                                                    Application.studentParentLastName(parent.Parent_Last_Name__c);
+                                                    Application.studentParentEmail(parent.Parent_Email__c);
+                                                    Application.studentParentPhone(parent.Parent_Phone__c);       
+                                            },{escape : false});
+                  
+                                            Application.shortEssay(application.Short_Essay__c);
+                                            
+                                            CKEDITOR.instances['shortEssay'].setData(application.Short_Essay__c);
+                                            //Application.transcriptRequest(application.Transcript_Request__c);                                                       
+                                            Application.I539Status(application.I539_Received__c);
+                                            Application.collegeTranscriptsStatus(application.College_Transcript_Received__c);
+                                            Application.compSpecsStatus(application.Computer_Specs_Received__c);
+                                            Application.photoIdStatus(application.Photo_Id_Received__c);
+                                            Application.HSDiplomaStatus(application.HS_Diploma_Received__c);
+                                            Application.CCAFStatus(application.CCAF_Recieved__c);
+                                            Application.DD214Status(application.DD214_Received__c);
+                                            Application.passportStatus(application.Passport_Received__c);
+                                            Application.I20Status(application.I20_Received__c);
+                                            Application.USVisaStatus(application.US_Visa_Received__c);
+                                            //Application.I94Status(application.I94_Received__c);
+                                            Application.TOEFLStatus(application.TOEFL_Received__c);
+                                            Application.bankStatementStatus(application.Bank_Statement_Received__c);
+                                            
+                                            if(application.I539_Received__c == 'Received' || application.I539_Received__c == 'Accepted'){
+                                                Application.I539Submitted(true);
+                                            }
+                                            else{
+                                                Application.I539Submitted(false);                                       
+                                            }
+                                            if(application.College_Transcript_Received__c == 'Received' ||  application.College_Transcript_Received__c  == 'Accepted'){
+                                                Application.collegeTranscriptsSubmitted(true);
+                                            }
+                                            else{
+                                                Application.collegeTranscriptsSubmitted(false);                                     
+                                            } 
+                                            if(application.Photo_Id_Received__c == 'Received' || application.Photo_Id_Received__c == 'Accepted'){
+                                                Application.photoIdSubmitted(true);
+                                            }
+                                            else{
+                                                Application.photoIdSubmitted(false);                                        
+                                            }       
+                                            if(application.Computer_Specs_Received__c == 'Received' || application.Computer_Specs_Received__c == 'Accepted'){
+                                                Application.compSpecsSubmitted(true);
+                                            }
+                                            else{
+                                                Application.compSpecsSubmitted(false);                                      
+                                            }
+                                            if(application.HS_Diploma_Received__c == 'Received' ||  application.HS_Diploma_Received__c == 'Accepted'){
+                                                Application.HSDiplomaSubmitted(true);
+                                                Application.HSDiplomaStatus(application.HS_Diploma_Received__c);
+                                            }
+                                            else{
+                                                Application.HSDiplomaSubmitted(false);                                      
+                                            }   
+                                            if(application.CCAF_Recieved__c == 'Received' || application.CCAF_Recieved__c == 'Accepted'){
+                                                Application.CCAFSumbitted(true);
+                                                Application.CCAFStatus(application.CCAF_Recieved__c);
+                                            }
+                                            else{
+                                                Application.CCAFSumbitted(false);                                       
+                                            }   
+                                            if(application.DD214_Received__c == 'Received' || application.DD214_Received__c == 'Accepted'){
+                                                Application.DD214Submitted(true);
+                                                Application.DD214Status(application.DD214_Received__c);
+                                            }
+                                            else{
+                                                Application.DD214Submitted(false);                                      
+                                            }   
+                                            if(application.Passport_Received__c == 'Received' || application.Passport_Received__c == 'Accepted'){
+                                                Application.passportSubmitted(true);
+                                                Application.passportStatus(application.Passport_Received__c);
+                                            }
+                                            else{
+                                                Application.passportSubmitted(false);                                       
+                                            }
+                                            if(application.I20_Received__c == 'Received' || application.I20_Received__c == 'Accepted'){
+                                                Application.I20Submitted(true);
+                                                Application.I20Status(application.I20_Received__c);
+                                            }
+                                            else{
+                                                Application.I20Submitted(false);                                        
+                                            }
+                                            if(application.US_Visa_Received__c == 'Received' || application.US_Visa_Received__c == 'Accepted'){
+                                                Application.USVisaSubmitted(true);
+                                                Application.USVisaStatus(application.US_Visa_Received__c);
+                                            }
+                                            else{
+                                                Application.USVisaSubmitted(false);                                     
+                                            }
+                                            /*if(application.I94_Received__c == 'Received' || application.I94_Received__c == 'Accepted'){
+                                                Application.I94Submitted(true);
+                                            }*/
+                                            if(application.TOEFL_Received__c == 'Received' || application.TOEFL_Received__c == 'Accepted'){
+                                                Application.TOEFLSubmitted(true);
+                                                Application.TOEFLStatus(application.TOEFL_Received__c);
+                                            }
+                                            else{
+                                                Application.TOEFLSubmitted(false);                                      
+                                            }
+                                            if(application.Bank_Statement_Received__c == 'Received' || application.Bank_Statement_Received__c == 'Accepted'){
+                                                Application.bankStatementSubmitted(true);
+                                                Application.bankStatementStatus(application.Bank_Statement_Received__c);
+                                            }
+                                            else{
+                                                Application.bankStatementSubmitted(false);                                      
+                                            }
+                                            
+                                            if(application.HS_Transcript_Evaluation_Recieved__c == 'Received' || application.HS_Transcript_Evaluation_Recieved__c == 'Accepted'){
+                                                Application.HSTranscriptEvaluationSubmitted(true);   
+                                                Applicaiton.HSTransriptEvaluationStatus(application.HS_Transcript_Evaluation_Recieved__c);                                             
+                                            }
+                                            else{
+                                                Application.HSTranscriptEvaluationSubmitted(false);                                      
+                                            }
+                                            
+                                            
+                                            
+                                            
+                                            //in the bs of entertain completer
+                                            if(Application.selectedProgram() == 'Bachelor of Science in Entertainment Completer'){
+                                                if(Application.collegeTranscriptsSubmitted()){
+                                                    Application.completerDocsIn(true);
+                                                }
+                                                else{
+                                                    Application.completerDocsIn(false);
+                                                }
+                                            }
+                                            else{
+                                                Application.completerDocsIn(true);
+                                            }
+                                            //online campus
+                                            if(Application.selectedCampus() == 'Online'){
+                                                if(Application.photoIdSubmitted()){
+                                                    if(Application.haveNoComputer()){
+                                                        if(Application.compSpecsSubmitted()){
+                                                            Application.onlineDocsIn(true);
+                                                        }
+                                                        else{
+                                                            Application.onlineDocsIn(false);
+                                                        }
+                                                    }
+                                                    else{
+                                                        Application.onlineDocsIn(true);
+                                                    }           
+                                                }
+                                                else{
+                                                    Application.onlineDocsIn(false);
+                                                }   
+                                            }
+                                            else{
+                                                Application.onlineDocsIn(true);
+                                            }
+                                            //military docs
+                                            if(Application.militaryFileUpload()){//eligible for military benefits
+                                                if(Application.militaryAffiliation() != 'ACT'){//is eligible for benefits, not active duty
+                                                    if(Application.DD214Submitted()){//is eligible for benefits,not active duty, dd214 in
+                                                        if(Application.branchOfService() == 'Air Force'){//is eligible for benefits,not active duty, dd214 in, in air force
+                                                            if(Application.CCAFSumbitted()){//is eligible for benefits,not active duty, dd214 in, in air force, ccaf in
+                                                                Application.militaryDocsIn(true);
+                                                            }
+                                                            else{//is eligible for benefits,not active duty, dd214 in, in air force, ccaf not in
+                                                                Application.militaryDocsIn(false);
+                                                            }
+                                                        }
+                                                        else{//is eligible for benefits,not active duty,dd214 in, not air force
+                                                            Application.militaryDocsIn(true);
+                                                        }
+                                                    }
+                                                    else{//is eligible for benefits,not active duty, dd214 not in
+                                                        Application.militaryDocsIn(false);
+                                                    }
+                                                }
+                                                else{//is eligible for benefits,is active duty
+                                                    if(Application.branchOfService() == 'Air Force'){//is eligible for benefits,is active duty, is in air force
+                                                        if(Application.CCAFSumbitted()){//is eligible for benefits, is active duty, in air force, ccaf in
+                                                            Application.militaryDocsIn(true);
+                                                        }
+                                                        else{//is eligible for benefits, is active duty,is in air force, ccaf not in
+                                                            Application.militaryDocsIn(false);
+                                                        }
+                                                    }
+                                                    else{//is eligible for benefits, is active duty, not in air force
+                                                        Application.militaryDocsIn(true);
+                                                    }
+                                                }
+                                            }
+                                            else{//not eligible for military benefits
+                                                Application.militaryDocsIn(true);
+                                            }
+                                            
+                                            
+                                            //international docs
+                                            if(Application.internationalFileUpload()){//is international student
+                                                if(Application.passportSubmitted()){//is international student, passport is in
+                                                    if(Application.I20Submitted()){//is international student, passport is in, I20 is in
+                                                        if(Application.USVisaSubmitted()){//is international student, passport is in, I20 is in, visa is in
+                                                            if(Application.bankStatementSubmitted()){//is international student, passport is in, I20 is in, visa is in, bank statement is in
+                                                                if(Application.I539Submitted()){//is international student, passport is in, I20 is in, visa is in, bank statement is in, I539 is in
+                                                                    if(Application.selectedCampus() == 'Online'){//is international student, passport is in, I20 is in, visa is in, bank statement is in, I539 is in, online campus selected
+                                                                        if(Application.TOEFLSubmitted()){//is international student, passport is in, I20 is in, visa is in, bank statement is in, I539 is in, online campus selected, toefl is in
+                                                                            Application.internationalDocsIn(true);
+                                                                        }
+                                                                        else{//is international student, passport is in, I20 is in, visa is in, bank statement is in, I539 is in, online campus selected, toefl not in
+                                                                            Application.internationalDocsIn(false);
+                                                                        }
+                                                                    }
+                                                                    else{//is international student, passport is in, I20 is in, visa is in, bank statement is in, I539 is in, online campus not selected
+                                                                        Application.internationalDocsIn(true);
+                                                                    }
+                                                                }
+                                                                else{//is international student, passport is in, I20 is in, visa is in, bank statement is in, I539 not in
+                                                                    Application.internationalDocsIn(false);
+                                                                }
+                                                            }
+                                                            else{//is international student, passport is in, I20 is in, visa is in, bank statement not in
+                                                                Application.internationalDocsIn(false);
+                                                            }
+                                                        }
+                                                        else{//is international student, passport is in, I20 is in, visa not in
+                                                            Application.internationalDocsIn(false);
+                                                        }
+                                                    }
+                                                    else{//is international student, passport is in, I20 not in
+                                                        Application.internationalDocsIn(false);
+                                                    }
+                                                }
+                                                else{//is international student, passport not in
+                                                    Application.internationalDocsIn(false);
+                                                }
+                                            }
+                                            else{//is not international student
+                                                Application.internationalDocsIn(true);
+                                            }                                                                               
+                                            if(Application.HSDiplomaSubmitted() && Application.completerDocsIn() && Application.onlineDocsIn() && Application.militaryDocsIn() && Application.internationalDocsIn()){
+                                                Application.allDocsIn(true);
+                                            }
+                                            else{
+                                                Application.allDocsIn(false);
+                                            }
+                                            
+            
+                                        }     
+                                    },{escape : false});    
+                        }else{
+                            Application.moveToSection('studentDetailSection');
+                            
+                        }                                                             
+              },{escape : false});
+              
+              Application.pageName('application');//shows logout link
+        });                     
+    </script>
+    <script>
+        function normalizeDate(dateVal){ 
+            console.log('dateVal------->>>>',dateVal);
+            mydate = new Date(dateVal);
+            //data = new Date(mydate -  mydate.getTimezoneOffset() * 60000);
+            var d = mydate.getDate()
+            var m = mydate.getMonth()+1;
+            var y = mydate.getFullYear();
+            return (m<=9?'0'+m:m) +'-' + (d<=9?'0'+d:d)+'-' + y;        
+        }
+    </script>
+    <script>
+        function normalizeDate2(dateVal){ 
+            mydate = new Date(dateVal);
+            //data = new Date(mydate -  mydate.getTimezoneOffset() * 60000);
+            var d = mydate.getDate();
+            var m = mydate.getMonth()+1;
+            var y = mydate.getFullYear();           
+            return y + '-' + (m<=9?'0'+m:m) +'-' + (d<=9?'0'+d:d);      
+        }
+    </script>
+    <div id="finalizeApplication" class="modal fade" role="dialog">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <a class="pull-right" href="javascript:void(0);" onclick= "j$('#finalizeApplication').modal('hide');"><span class="glyphicon glyphicon-remove"></span></a>
+                        <h4 class="modal-title">Finalize Application</h4>
+                    </div>
+                    <div class="modal-body container-fluid">
+                        <p>This will finalize your application and no further edits will be allowed.  Press OK to continue or Cancel.</p>       
+
+                        <div class="btn-panel text-right">
+                            <input type="button" class="btn btn-blue" value="Cancel" onclick= "j$('#finalizeApplication').modal('hide');"/>
+                            <input type="button" class="btn btn-blue" value="OK" data-bind="click : function(){proceedToFinalSubmit()} "/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <div class="container-fluid">        
+        <div class="container sectionListPanelRow" style="margin-top: 5%">
+            <div  class="row steps-row" id="sectionListPanel" style="display: none"> <!-- data-bind="visible: !uploadDetails()" -->
+                <ul class="steps clearfix" role="tablist">
+                    <li id="studentDetailSectionPill" role="presentation" class="ui-state"> <!-- class="ui-state-selected active" -->
+                        <a class="sectionLink" href="/Application/#studentDetailSection" data-bind="click : function(){moveToSection('studentDetailSection')}" aria-controls="tab1" role="tab" data-toggle="tab">                            
+                            <b>CONTACT INFORMATION</b>
+                        </a>
+                    </li>
+                    
+                    <li id="educationDetailSectionPill" role="presentation" class="ui-state-disabled"> <!-- class="ui-state-disabled" -->
+                        <a class="sectionLink" href="#parentDetailSection" data-bind="click : function(){moveToSection('educationDetailSection')}" aria-controls="tab1" role="tab" data-toggle="tab">
+                            
+                            <b>EDUCATION AND BACKGROUND INFO</b>
+                        </a>
+                    </li>
+                
+
+                    <li id="essayDetailSectionPill" role="presentation" class="ui-state-disabled last-child"> <!-- class="ui-state-disabled last-child"-->
+                        <a class="sectionLink" href="#essayDetailSection" data-bind="click : function(){moveToSection('essayDetailSection')}" aria-controls="tab4" role="tab" data-toggle="tab">                            
+                            <b>SUPPLIMENTAL INFORMATION</b>
+                        </a>
+                    </li>                                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <!-- SECTION 1 of 4 Starts -->
+            <div id="sectionPanel" >  
+                <div class="vwspc-section" id="studentDetailSection" style="position:relative;z-index: 0; background: none;" data-bind="visible: Application.studentDetails()" > <!-- position: relative;-->
+                    
+                    
+                    <!--  <div class="progress"><div class="bar"></div></div> -->
+                    <div class="container mobileOnly">
+                        <div class="row" style="margin-top:25px;">          
+                            <div class="col-md-6 "> <!-- center col-md-offset-3 -->
+                                <ul class="noStyle">
+                                        <li ><h4 style="color:black;font-weight: 600;">Student Information</h4></li>
+                                        <!-- <li style="color:red;font-style:italic;">
+                                            * Required Item
+                                        </li> -->
+                                        <!-- 
+                                        <li style="text-align:left;" data-bind="visible: addmissionsRep">   
+                                            <apex:form >
+                                              <apex:selectList styleclass="form-control" id="representative" size="1" value="{!representativeId}" onchange="setRep(this.value)" multiselect="false" >
+                                                  <apex:selectOptions value="{!UserList}"></apex:selectOptions>
+                                              </apex:selectList>
+                                            </apex:form>
+                                       </li>
+                                       -->
+                                       <li><input placeholder="First Name" type="text" class="form-control"  data-bind="value : studentFirstName, valueUpdate: 'afterkeydown'" /><div class="asterick">*</div></li>
+                                       <li><input placeholder="Last Name" type="text" class="form-control"  data-bind="value : studentLastName, valueUpdate: 'afterkeydown'" /><div class="asterick">*</div></li>
+                                       <li>
+                                           <div style="width:43.5%; float:left;margin-bottom:10px;"><input placeholder="Telephone Number" type="text" id="txt_phone_number" class="form-control intl"  data-bind="value: studentPhone, valueUpdate: 'afterkeydown'" style="width:100% !important" /></div>
+                                           <div style="width:1.5%; float:left;"><div class="asterick">*</div></div>
+                                           <div style="width:44%; float:left;"><input placeholder="Alternative Number" class="form-control       intl phoneRightNoAst"  type="text" id="txt_alt_phone_number" data-bind="value : studentAltPhone, valueUpdate: 'afterkeydown'" style="width:100% !important" /></div>
+                                       </li>
+                                       <li><input placeholder="Email" type="email" id="studentEmail" class="form-control" data-bind="value : studentEmail, valueUpdate: 'afterkeydown'"/><div class="asterick">*</div></li>
+                                       <li>
+                                        <input placeholder="Date of Birth" id="studentDOB" class="form-control" type="text" data-bind="value : studentDOB, valueUpdate: 'afterkeydown'"/><div class="asterick">*</div>                                            
+                                        <input type="hidden" id="studentDOB_alternate" />
+                                        <script type="text/javascript">      
+                                            j$ = jQuery.noConflict();       
+                                            j$(document).ready(function() {
+                                                j$( "#studentDOB" ).datepicker({
+                                                    //defaultDate: "+1w",
+                                                    changeMonth: true,
+                                                    changeYear: true,
+                                                    yearRange: '-50:c',
+                                                    numberOfMonths: 1,
+                                                    dateFormat:"mm-dd-yy",
+                                                    altField: "#studentDOB_alternate",
+                                                    altFormat: "yy-mm-dd",
+                                                    showAnim: "slide"
+                                                });
+            
+                                                j$(".calendar").datepicker({
+                                                    dateFormat:"MM dd, yy",
+                                                    onSelect: function(dateText) {
+                                                        Application.prefStartPeriodOptions.push(dateText);
+                                                        Application.prefStartPeriod(dateText);
+                                                        //j$(".calendar").val(dateText);
+                                                    }
+                                                });
+                                            });                   
+                                        </script>
+                                    </li>                   
+                                    <li><select class="form-control" data-bind='options: countryOptions, optionsCaption: "Country", value: studentCountry, valueUpdate: "input"'></select><div class="asterick">*</div></li>
+                                       <li><input placeholder="Street Address" class="form-control"  type="text" data-bind="value : studentHomeAddress, valueUpdate: 'afterkeydown'"/><div class="asterick">*</div></li>
+                                       <li><input placeholder="City" class="form-control"  type="text" data-bind="value : studentCity, valueUpdate: 'afterkeydown'"/><div class="asterick">*</div></li>
+                                    <li>                        
+                                        <select id="studentState" class="form-control" data-bind='visible: studentUsStates, options: stateOptions, optionsText:"text", optionsValue:"value", optionsCaption: "State", value: selectedUsState, valueUpdate: "input"'></select>
+                                        <input id="studentProvince" placeholder="State/Province" type="text" class="form-control cap phone1"  data-bind="visible: studentProvince, value : selectedProvince, valueUpdate: 'input'"/>
+                                        <div data-bind='visible:studentProvince' class="asterick">*</div>                       
+                                        <div data-bind='visible:studentUsStates' class="asterick">*</div>                       
+                                    </li>
+                      
+                                    <li>
+                                        <input placeholder="Zip" type="text" class="form-control phoneRight"  data-bind="value : studentZip, valueUpdate: 'afterkeydown'"/><div data-bind="visible:studentUsStates" class="asterick">*</div>
+                                    </li>                                              
+                                   </ul>
+                                   <hr/>
+                                    <ul class="noStyle" >
+                                        <li ><h4 style="color:black;font-weight: 600;">Citizenship Information</h4></li>
+                                        <!-- <li style="color:red;font-style:italic;">* Required Item</li> -->
+                                        <li><select class="form-control" id='residentialStatusOptions' data-bind='options: residentialStatusOptions, optionsCaption: "Residential Status", value: residentialStatus, valueUpdate: "afterkeydown"'></select><div class="asterick" style="padding-top:12px;">*</div></li>
+                                        <li data-bind="fadeVisible: alienNumberSection"><input placeholder="Alien Number" type="text" class="form-control"  data-bind="value : alienNumber, valueUpdate: 'afterkeydown'"/></li>
+                                        <li data-bind="fadeVisible: ssNumberSection">
+                                            Social security number is required for student information and to process financial aid.
+                                            <input id="ssn" placeholder="Social Security Number" type="text" class="form-control" data-bind="textInput : ssNumberAlt, valueUpdate: 'afterkeydown'"/>
+                                            <input type="hidden" id="ssn_alt"/>
+                                            <div id="ssnRequired" class="asterick">*</div>
+                                        </li>
+                                        <li data-bind="fadeVisible: countryOfCitizenshipSection" style="font-size:20px">Country of Citizenship
+                
+                                            <a href="#" class="tooltips" title="To select multiple countries<br/>PC: press &amp; hold Ctrl key<br/>MAC: press &amp; hold Command key<br/>while choosing countries">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a> 
+                                            </li>
+                                        <li data-bind="fadeVisible: countryOfCitizenshipSection, text:'Country(s) Selected:'+countryOfCitizenship()"></li>
+                                        <li data-bind="fadeVisible: countryOfCitizenshipSection">
+                                            <select class="form-control" id="countryCitizen" size="4" multiple="true" data-bind='options: countryOptionsInternational, selectedOptions: countryOfCitizenship, valueUpdate: "blur"'></select><div class="asterick">*</div>
+                                        </li>
+                                        <li data-bind="fadeVisible: visaTypeSection">
+                                            If you are currently living in the U.S. with an international visa, please indicate the type of visa below (e.g. F1 student visa, M1 student visa, tourist visa, etc.)
+                                            <select class="form-control" data-bind='options: visaTypeOptions, optionsCaption: "Visa Type", value: visaType, valueUpdate: "afterkeydown"'></select>
+                                        </li>
+                                        <li data-bind="fadeVisible: international">
+                                            <input placeholder="Expiration Date" id="visaExpirationDate" class="form-control" type="text" data-bind="value : visaExpirationDate, valueUpdate: 'afterkeydown'"/>
+                                            <br/>
+                                            <input type="hidden" id="visaExpirationDate_alternate" />                                           
+                                            <script type="text/javascript">      
+                                                j$ = jQuery.noConflict();       
+                                                j$(document).ready(function() {
+                                                    j$( "#visaExpirationDate" ).datepicker({
+                                                        yearRange: "c:+10",
+                                                        changeMonth: true,
+                                                        changeYear: true,
+                                                        numberOfMonths: 1,
+                                                        dateFormat:"mm-dd-yy",
+                                                        altField: "#visaExpirationDate_alternate",
+                                                        altFormat: "yy-mm-dd",
+                                                        showAnim: "slide"
+                                                    })
+                                                });                     
+                                            </script> 
+                                            Notice: Please note that in order to enroll in any of the programs offered at The Los Angeles Film School, international students must have an F1 Visa. 
+                                            In order to obtain an F1 Visa, you will be asked to provide financial verification that you can cover the costs of tuition and living expenses per 
+                                            Homeland Security requirements. Information about how to obtain an F1 student visa is mailed to students upon acceptance to the program. 
+                                            <br/>
+                                            If you are currently attending a school under F1 Visa, please specify the school's information bellow.
+                                            <input placeholder="School Name" style="margin-bottom:10px;" type="text" class="form-control"  data-bind="value : visaSchoolName, valueUpdate: 'afterkeydown'"/>
+                                            <input placeholder="Street Address" style="margin-bottom:10px;" type="text" class="form-control"  data-bind="value : visaSchoolAddress, valueUpdate: 'afterkeydown'"/>                        
+                                            <input placeholder="City" type="text" style="margin-bottom:10px;" class="form-control"  data-bind="value : visaSchoolCity, valueUpdate: 'afterkeydown'"/>
+                                            <input placeholder="State/Province" style="margin-bottom:10px;" type="text" class="form-control"  data-bind="value : visaSchoolState, valueUpdate: 'afterkeydown'"/> 
+                                            <input placeholder="Zip" type="text" style="margin-bottom:10px;" class="form-control"  data-bind="value : visaSchoolZip,valueUpdate : 'afterkeydown'"/>
+                                            <select class="form-control" style="margin-bottom:10px;" data-bind='options: countryOptions, optionsCaption: "Country", value: visaSchoolCountry, valueUpdate: "afterkeydown"'></select>       
+                                        </li>
+                                    </ul>
+                                    <hr/>                                    
+                            </div>              
+                            <div class="col-md-6">                                                                
+                                <ul class="noStyle" > <!-- style="margin-top: 30px;" -->
+                                    <li ><h4 style="color:black;font-weight: 600;">Emergency Contact Information</h4></li>
+                                    <!-- <li style="color:red;font-style:italic;">* Required Item</li> -->
+                                    <li><input placeholder="First Name" type="text" class="form-control"  data-bind="value : emContFirstName, valueUpdate: 'afterkeydown'"/><div class="asterick">*</div></li>
+                                    <li><input placeholder="Last Name" type="text" class="form-control"  data-bind="value : emContLastName, valueUpdate: 'afterkeydown'"/><div class="asterick">*</div></li>
+                                    <li><input placeholder="Relationship To You" type="text" class="form-control" data-bind="value : emContRelation, valueUpdate: 'afterkeydown'"/><div class="asterick">*</div></li>
+                                    <li>
+                                          <div id="txt_em_phone_parent" style="width:92%;">   
+                                            <input placeholder="Telephone Number" type="text" class="form-control intl" id="txt_em_phone"  data-bind="value : emContPhone, valueUpdate: 'afterkeydown'" style="width:100% !important" /> <!-- style="width:89% !important" -->
+                                            <div class="asterick">*</div>
+                                         </div>
+                                        </li>
+                                    <li data-bind="visible: isParent">
+                                        <input type="checkbox" id="txt_same_as_parent" data-bind="checked: sameParent, click: function(){return sameAsParent()}" /> 
+                                        <label for="txt_same_as_parent" style="margin-bottom:20px; vertical-align:middle;">Use my parent/guardian information instead</label>
+                                    </li>               
+                                </ul>
+                                <hr/>
+                                <br/>
+                                <ul class="noStyle">
+                                    <li style="font-size: 18px;color:black;font-weight: 600;" >Program And Start Date
+                                        <a href="#" class="tooltips" title="For completer programs, students must already have an associate's degree.">
+                                            <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>
+                                        </a> 
+                                    </li>
+                                    <!-- <li style="color:red;font-style:italic;">* Required Item</li> -->
+                                    <li>
+                                       <input placeholder="Admissions Representative(if applicable)" type="text" class="form-control" data-bind="value : representative" />
+                                    </li>
+                                    <li data-bind="fadeVisible: !international()">
+                                        <select class="form-control"  data-bind='options: prefStartPeriodOptions, optionsCaption: "Preferred Start Period", value: prefStartPeriod, valueUpdate: "input"'></select><div class="asterick" style="padding-top:12px;">*</div> <!-- float:left; style="float:left;"-->
+                                    </li>
+                                    
+                                    <li data-bind="fadeVisible: international">
+                                        <input placeholder="Preferred Start Period" type="text" class="form-control calendar" data-bind="value : prefStartPeriod" />
+                                    </li>
+                                    
+                                    <li>                                                            
+                                        <select class="form-control phoneRight" data-bind='options: campusOptions, optionsCaption: "Campus Option", value: selectedCampus, valueUpdate: "input"'></select><div class="asterick" style="padding-top:12px;">*</div>                                                 
+                                    </li>                                       
+                                    <li data-bind="fadeVisible: programOptionSection">
+                                        <select id="programCode" class="form-control" data-bind='options: programOptions, optionsCaption: "Select Program", value: programCode, optionsText:"text", optionsValue:"value" /*valueUpdate: "input"*/'></select>
+                                        <div class="asterick">*</div>
+                                    </li> 
+                                    <li data-bind="fadeVisible: isVersionAvailable">
+                                        <select id="programVersion" class="form-control" data-bind='options: programVersionOptions, optionsCaption: "Select Program Concentrations", value: programVersion'></select>
+                                        <div class="asterick">*</div>
+                                    </li>
+                                    <li data-bind="fadeVisible: haveComputerSection">
+                                        <div style="margin-top: 8px;" class="noComputer">Check here if you do not have a computer:</div>
+                                        <div class="noComputerCheck"><input class="form-control" type="checkbox"  data-bind='checked: haveNoComputer, valueUpdate: "input"' /></div>
+                                    </li>                              
+                                </ul>
+                                <!-- <hr/> -->
+                                <ul id="militaryInformation" style="display: none" class="noStyle">
+                                        <li ><h4 style="color:black;font-weight: 600;">Military Information</h4></li>
+                                        <!-- <li style="color:red;font-style:italic;">* Required Item</li> -->
+                                        <li style="text-align:left;">
+                                            <!-- <h3 style="text-align:center;"></h3> -->
+                                            Do you qualify for Military Educational Benefits?
+                                            <select class="form-control" data-bind='options: yesOrNoOptions, optionsCaption: "Select", value: qualifyForBenefitsQuestion, valueUpdate: "afterkeydown"'></select>
+                                        </li>
+                                        <li data-bind="fadeVisible: qualifySection" style="text-align:left;">
+                                            Please indicate your affiliation with the United States Military
+                                            <select class="form-control" data-bind='options: militaryAffiliationOptions, optionsValue:"value", optionsText:"text", optionsCaption: "Affiliation", value: militaryAffiliation, valueUpdate: "afterkeydown"' style="margin-bottom: 10px;"></select>
+                                            <input placeholder="Estimate Date of Separation" id="militaryETS" class="form-control" type="text" data-bind="value: militaryETS, fadeVisible: militaryAffiliation()=='ACT'? true : false, valueUpdate: 'afterkeydown'" style="margin-bottom: 10px;" />   
+                                            <select class="form-control" data-bind='options: branchOfServiceOptions, optionsCaption: "Branch of Service", value: branchOfService, valueUpdate: "afterkeydown"' style="margin-bottom: 10px;"></select><br/>
+                                            Do you have a current Certificate of Eligibility (COE) or Notice of Basic Eligibility (NOBE)?
+                                            As per VA requirement, students utilizing military education benefits are required to submit transcripts from all other 
+                                            institutions where college-level credit was attempted in order that they may be evaluated.
+                                            <select class="form-control" data-bind='options: yesOrNoOptions, optionsCaption: "Certificate?", value: currentCertificate, valueUpdate: "afterkeydown"' style="margin-bottom: 10px;"></select><br/>
+                                            Dates of service for Sponsor or Benefit Recipient<br/>       
+                                            <input placeholder="Start Date" id="militaryStartDate" class="form-control" type="text" data-bind="value : militaryStartDate, valueUpdate: 'afterkeydown'" style="margin-bottom: 10px;"/>                                              
+                                            <input type="hidden" id="militaryStartDate_alternate" />
+                                            <input type="hidden" id="militaryETS_alternate" />
+                                            <input placeholder="End Date" id="militaryEndDate" class="form-control" type="text" data-bind="value : militaryEndDate, valueUpdate: 'afterkeydown'" style="margin-bottom: 10px;"/>                                            
+                                            <input type="hidden" id="militaryEndDate_alternate" />
+                                            <script type="text/javascript">      
+                                                j$ = jQuery.noConflict();       
+                                                j$(document).ready(function() {
+                                                    j$("#militaryStartDate").datepicker({
+                                                        //defaultDate: "+1w",
+                                                        yearRange: "-50:c",
+                                                        changeMonth: true,
+                                                        changeYear: true,
+                                                        numberOfMonths: 1,
+                                                        dateFormat:"mm-dd-yy",
+                                                        altField: "#militaryStartDate_alternate",
+                                                        altFormat: "yy-mm-dd",
+                                                        showAnim: "slide"
+                                                    });
+                                                    
+                                                    j$("#militaryETS").datepicker({
+                                                        //defaultDate: "+1w",
+                                                        yearRange: "-50:c",
+                                                        changeMonth: true,
+                                                        changeYear: true,
+                                                        numberOfMonths: 1,
+                                                        dateFormat:"mm-dd-yy",
+                                                        altField: "#militaryETS_alternate",
+                                                        altFormat: "yy-mm-dd",
+                                                        showAnim: "slide"
+                                                    });
+                                                });
+                                                j$(document).ready(function() {
+                                                    j$( "#militaryEndDate" ).datepicker({
+                                                        defaultDate: "+1w",
+                                                        yearRange: "-50:c",
+                                                        changeMonth: true,
+                                                        changeYear: true,
+                                                        numberOfMonths: 1,
+                                                        dateFormat:"mm-dd-yy",
+                                                        altField: "#militaryEndDate_alternate",
+                                                        altFormat: "yy-mm-dd",
+                                                        showAnim: "slide"
+                                                    })
+                                                });                         
+                                            </script>                          
+                                            <span style="text-align: left;"><br/>Do you authorize The Los Angeles Film School to request and receive military transcripts for review regarding transfer credit(s)?</span>
+                                            <select class="form-control" data-bind='options: yesOrNoOptions, optionsCaption: "Authorization", value: authorizeTranscript, valueUpdate: "afterkeydown"' style="margin-bottom: 10px;"></select>       
+                                        </li>
+                                    </ul>
+                                    <hr/>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-bottom: 2%;">
+                            <div class="col-md-3">
+                                <a class="vw-button saveAndFinishLater" data-bind="visible : isGuestUser(),text: 'Save and Finish Later', click : function(){showSetPasswordModal()}" href=" " style="float:left;max-width: 5000px;width:260px;">Save and Finish later</a>
+                            </div>
+                            <div class="col-md-9">
+                                <a class="vw-button pull-right nextButton" id="doneStudent" href=" "  data-bind="text: studentInfoIsEdit() ? 'Accept' : 'Next', click : function(){goToParentSection()}" ></a>                            
+                            </div>
+                            <!-- <div class="col-md-6 pull-left bottom revBtns"  style="text-align:center;" ><a class="vw-button" id="doneStudent" href=" "  data-bind="text: 'Save and Continue', click : function(){showSetPasswordModal()}" ></a></div>                  
+                            <div class="col-md-6 col-md-offset-3 bottom revBtns"  style="text-align:center;" ><a class="vw-button" id="doneStudent" href=" "  data-bind="text: studentInfoIsEdit() ? 'Accept' : 'Next', click : function(){goToParentSection()}" ></a></div>                  -->
+                        </div>
+                        <div class="row disclaimer">Disclaimer: By clicking “next” or “save and finish later," you give The Los Angeles Film School and its partner schools (Full Sail University and RMCAD) your consent to contact you via phone, email and/or text using automated technology at the information above, including your wireless number, if provided, regarding educational services. Please note that you are not required to provide this consent to receive educational services.</div>
+                    </div>                                                        
+                    <script>
+                        function setRep(value){
+                            Application.representativeId(value);
+                            if(value == null || value == ''){
+                                Application.repName("Admissions:");
+                                Application.repPhone("877-952-3456 | LOCAL: 323-860-0789");
+                                Application.repEmail("info@lafilm.edu");                                
+                            }
+                            else{
+                                Visualforce.remoting.Manager.invokeAction(                      
+                                    '{!$RemoteAction.ApplicationController.repInfo}', value,   
+                                        function(results){                                                                                                                                               
+                                        Application.repName(results.Name);
+                                        Application.repEmail(results.Application_Email__c);
+                                        Application.repPhone(results.Phone);                                                                
+                                },{escape : false});                                                        
+                            }                           
+                        }
+                    </script>               
+                </div> 
+
+
+                <!-- SECTION 2 of 4 Starts -->
+                <div class="vwspc-section" id="educationDetailSection" style="position: relative; z-index: 0; background: none;" data-bind="visible: parentDetails" >     
+                    
+                   
+                    <!--  <div class="progress"><div class="bar"></div></div> -->
+                    <div class="container mobileOnly">
+                        <div class="row" style="margin-top:25px;">                                      
+                            <div class="col-md-6">
+                                <ul class="noStyle">
+                                    <li ><h4 style="color:black;font-weight: 600;">High School Information</h4></li>
+                                    <!-- <li style="color:red;font-style:italic;">* Required Item</li> -->
+                                    <li><input placeholder="High School Name" type="text" class="form-control"  data-bind="value : highSchoolName, valueUpdate: 'input'"/><div class="asterick">*</div></li>                   
+                                    <li>                                            
+                                        <input placeholder="Graduation Date" id="graduationDate" class="form-control" type="text" data-bind="value : graduationDate, valueUpdate: 'afterkeydown'"/><div class="asterick">*</div>                                           
+                                        <input type="hidden" id="graduationDate_alternate" />
+                                        <script type="text/javascript">      
+                                            j$ = jQuery.noConflict();       
+                                            j$(document).ready(function() {
+                                                j$( "#graduationDate" ).datepicker({
+                                                    yearRange: '-50:+5',
+                                                    changeMonth: true,
+                                                    changeYear: true,
+                                                    numberOfMonths: 1,
+                                                    dateFormat:"mm-dd-yy",
+                                                    altField: "#graduationDate_alternate",
+                                                    altFormat: "yy-mm-dd",
+                                                    showAnim: "slide"
+                                                })
+                                            });                     
+                                        </script>
+                                    </li>
+                                    <li><input placeholder="Diploma, Degree or Certificate Received" type="text" class="form-control"  data-bind="value : degreeReceived, valueUpdate: 'afterkeydown'"/></li>                   
+                                    <li><select class="form-control" data-bind='options: countryOptions, optionsCaption: "Country", value: highSchoolCountry, valueUpdate: "input"'></select><div class="asterick">*</div></li>
+                                    <li><input placeholder="High School Address" class="form-control"  type="text" data-bind="value : highSchoolAddress, valueUpdate: 'afterkeydown'"/></li>
+                                    <li><input placeholder="Address Line 2" class="form-control"  type="text" data-bind="value : highSchoolAddress2, valueUpdate: 'afterkeydown'"/></li>
+                                    <li><input placeholder="City" class="form-control"  type="text" data-bind="value : highSchoolCity, valueUpdate: 'afterkeydown'"/><div class="asterick">*</div></li>
+                                    <li>                        
+                                        <select id="highSchoolState" class="form-control" data-bind='visible: highSchoolUsStates, options: stateOptions, optionsText:"text", optionsValue:"value", optionsCaption: "State", value: selectedHighSchoolUsState, valueUpdate: "input"'></select>
+                                        <input id="highSchoolProvince" class="form-control" placeholder="State/Province" type="text" data-bind="visible: highSchoolProvince, value : selectedHighSchoolProvince, valueUpdate: 'input'"/><div class="asterick">*</div></li>  
+                                    <li><input placeholder="Zip" type="text" class="form-control phoneRight"  data-bind="value : highSchoolZip, valueUpdate: 'afterkeydown'"/></li>                              
+                                    <!--<li><select class="form-control" data-bind='options: transcriptOptions, optionsCaption: "High School/GED/College Transcript Request", value: transcriptRequest, valueUpdate: "afterkeydown"'></select><div class="asterick">*</div></li> -->                  
+                                </ul>
+                                <hr/>
+                                <br/>
+                                <ul class="noStyle">
+                                    <li style="text-align: center;"><h4 style="color:black;font-weight: 600;">Disability Services</h4></li>
+                                    <li style="text-align: left;">
+                                        If you have a qualifying disability and will require the use of auxiliary aids and/or services to effectively participate in the The Los Angeles Film School's courses and programs, you must contact the Student Disability Services Coordinator as directed in the Service for Students with Disabilities section of The Los Angeles Film School's catalog to request an auxiliary aid or service, Upon requesting an auxiliary aid or service, you will be required to provide supporting diagnostic documentation of your disability, and you may be requested to assist LAFS in identifying appropriate and effective auxiliary aids or services to help ensure your effective participation in courses and programs.
+                                    </li>
+                                    <!-- <li style="color:red;font-style:italic;">* Required Item</li> -->
+                                    <li>                                                    
+                                        <select id="disabilityServicesQuestion" class="form-control" data-bind='options: disabilityServiceOptions, optionsCaption: "Select", value: disabilityServicesQuestion, valueUpdate: "afterkeydown"'></select>
+                                        <div class="asterick" style="padding-top:12px;">*</div>
+                                    </li>
+                                    <li data-bind="fadeVisible: disabilityServicesExplainSection">
+                                        Please describe any auxiliary aids or services you require.<span class="asterick" style="padding-top:12px;"> *</span>
+                                        <textarea id="disabilityServicesExplain" style="height:70px;"  class="form-control" placeholder="Explain" data-bind="value: disabilityServicesExplain"/>                     
+                                    </li> 
+                                </ul>  
+                                <hr/> 
+                                <ul class="noStyle">                  
+                                        <li style="text-align:center;">
+                                            <h4 style="color:black;font-weight: 600;">Academic Misconduct</h4>
+                                        </li>
+                                        <li>
+                                            <!-- <span style="color:red;font-style:italic;">* Required Item</span><br/> -->
+                                            <div style="text-align: left !important;">Have you ever been placed on probation, suspended, expelled, or been subject to official disciplinary action from any high school 
+                                            or post-secondary institution for any academic misconduct or behavioral misconduct?</div>
+                                        </li>
+                                        <li>
+                                            <select id="educationDisiplineQuestion" class="form-control" data-bind='options: yesOrNoOptions, optionsCaption: "Select", value: educationDisiplineQuestion, valueUpdate: "afterkeydown"'></select>
+                                            <div class="asterick" style="padding-top:12px;">*</div>
+                                        </li>
+                                        <li data-bind="fadeVisible: educationDisciplineExplainSection" style="text-align: left; clear:both;">
+                                            You must include an explanation with this application including specific offence, the length of suspension, and the date (month/year) it occurred.
+                                            
+                                            <textarea id="educationDisciplineExplain" style="height:70px;"  class="form-control" placeholder="Explain" data-bind="value: educationDisciplineExplain"/> <span class="asterick" style="padding-top:27px;"> *</span>                 
+                                        </li>            
+                                </ul>
+                                <hr/>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="noStyle">
+                                    <li ><h4 style="color:black;font-weight: 600;">College Information</h4></li>
+                                    <!-- <li style="color:red;font-style:italic;">* Required Item</li> -->
+                                    <li><input placeholder="College/University(Name and Address)" maxlength="200" type="text" class="form-control"  data-bind="value : college1Name, valueUpdate: 'afterkeydown'"/></li>                   
+                                    <li>
+                                        <input placeholder="Graduation Date" id="college1GraduationDate" class="form-control" type="text" data-bind="value : college1GraduationDate, valueUpdate: 'afterkeydown'"/>                                           
+                                        <input type="hidden" id="college1GraduationDate_alternate" />
+                                        <script type="text/javascript">      
+                                            j$ = jQuery.noConflict();       
+                                            j$(document).ready(function() {
+                                                j$( "#college1GraduationDate" ).datepicker({
+                                                    yearRange: '-50:c',
+                                                    changeMonth: true,
+                                                    changeYear: true,
+                                                    numberOfMonths: 1,
+                                                    dateFormat:"mm-dd-yy",
+                                                    altField: "#college1GraduationDate_alternate",
+                                                    altFormat: "yy-mm-dd",
+                                                    showAnim: "slide"
+                                                })
+                                            });                     
+                                        </script>
+                                    </li>
+                                    <li><input placeholder="Diploma, Degree or Certificate Received" type="text" class="form-control"  data-bind="value : college1DegreeReceived, valueUpdate: 'afterkeydown'"/></li>                                    
+                                    <li><input placeholder="College/University(Name and Address)" maxlength="200" type="text" class="form-control"  data-bind="value : college2Name, valueUpdate: 'afterkeydown'"/></li>                   
+                                    <li>                                                                        
+                                        <input placeholder="Graduation Date" id="college2GraduationDate" class="form-control" type="text" data-bind="value : college2GraduationDate, valueUpdate: 'afterkeydown'"/>                                           
+                                        <input type="hidden" id="college2GraduationDate_alternate" />
+                                        <script type="text/javascript">      
+                                            j$ = jQuery.noConflict();       
+                                            j$(document).ready(function() {
+                                                j$( "#college2GraduationDate" ).datepicker({
+                                                    yearRange: '-50:c',
+                                                    changeMonth: true,
+                                                    changeYear: true,
+                                                    numberOfMonths: 1,
+                                                    dateFormat:"mm-dd-yy",
+                                                    altField: "#college2GraduationDate_alternate",
+                                                    altFormat: "yy-mm-dd",
+                                                    showAnim: "slide"
+                                                })
+                                            });                     
+                                        </script>
+                                    </li>
+                                    <li><input placeholder="Diploma, Degree or Certificate Received" type="text" class="form-control"  data-bind="value : college2DegreeReceived, valueUpdate: 'afterkeydown'"/></li>                     
+                                    <li><textarea style="height:150px;"  class="form-control" placeholder="Additional Notes" data-bind="value: collegeNotes" maxlength="255"/></li>
+                                 </ul>
+                                 <hr/>
+                                 <br/>
+                                <ul class="noStyle">                        
+                                    <li style="text-align:center;">
+                                        <h4 style="color:black;font-weight: 600;">Criminal History</h4>
+                                    </li>
+                                    <li>
+                                        <!-- <span style="color:red;font-style:italic;">* Required Item</span><br/> -->
+                                        <div style="text-align:left !important;">Have you ever been convicted of a crime, made a plea of guilty, accepted a deferred judgment, been adjudicated, have an active case, or been required to register as a sex offender?</div>
+                                    </li>
+                                    <li>
+                                        <select id="criminalHistoryOptions" class="form-control" data-bind='options: yesOrNoOptions, optionsCaption: "Select", value: criminalHistoryQuestion, valueUpdate: "afterkeydown"'></select>
+                                        <div class="asterick" style="padding-top:12px;">*</div>
+                                    </li>
+                                    <li data-bind="fadeVisible: criminalHistoryExplainSection" style="text-align: left;clear:both;">
+                                        You must include an explaination with this application including the sepcific offence, terms of sentence or 
+                                        probation, and the date (month/year) of the offence.
+                                        <span class="asterick" style="padding-top:27px;">*</span>
+                                        <textarea id="criminalHistoryExplain" style="height:70px;"  class="form-control" placeholder="Explain" data-bind="value: criminalHistoryExplain"/>               
+                                    </li>                         
+                                </ul>
+                                 <hr/>
+                                </div>
+                            </div>                            
+                            <div class="row" style="margin-bottom: 2%;">  
+                                <div class="col-md-3">
+                                    <a id="secondPageSaveAndExitButton" class="vw-button saveAndFinishLater btn disabled" data-bind="visible : isGuestUser() /*, text: 'Please Wait'*/, click : function(){showSetPasswordModal()}" href=" " style="float:left;max-width: 5000px;width:260px;">Please Wait...</a>
+                                </div>
+                                <div class="col-md-9">
+                                    <a id="secondPageNextButton" class="vw-button pull -right btn disabled"  href=" "   data-bind="css: {floatCenter : parentInfoIsEdit(), floatRight : !parentInfoIsEdit()} /*, text: parentInfoIsEdit() ? 'Accept' : 'Please Wait'*/, click : function(){goToCollegeSection()}">Please Wait...</a>                                                                            
+                                    <a class="vw-button pull-right" href=" "  style="float:left;"  data-bind="visible: !parentInfoIsEdit(), click : function(){moveToSection('back')}">Previous</a>
+                                </div>    
+                                <!-- <div class="col-md-6 col-md-offset-3 bottom" style="text-align:center;" >                 
+                                    <a class="vw-button" href=" "  style="float:left;"  data-bind="visible: !parentInfoIsEdit(), click : function(){moveToSection('back')}">Previous</a>
+                                    <a class="vw-button"  href=" "   data-bind="css: {floatCenter : parentInfoIsEdit(), floatRight : !parentInfoIsEdit()}, text: parentInfoIsEdit() ? 'Accept' : 'Next', click : function(){goToCollegeSection()}"></a>                                                
+                                </div> -->
+                            </div>
+                        
+                    </div>
+                  </div>  
+               
+                  <div class="vwspc-section" id="essayDetailSection" style="position: relative; z-index: 0; background: none;" data-bind="visible: essayDetails">  
+                   
+                    
+                    <!--  <div class="progress"><div class="bar"></div></div> -->
+                    <div class="container mobileOnly">
+                    <div class="row" style="margin-top:25px;">          
+                        <div class="col-md-6">
+                            <ul class="noStyle">
+                                <li ><h4 style="color:black;font-weight: 600;">Short Essay</h4></li>
+                                <li style="text-align: left;">
+                                    Why do you consider The Los Angeles Film School or Los Angeles Recording School a good match for you? 
+                                    Your response should discuss: Why you have selected the program of choice, your professional goals and intended career path, and your current skills. 
+                                    Please limit your response to 250 words.
+                                    <textarea style="height:70px; margin-top:25px;" id="shortEssay"  class="textAnswer ckeditor" placeholder="Essay" data-bind="value: shortEssay, valueUpdate: 'afterkeydown'"/>
+                                </li>                
+                            </ul>
+                            <hr/>
+                            <br/> 
+                            <ul class="noStyle">
+                                <li ><h4 style="color:black;font-weight: 600;">Refer a Friend</h4></li>
+                                <li>
+                                    <h5>Do you know anyone else who may be interested in applying?</h5>
+                                    <select class="form-control" data-bind='options: yesOrNoOptions, optionsCaption: "Select", value: referFriendQuestion, valueUpdate: "afterkeydown"'></select>
+                                </li> 
+                                <div data-bind="fadeVisible: friendInfoSection">                                          
+                                    <li><input placeholder="Friend's First Name" type="text" class="form-control" data-bind="value : friendFirstName, valueUpdate: 'afterkeydown'"/></li>
+                                    <li><input placeholder="Friend's Last Name" type="text" class="form-control"  data-bind="value : friendLastName, valueUpdate: 'afterkeydown'"/></li> 
+                                    <li><input placeholder="Friend's Email" type="text" class="form-control" id="txt_ref_email"  data-bind="value : friendEmail, valueUpdate: 'afterkeydown'"/></li> 
+                                    <li><input placeholder="Friend's Phone" type="text" class="form-control intl" id="txt_ref_phone"  data-bind="value : friendPhone, valueUpdate: 'afterkeydown'"/></li>                          
+                                </div> 
+                            </ul>
+                            <hr/>
+                        </div> 
+                        <div class="col-md-6">                            
+                            <ul class="noStyle">
+                                <li ><h4 style="color:black;font-weight: 600;">Demographical Info</h4></li>
+                                <li>
+                                    Disclosure of this information is voluntary and will not be used as a factor in the admission process.
+                                </li>
+                                <li>
+                                    Gender<br/>
+                                    <select class="form-control" data-bind='options: genderOptions, optionsCaption: "Select", value: genderQuestion, valueUpdate: "afterkeydown"'></select>
+                                </li>
+                                <li>
+                                    Ethnicity<br/>
+                                    <select class="form-control" data-bind='options: ethnicityOptions, optionsCaption: "Select", value: ethnicityQuestion, valueUpdate: "afterkeydown"'></select>
+                                </li>
+                                <li>
+                                    Nationality<br/>
+                                    <select class="form-control" data-bind='options: nationalityOptions, optionsCaption: "Select", value: nationalityQuestion, valueUpdate: "afterkeydown"'></select>
+                                </li>                                                            
+                             </ul> 
+                             <hr/> 
+                             <br/>
+                             <ul class="noStyle">
+                                <li><h4 style="color: black;font-weight: 600;">Acceptance Agreement</h4></li>
+                                <li style="text-align:left;">
+                                        <!-- input type="checkbox"  data-bind="checked: acceptedAgreement" /--> 
+                                        <p id="acceptanceAgreement" style="height:100px;">If accepted, I agree to abide by the policies of the school and authorize the use of my likeness, appearance, 
+                                        performance, voice, name, and student projects in connection with the operation and promotion of the school. 
+                                        I acknowledge that names, products, services, logos, and concepts may be service marks, trademarks, patents, 
+                                        registered service marks, or registered trademarks of The Los Angeles Film School and may not be used in any 
+                                        way without the express written consent of The Los Angeles Film School. I have read the school catalog and 
+                                        understand its contents and requirements. I also understand that The Los Angeles Film School reserves the right 
+                                        to withdraw subjects, courses and programs if registration falls below the required number, and to change 
+                                        faculty and staff without prior notice to students. I hereby grant The Los Angeles Film School permission to 
+                                        make any necessary inquiries. I voluntarily and knowingly authorize any former school, government agency, employer, 
+                                        person, firm, corporation, and/or its officers, employees, and agents, to comply with such a request from The 
+                                        Los Angeles Film School or its agents. The information I have provided is complete and accurate to the best of 
+                                        my knowledge. I agree to abide by all rules and regulations of The Los Angeles Film School.
+                                        By submitting this form, you give The Los Angeles Film School and its partner schools 
+                                        (Full Sail University and RMCAD) your consent to contact you via phone, email and/or text using automated 
+                                        technology at the information above, including your wireless number, if provided, regarding educational services. 
+                                        Please note that you are not required to provide this consent to receive educational services.</p>
+                                        
+                                        <p style="font-weight:bold">A $75 application fee will be required. Applications without the fee will not be processed. If paying by check or money order, please make payable to The Los Angeles Film School. If paying by credit card, contact your Admissions Representative for a credit card authorization form. Please do not send cash.</p>                                        
+                                </li>
+                                <li>
+                                    
+                                    <div class="row" style="margin-left: 10px;">
+                                        <!--  <div id="signature" style="width:100%; height:250px;"></div>
+                                        <div class="col-md-offset-5"><input type="button" id="clear_signature" value="Clear" /></div> -->
+                                        <div class="row">
+                                            <label>
+                                                Final Submit 
+                                            </label> 
+                                            <input data-bind='checked: applicationSubmitted' id="ApplicationFinalSubmit"   type="checkbox" style="height:15px !important" class="form-control"/>
+                                        </div>
+                                        <div class="row">
+                                            <input type="text" disabled="true" id="ApplicantSignature" style="font-family: 'Great Vibes', cursive !important;height:100px;font-size:50px;font-weight:900; text-align:center; text-transform: capitalize" class="form-control"/>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <hr/>
+                            <br/>                                                       
+                        </div>
+                    </div>   
+                    <script>
+                        j$('#ApplicationFinalSubmit').click(function(){
+                            console.log('applicationSubmitted-------->>>',Application.applicationSubmitted());
+                            if(!Application.applicationSubmitted()){
+                                var fullname = Application.studentFirstName() + ' ' + Application.studentLastName();
+                                console.log('fullname-------->>>',fullname);
+                                j$('#ApplicantSignature').val(fullname);
+                                j$('#IAcceptButton').toggleClass('disabled');
+                            }else{
+                                j$('#ApplicantSignature').val('');
+                                j$('#IAcceptButton').toggleClass('disabled');
+                            }                           
+                        });
+                    </script>
+                    
+                    <div class="row" style="margin-bottom: 2%;">           
+                        <div class="col-md-3">
+                            <a class="vw-button saveAndFinishLater" data-bind="visible : isGuestUser(),text: 'Save and Finish Later', click : function(){showSetPasswordModal()}" href=" " style="float:left;max-width: 5000px;width:260px;">Save and finish later</a>
+                        </div>
+                        <div class="col-md-9">
+                            <a class="vw-button btn disabled" id="IAcceptButton" href=" "  data-bind="css: {'floatCenter': acceptanceInfoIsEdit(), 'floatRight': !acceptanceInfoIsEdit()}, text: acceptanceInfoIsEdit() ? 'I Accept - Submit' : 'I Accept - Next',click : function(){ApplicationFinalSubmit()}"></a>                                                                           
+                            <a class="vw-button pull-right" href=" "  style="float:left;"  data-bind="visible: !essayInfoIsEdit(),click : function(){moveToSection('back')}">Previous</a>
+                        </div> 
+                        <!-- <div class="col-md-6 col-md-offset-3 bottom" style="text-align:center;">    
+                            <a class="vw-button" href=" "  style="float:left;"  data-bind="visible: !essayInfoIsEdit(),click : function(){moveToSection('back')}">Previous</a>
+                            <a class="vw-button" href=" "  data-bind="css: {'floatCenter' : essayInfoIsEdit(), 'floatRight' : !essayInfoIsEdit()}, text: essayInfoIsEdit() ? 'Accept' : 'Next', click : function(){goToPreviousHistorySection()}"></a>                                                
+                            <a class="vw-button" href=" "  data-bind="css: {'floatCenter': acceptanceInfoIsEdit(), 'floatRight': !acceptanceInfoIsEdit()}, text: acceptanceInfoIsEdit() ? 'I Accept - Submit' : 'I Accept - Next',click : function(){goToPreviousHistorySection()}"></a>                                             
+                        </div>-->
+                    </div>
+                   </div>
+                </div>                                                
+                <div class="vwspc-section" id="uploadDetailsSection" style="position: relative; z-index: 0; background: none;" data-bind="visible: uploadDetails">                                    
+                    <div class="container mobileOnly well">          
+                        <div class="row" style="margin-right:0px; margin-left: 0px; font-size:18px">
+                            Thank you for completing The Los Angeles Film School's application for admissions. <br/>Below is a list of required documents that need to be uploaded to process your application. Please hover over the question mark next to each document title to get more specific information regarding each document. An admissions representative will also be in touch with you shortly.
+                        </div>        
+                        <div class="row" style="margin-right:0px; margin-left: 0px;">
+                            <div class="col-sm-12"><h2>All students:</h2></div>
+                            <div class="col-sm-10 col-sm-offset-1">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div class="docTitle">
+                                        <span style="font-size:18px;">Proof of HS Graduation</span>
+                                        <sup>
+                                            <a href="#" class="tooltips" title="Please provide a clear legible copy of your high school diploma or GED certificate. Make sure the image is high quality and complete (nothing cut off), without any shadows on the diploma/ GED. If you do not have access to your diploma, please contact your high school to request a transcript. To request a GED transcript, visit www.GED.com. Transcripts in a language other than English must be translated by an authorized individual or company. If you are currently attending high school, this document is not required yet. Please contact your admissions representative for further information.">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a> 
+                                        </sup>
+                                    </div>  
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text: HSDiplomaStatus, visible: HSDiplomaSubmitted()"></div>                                                
+                                </div>
+                                <apex:param name="apexvariableName" value="" assignTo="{!apexvariableName}"/>
+                                <div class="col-sm-6 docTitleDiv">
+                                    
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="HS_Diploma" type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="xl"/>                      
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">
+                                        <a class="vw-button docButton" href=" " data-bind="click : uploadAttach.bind($data,'High School Diploma', 'HS_Diploma'), text:(uploadable()?'Upload':'Wait')"></a>                                                     
+                                    </div>
+                                </div>
+                            </div>  
+                            <div class="col-sm-10 col-sm-offset-1" data-bind="visible: (programCode() == 'BSEB' && programVersion()=='Completer') ? true : false">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div class="docTitle">
+                                        <span style="font-size:18px;">Official College Transcripts</span>
+                                        <sup>
+                                            <a href="#" class="tooltips" title="If you have unofficial transcripts, please take a legible photo and upload here to expedite 
+                                                evaluation process. Official transcripts are still required, please contact your previous college to request transcript to 
+                                                be sent to The Los Angeles Film School. International students: Transcripts in a language other than English or from another 
+                                                country  must be translated and /or evaluated by an authorized individual or company.">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a> 
+                                        </sup>
+                                    </div>  
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text:collegeTranscriptsStatus, visible: collegeTranscriptsSubmitted()"></div>                                                
+                                </div>
+            
+                                <div class="col-sm-6 docTitleDiv">
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="coll_trans" type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="md"/>                      
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">
+                                        <a class="vw-button docButton" href=" " data-bind="click : uploadAttach.bind($data,'College Transcripts', 'coll_trans'),text:(uploadable()?'Upload':'Wait')"></a>                                                     
+                                    </div>
+                                </div>
+                            </div>    
+                        </div>  
+                        <div class="row" style="margin-right:0px; margin-left: 0px;" data-bind="visible: selectedCampus() == 'Online'">
+                            <div class="col-sm-12"><h2>Online students:</h2></div>
+                            <div class="col-sm-10 col-sm-offset-1">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div class="docTitle">
+                                        <span style="font-size:18px;">Copy of State-Issued Id</span>
+                                        <sup>
+                                            <a href="#" class="tooltips" title="Please make sure picture is clear and legible before uploading.">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a> 
+                                        </sup>
+                                    </div>
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text: photoIdStatus, visible: photoIdSubmitted()"></div>                                                
+                                </div>
+                                <div class="col-sm-6 docTitleDiv">
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="Photo_ID" type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="md"/>                        
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">
+                                        <a class="vw-button docButton" href=" "  data-bind="click : uploadAttach.bind($data,'Photo Id', 'Photo_ID'),text:(uploadable()?'Upload':'Wait')"></a>                                                     
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-10 col-sm-offset-1">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div style="float:left;" class="docTitle">
+                                        <span style="font-size:18px;">Screenshot of computer specs</span>
+                                        <sup>
+                                            <a href="#" class="tooltips" title="Mac: Click on the top left on the Apple menu. Select 'About This Mac'. Click 'More Info' , 
+                                                hold down Command+Shift+4, It will allow to draw a box around the window, drag and drop as an attachment. PC: Click on your Start Menu, 
+                                                right click on 'Computer', select 'Properties', Hit Alt+Print Screen, Go into the body of the email and hit paste.">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a> 
+                                        </sup>
+                                    </div>
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text: compSpecsStatus, visible: photoIdSubmitted()"></div>                                                
+                                </div>
+            
+                                <div class="col-sm-6 docTitleDiv"> 
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="Comp_Specs" type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="md"/>                      
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">
+                                        <a class="vw-button docButton" href=" " data-bind="click : uploadAttach.bind($data,'Computer Specs', 'Comp_Specs'),text:(uploadable()?'Upload':'Wait')"></a>                                                      
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" data-bind="visible: militaryFileUpload()" style="margin-right:0px; margin-left: 0px;">
+                            <div class="col-md-12"><h2>Students using military benefits:</h2></div>
+                            <div class="col-sm-12">The Military Services Dept. will contact you about VA documents.</div>                                   
+                            <div class="col-sm-10 col-sm-offset-1" data-bind="visible: militaryAffiliation() != 'ACT'">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div style="float:left;" class="docTitle">
+                                        <span style="font-size:18px;">DD-214(member 4 copy)</span>
+                                        <sup>
+                                            <a href="#" class="tooltips" title="Required for students using their own benefits, optional for active duty servicemembers. NOT required for spouses/dependents using servicemember benefits. ">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a> 
+                                        </sup>
+                                    </div>  
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text: DD214Status, visible: DD214Submitted()"></div>                                            
+                                </div>
+            
+                                <div class="col-sm-6 docTitleDiv">                        
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="DD-214"  type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="md"/>                     
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">
+                                        <a class="vw-button docButton" href=" " data-bind="click : uploadAttach.bind($data,'DD-214', 'DD-214'),text:(uploadable()?'Upload':'Wait')"></a>                                                                                      
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-10 col-sm-offset-1" data-bind="visible: branchOfService() == 'Air Force'">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div style="float:left;" class="docTitle">
+                                        <h4 class="ccaf">Community College of the Air Force(CCAF)Transcripts</h4>
+                                    </div> 
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text: CCAFStatus, visible: CCAFSumbitted()"></div>                                                 
+                                </div>
+            
+                                <div class="col-sm-6 docTitleDiv">
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="CCAF"  type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="md"/>                       
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">
+                                        <a class="vw-button docButton" href=" " data-bind="click : uploadAttach.bind($data,'CCAF', 'CCAF'),text:(uploadable()?'Upload':'Wait')"></a>                                                                                  
+                                    </div>
+                                </div>                  
+                            </div>                               
+                        </div>  <!-- end row -->
+                        <div class="row" style="margin-right:0px; margin-left: 0px;" data-bind="visible: internationalFileUpload()">
+                            <div class="col-sm-12"><h2>International students:</h2></div>
+                            <div class="col-sm-10 col-sm-offset-1">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div style="float:left;" class="docTitle">
+                                        <span style="font-size:18px;">Copy of Passport</span>&nbsp;
+                                        <sup>
+                                            <a href="#" class="tooltips" title="Please make sure picture is clear and legible before uploading.">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                                                
+                                            </a> 
+                                        </sup>
+                                    </div>  
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text: passportStatus, visible: passportSubmitted()"></div>                                                
+                                </div>
+                                <div class="col-sm-6 docTitleDiv">
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="Passport" type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="md"/>                        
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">
+                                        <a class="vw-button docButton" href=" " data-bind="click : uploadAttach.bind($data,'Passport', 'Passport'),text:(uploadable()?'Upload':'Wait')"></a>                                                      
+                                    </div>
+                                </div>
+                            </div>  
+                            <!--   <div class="col-sm-10 col-sm-offset-1">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div style="float:left;" class="docTitle">
+                                        <span style="font-size:18px;">Copy of I-20</span>&nbsp;
+                                        <sup>
+                                            <a href="#" class="tooltips" title="You will receive this in the mail. Signed and dated by student and 
+                                                International Relations Coordinator. Please make sure picture is clear and legible before uploading.">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a> 
+                                        </sup>
+                                    </div>  
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text: I20Status, visible: I20Submitted()"></div>                                               
+                                </div>
+            
+                                <div class="col-sm-6 docTitleDiv">
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="I20" type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="md"/>                     
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">
+                                        <a class="vw-button docButton" href=" " data-bind="click : uploadAttach.bind($data,'I-20', 'I20'),text:(uploadable()?'Upload':'Wait')"></a>                                                       
+                                    </div>
+                                </div>
+                            </div> -->
+                            
+                            <!--  <div class="col-sm-10 col-sm-offset-1">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div style="float:left;" class="docTitle">
+                                        <span style="font-size:18px;">Copy of Visa</span>&nbsp;
+                                        <sup>
+                                            <a href="#" class="tooltips" title="Please make sure picture is clear and legible before uploading. Note: Canadian citizens do not require a visa to study in the USA. ">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a> 
+                                        </sup>
+                                    </div>  
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text: USVisaStatus, visible: USVisaSubmitted()"></div>                                                
+                                </div>
+            
+                                <div class="col-sm-6 docTitleDiv">
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="USVisa" type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="md"/>                      
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">                                                      
+                                        <a class="vw-button docButton" href=" " data-bind="click : uploadAttach.bind($data,'US Visa', 'USVisa'),text:(uploadable()?'Upload':'Wait')"></a>
+                                    </div>
+                                </div>
+                            </div> -->
+                            <div class="col-sm-10 col-sm-offset-1">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div style="float:left;" class="docTitle">
+                                        <!--  <span style="font-size:18px;">Bank Statement or Letter</span>&nbsp; -->
+                                        <span style="font-size:18px;">Bank Statement/Verification</span>&nbsp;
+                                        <sup>
+                                            <a href="#" class="tooltips" title="Please take a picture of a recent bank statement or letter. Must be within the 6 motnhs prior to the chosen start date. ">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a> 
+                                        </sup>
+                                    </div> 
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text: bankStatementStatus, visible: bankStatementSubmitted()"></div>                                                 
+                                </div>
+            
+                                <div class="col-sm-6 docTitleDiv">
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="bankStatement" type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="md"/>                       
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">                                                      
+                                        <a class="vw-button docButton" href=" " data-bind="click : uploadAttach.bind($data,'Bank Statements', 'bankStatement'),text:(uploadable()?'Upload':'Wait')"></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- <div class="col-sm-10 col-sm-offset-1">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div style="float:left;" class="docTitle">
+                                        <span style="font-size:18px;">Copy of I-539 Package</span>&nbsp;
+                                        <sup>
+                                            <a href="#" class="tooltips" title="If student needs to file a change of status (I-539) in order to be in the USA on a F-1 Visa, approval documents must be uploaded. ">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a> 
+                                        </sup>
+                                    </div>   
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text: I539Status, visible: I539Submitted()"></div>                                               
+                                </div>
+            
+                                <div class="col-sm-6 docTitleDiv">
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="I539" type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="md"/>                        
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">                                                      
+                                        <a class="vw-button docButton" href=" " data-bind="click : uploadAttach.bind($data,'I539' , 'I539'),text:(uploadable()?'Upload':'Wait')"></a>
+                                    </div>
+                                </div>
+                            </div> -->
+                            <div class="col-sm-10 col-sm-offset-1">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div style="float:left;width: 58%;" class="docTitle">
+                                        <span style="font-size:18px;">High School Diploma/Transcript Evaluation</span>&nbsp;
+                                        <sup>
+                                            <a href="#" class="tooltips" title="It must state that the secondary degree you earned, in any country other than the U.S., is equivalent to graduating from an accredited high school in the U.S. This can be satisfied with a DOCUMENT evaluation from www.EvaluationWorld.com or any other organization that is a member of the National Association of Credential Evaluation Services (NACES) or Association of International Credential Evaluators (AICE).">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a> 
+                                        </sup>
+                                    </div>   
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text: HSTransriptEvaluationStatus, visible: HSTranscriptEvaluationSubmitted()"></div>                                               
+                                </div>
+            
+                                <div class="col-sm-6 docTitleDiv">
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="HSTransriptEvaluation" type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="md"/>                        
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">                                                      
+                                        <a class="vw-button docButton" href=" " data-bind="click : uploadAttach.bind($data,'HSTransriptEvaluation' , 'HSTransriptEvaluation'),text:(uploadable()?'Upload':'Wait')"></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-10 col-sm-offset-1" data-bind="visible: selectedCampus() == 'Online'" style="margin-top:11px;">
+                                <div class="col-sm-6 docTitleDiv" style="padding-left:0px;">
+                                    <div style="float:left;" class="docTitle">
+                                        <!--  <span style="font-size:18px;">TOEFL and/or IELTS test results (if applicable)</span>&nbsp;  -->
+                                        <span style="font-size:18px;">Proof of English proficiency</span>&nbsp;
+                                        <sup>
+                                            <!--  <a href="#" class="tooltips" title="This is only required if English is not the student's native language. If their high school or college was taught in English, this requirement is waived. ">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a>-->
+                                            <a href="#" class="tooltips" title="If your high school or at least one full year of college was not taught in English a score of 61 on the TOEFL (6.0 on the IELTS) is required to enroll in any of our Associate and Full Bachelor programs and a score of 79 on the TOEFL (6.5 on the IELTS) is required to enroll in a Bachelor Completer program. We also accept a comparable certificate of completion from an approved ESL school.">
+                                                <span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="color:#D22F31;font-size:15px;"></span>                
+                                            </a> 
+                                        </sup>
+                                    </div>
+                                    <div class="docSubmitted" style="font-size:15px;" data-bind="text: TOEFLStatus, visible: TOEFLSubmitted()"></div>                                                  
+                                </div>
+            
+                                <div class="col-sm-6 docTitleDiv">
+                                    <div class="col-sm-8 docTitleDiv" style="padding:0px;">
+                                        <input id="TOEFL" type="file" class="filestyle" data-buttonText="Choose" data-buttonBefore="true" data-badge="false" data-size="md"/>                       
+                                    </div>
+                                    <div class="col-sm-4 docTitleDiv">
+                                        <a class="vw-button docButton" href=" " data-bind="click : uploadAttach.bind($data,'TOEFL Scores', 'TOEFL'),text:(uploadable()?'Upload':'Wait')"></a>                                                     
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- end international file uploads -->
+                        <div class="col-sm-12"><h2>Document Sign Status:</h2></div>
+                        <div class="col-sm-10 col-sm-offset-1">                 
+                            <ul class="" data-bind="foreach : docuSignList" style="list-style:none;">                    
+                                <li style="height:46px;">
+                                    <!-- span class="desc" data-bind="text : dsfs__Subject__c"></span-->
+                                    <div class="col-sm-6" style="padding-left:0px;">
+                                        <div style="float:left;">
+                                            <span style="font-size:18px;" data-bind="text : dsfs__Subject__c"></span>
+                                        </div>                                                  
+                                    </div>
+                                    <div class="col-sm-6" style="text-align:left;padding-left:180px;">
+                                        <span style="font-size:18px;"  data-bind="text : dsfs__Envelope_Status__c"></span>
+                                    </div>
+                                </li>                   
+                            </ul>           
+                        </div>                                                
+                        
+                        <div class="row" >       
+                            <div class="col-md-6 col-md-offset-3 bottom" style="text-align:center;" data-bind="visible:!appFinalized()">              
+                                <a class="vw-button" style="width:90%;" href=" "  data-bind="click : function(){goToThisSection('submissionSection');}">Back To Summary</a>                                             
+                            </div>
+                            <!--<div class="col-md-6 col-md-offset-3 bottom" style="margin-right:0px; margin-left: 0px; font-size:18px">
+                                <a class="vw-button" style="width:319px !important;" href="" data-bind=" click : (reApply), text :'Apply for another course'"></a>  /!appFinalized()?function(){alert('Please complete Current Application')}: 
+                            </div> -->
+                        </div>                   
+                    </div><!-- end container -->                                                                                     
+                </div>     
+            </div>                  
+        </div>
+    </div>
+        
+      <!-- script>
+        j$ = jQuery.noConflict();       
+        $(document).ready(function() {
+            j$(function(){
+                j$('textarea').autoResize();
+            });
+         });
+      </script-->
+          
+      <script>          
+            ( function($) {
+                function ucwords(str,force){
+                  str=force ? str.toLowerCase() : str;  
+                  return str.replace(/(\b)([a-zA-Z])/g,
+                           function(firstLetter){
+                              return   firstLetter.toUpperCase();
+                           });
+                }                       
+                $(document).ready(function(){
+                    $('input[type="text"].cap').keyup(function(evt){  
+                        var cp_value= ucwords($(this).val(),true) ;     
+                        $(this).val(cp_value ); 
+                     });  
+                     $('.jSignature').css('width','100%');
+                });   
+            } ) ( jQuery );     
+        </script>
+        
+
+</apex:component>

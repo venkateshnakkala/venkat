@@ -1,0 +1,29 @@
+<apex:page showHeader="false" sidebar="false" controller="WrpDispDiffData">
+    <script>
+    function hideTable(){
+        document.getElementById("hiddentab").style.display = "none";
+    }
+    </script>
+    <apex:form >
+        <apex:pageBlock >        
+             
+            <apex:pageBlockSection columns="2">
+                <apex:pageBlockTable value="{!wrpDisp}" var="wrp">
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:inputCheckbox />
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!wrp.Selected}"/>
+                    </apex:column>
+                    <apex:column Value="{!wrp.con.ID}" />
+                    <apex:column Value="{!wrp.con.Name}" />
+                    <apex:column Value="{!wrp.con.Account.Name}" />
+                    <apex:column Value="{!wrp.con.AccountId}" />
+                    <apex:column Value="{!wrp.opp.Id}" />
+                    <apex:column Value="{!wrp.opp.Name}" />
+                </apex:pageBlockTable>
+                
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

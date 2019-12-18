@@ -1,0 +1,404 @@
+<apex:component >
+    <apex:attribute name="nadc" type="NewApplicationDetailComponentController" description="common data" required="true"/> 
+    
+    <style>
+        .cke_notification.cke_notification_warning{ display : none !important; }
+        .col-md-9 {
+        width: 75% !important;
+        }
+        .scrollbar
+        {   
+        
+        height: 100px;
+        width: 600px;
+        overflow-y: scroll;
+        
+        }
+        .hideField {
+        display:none;
+        }
+        
+        .errordropDownBorder {
+        border-color : red !important; 
+        }
+        .successdropDownBorder {
+        border-color : #ccc !important;
+        
+        }
+        
+        #terms_conditions{
+        top: 90px !important;
+        }
+        
+        #terms_conditions .close{
+        color: #FFF !important;
+        }
+        #terms_conditions .modal-dialog-min{
+        max-width: 600px !important;
+        }
+        
+        .terms_conditions
+        {
+        height: 400px !important;   
+        overflow-y: auto !important;
+        }
+        
+    </style>
+    
+    <apex:inputHidden id="hiddenPhoneFriend" value="{!nadc.hiddenPhoneFriend}"/>
+    <apex:inputHidden id="hiddenPhoneEmrg" value="{!nadc.hiddenPhoneEmrg}"/>
+    <apex:inputHidden value="{!nadc.ShortString}" id="myHiddenField"/>
+    
+    <!-- START ROW - 1 -->
+    <div class="row" >
+        <div class="col-md-6" >
+            <div class="note account_title">
+                <p>Short Essay (Optional)</p>
+            </div>
+            <div class="text_blw_hd text_justify">
+                Why do you consider The Los Angeles Film School or Los Angeles Recording School a good match for you? 
+                Your response should discuss: Why you have selected the program of choice, your professional goals and 
+                intended career path, and your current skills. Please limit your response to 250 words.
+            </div>
+            <div class="col-md-13" >
+                <apex:inputtextarea disabled="{!nadc.isAlreadySubmitted}" id="shortEssay"
+                                    value="{!nadc.recordApplication.Short_Essay__c}" styleClass="ckeditor sortessay"
+                                    richtext="False" onchange=""/>
+            </div>
+        </div>
+        
+        <div class="col-md-6" >
+            <div class="form-group">
+                <div class="note account_title">
+                    <p>Demographical Info</p>
+                </div>
+                <div class="text_blw_hd">
+                    Disclosure of this information is voluntary and will not be used as a factor in the admission process.
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label class="required">Gender</label>
+                    <apex:selectList disabled="{!nadc.isAlreadySubmitted}" value="{!nadc.recordContact.Gender__c}"
+                                     size="1" styleclass="form-control input-lg gender">
+                        <apex:selectOption itemValue="" itemLabel="Select"/>
+                        <apex:selectOption itemValue="Male" itemLabel="Male"/>
+                        <apex:selectOption itemValue="Female" itemLabel="Female"/>
+                        <apex:selectOption itemValue="Not specified" itemLabel="Not Specified"/>
+                    </apex:selectList>
+                    <i class="fa fa-chevron-down"></i>
+                </div>
+                <span id="gen" style="color:red;font-size:11px;"></span>
+            </div>
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label class="required">Ethnicity</label>
+                    <apex:selectList disabled="{!nadc.isAlreadySubmitted}" value="{!nadc.recordContact.Ethnicity__c}"
+                                     size="1" styleclass="form-control input-lg ethnicity">
+                        <apex:selectOption itemValue="" itemLabel="Select"/>
+                        <apex:selectOption itemValue="African American (Non-Hispanic)" itemLabel="African American (Non-Hispanic)"/>
+                        <apex:selectOption itemValue="American Indian or Alaskan Native" itemLabel="American Indian or Alaskan Native"/>
+                        <apex:selectOption itemValue="Asian or Pacific Islander" itemLabel="Asian or Pacific Islander"/>
+                        <apex:selectOption itemValue="Multi-ethnic background" itemLabel="Multi-ethnic background"/>
+                        <apex:selectOption itemValue="Hispanic or Latino" itemLabel="Hispanic or Latino"/>
+                        <apex:selectOption itemValue="White (non-Hispanic)" itemLabel="White (non-Hispanic)"/>
+                        <apex:selectOption itemValue="Other" itemLabel="Other"/>
+                        
+                    </apex:selectList>
+                    <i class="fa fa-chevron-down"></i>
+                </div>
+                <span id="etncty" style="color:red;font-size:11px;"></span>
+            </div>
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label class="required">Nationality</label>
+                    <apex:selectList disabled="{!nadc.isAlreadySubmitted}" value="{!nadc.recordContact.Nationality__c}"
+                                     size="1" styleclass="form-control input-lg nationality">
+                        <apex:selectOption itemValue="" itemLabel="Select"/>
+                        <apex:selectOption itemValue="American" itemLabel="American"/>
+                        <apex:selectOption itemValue="Canadian" itemLabel="Canadian"/>
+                        <apex:selectOption itemValue="Chinese" itemLabel="Chinese"/>
+                        <apex:selectOption itemValue="French" itemLabel="French"/>
+                        <apex:selectOption itemValue="Italian" itemLabel="Italian"/>
+                        <apex:selectOption itemValue="Japanese" itemLabel="Japanese"/>
+                        <apex:selectOption itemValue="Other" itemLabel="Other"/> 
+                    </apex:selectList>
+                    <i class="fa fa-chevron-down"></i>
+                </div>
+                <span id="natlty" style="color:red;font-size:11px;"></span>
+            </div>
+        </div>
+    </div>
+    <!-- END ROW - 1 -->
+    
+    <!-- START ROW - 2 -->
+    <div class="row">
+        <div class="col-md-6" >
+            <div class="note account_title  ">
+                <p>Refer a Friend</p>
+            </div>
+            <div class="text_blw_hd">
+                Do you know anyone else who may be interested in applying?
+            </div>
+            <div class="col-md-12" >
+                <div class="form-group">
+                    <apex:outputPanel layout="none" rendered="{!!nadc.isAlreadySubmitted}">
+                        <select id="friendSelect" class="form-control validate input-lg intrestedval"
+                                onchange="showFriendDetails( 'friendSelect', 'friendDetails', 'isDisabled' );" >
+                            
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{!nadc.isAlreadySubmitted}">
+                        <select disabled="disabled" id="friendSelect" class="form-control validate input-lg intrestedval"
+                                onchange="showFriendDetails( 'friendSelect', 'friendDetails', 'isDisabled' );" >
+                           
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </apex:outputPanel>
+                    <i class="fa fa-chevron-down"></i>
+                    <div class="hideField">
+                    <apex:inputText value="{!nadc.recordApplication.Friend_Referral__c}" 
+                                    styleClass="friendSelect"/>
+                </div>
+                </div>
+            </div>
+            <apex:actionFunction name="updateFriend" action="{!nadc.updateFrienddetails}" reRender="isDisabled" status="ProcessStatus" />
+            
+            <div class="hideField friendDetails" id="isDisabled">
+                <div class="col-md-12"> 
+                    <div class="form-group">
+                        <label class="required">Friends First Name</label>
+                        <apex:inputText disabled="{!nadc.isAlreadySubmitted}" value="{!nadc.recordApplication.Referral_First_Name__c}"
+                                        html-placeholder="First Name" styleclass="form-control friendDetails validate FrdFirstname"
+                                        id="FrdFirstname"/>
+                    </div>
+                    <span id="ffname" style="color:red;font-size:11px;"></span>
+                </div>
+                <div class="col-md-12"> 
+                    <div class="form-group">
+                        <label class="required">Friend's Last Name </label>
+                        <apex:inputText disabled="{!nadc.isAlreadySubmitted}" value="{!nadc.recordApplication.Referral_Last_Name__c}"
+                                        html-placeholder="Last Name" styleclass="form-control friendDetails validate Frdlastname"
+                                        id="friendlastname"/>
+                    </div>
+                    <span id="flname" style="color:red;font-size:11px;"></span>
+                </div>
+                <div class="col-md-12"> 
+                    <div class="form-group">
+                        <label class="required">Friend's Email</label>
+                        <apex:inputText disabled="{!nadc.isAlreadySubmitted}" value="{!nadc.recordApplication.Referral_Email__c}"
+                                        html-placeholder="Email id" styleclass="form-control friendDetails validate Frndemail"/>
+                    </div>
+                    <span id="femail" style="color:red;font-size:11px;"></span>
+                </div>
+                <div class="col-md-12"> 
+                    <div class="form-group">
+                        <label class="required">Friend's Phone</label>
+                        <apex:inputText disabled="{!nadc.isAlreadySubmitted}" value="{!nadc.recordApplication.Referral_Phone__c}"
+                                        styleclass="form-control friendDetails validate Frndphone" html-placeholder="Phone" maxlength="10"/>
+                    </div>
+                    <span id="fphone" style="color:red;font-size:11px;"></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6" >
+  
+            <div class="form-group">
+                <div class="note account_title">
+                    <p>Emergency Contact Information</p>
+                </div>               
+            </div>          
+            
+            
+           <div >            
+            
+            <div class="col-md-12"> 
+                <div class="form-group">
+                    <label class="required">First Name<sup>*</sup></label>
+                    <apex:inputText disabled="{!nadc.isAlreadySubmitted}" value="{!nadc.recordContact.Emergency_First_Name__c}"
+                                    html-placeholder="First Name" styleclass="form-control validate EfName"/>
+                    <span id="emergencyFirstName" style="color:red;font-size:11px;"></span>
+                </div>
+            </div>
+            <div class="col-md-12"> 
+                <div class="form-group">
+                    <label class="required">Last Name<sup>*</sup></label>
+                    <apex:inputText disabled="{!nadc.isAlreadySubmitted}" value="{!nadc.recordContact.Emergency_Last_Name__c}"
+                                    html-placeholder="Last Name" styleclass="form-control validate ElName"/>
+                    <span id="emergencyLastName" style="color:red;font-size:11px;"></span>
+                </div>
+            </div>
+            <div class="col-md-12"> 
+                <div class="form-group">
+                    <label class="required">Relationship to you<sup>*</sup></label>
+                    <apex:inputText disabled="{!nadc.isAlreadySubmitted}" value="{!nadc.recordContact.Emergency_Relationship__c}"
+                                    html-placeholder="Relationship to you" styleclass="form-control validate relationto"/>
+                    <span id="emergencyRelation" style="color:red;font-size:11px;"></span>
+                </div>
+            </div>
+            <div class="col-md-12"> 
+                <div class="form-group">
+                    <label class="required">Telephone Number<sup>*</sup></label>
+                    <apex:inputText disabled="{!nadc.isAlreadySubmitted}" id="Emcontact"
+                                    value="{!nadc.recordContact.Emergency_Contact_Phone__c}"
+                                    styleclass="form-control validate Emcontact" html-placeholder="Phone" maxlength="10"/>
+                    <span id="emergencyPhone" style="color:red;font-size:11px;"></span>
+                </div>
+            </div>
+           </div> 
+            
+            <div class="form-group">
+                <div class="note account_title">
+                    <p>Acceptance Agreement</p>
+                </div>               
+            </div>  
+            
+            <div class="col-md-12" >               
+                
+                <p><a href="javascript:void(0)" style="color:SlateBlue;" data-toggle="modal"
+                      data-target="#terms_conditions">Terms and Conditions..</a></p>
+                <div class="" >
+                    <div class="text_blw_hd text_justify" >
+                        A $75.00 application fee will be required. Applications without the fee will not be processed. 
+                        If paying by check or money order, please make payable to The Los Angeles Film School. 
+                        If paying by credit card, please proceed to next page. Please do not send cash.
+                    </div>
+                    <div>
+                        <b>Final Submit </b> 
+                        <apex:inputCheckbox disabled="{!nadc.isAlreadySubmitted}" value="{!nadc.recordApplication.Application_Submitted__c}"
+                                            id="ApplicationFinalSubmit" onclick="disableBox('ApplicationFinalSubmit','appTimes');"
+                                            styleclass="validate Fsubmit ApplicationFinalSubmit" />
+                         
+                    </div>
+                    <div>
+                        <span id="fsub" style="color:red;font-size:11px;"></span>
+                    </div>
+                    <div class="">
+                        <div class="appTimes" id="appTimes">
+                            <input class="form-control" disabled="true" id="ApplicantSignature"
+                                   style="font-family: 'Great Vibes', cursive !important;height:100px;font-size:50px;font-weight:900; text-align:center; text-transform: capitalize"
+                                   type="text"/>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+         </div>
+    </div>
+    <!-- END ROW - -->
+    
+    <!-- START MODEL -->
+    <div class="modal" id="terms_conditions">
+        <div class="modal-dialog modal-dialog-min">
+            <div class="modal-content">
+                
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Agreement</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    
+                    <div class="row">
+                        <div class="col-lg-12 form-group terms_conditions">
+                            <p>If accepted, I agree to abide by the policies of the school and authorize the use of my likeness, appearance, performance, voice, name, and student projects in connection with the operation and promotion of the school. I acknowledge that names, products, services, logos, and concepts may be service marks, trademarks, patents, registered service marks, or registered trademarks of The Los Angeles Film School and may not be used in any way without the express written consent of The Los Angeles Film School.</p>
+                            <p>I have read the school catalog and understand its contents and requirements. I also understand that The Los Angeles Film School reserves the right to withdraw subjects, courses and programs if registration falls below the required number, and to change faculty and staff without prior notice to students. I hereby grant The Los Angeles Film School permission to make any necessary inquiries. I voluntarily and knowingly authorize any former school, government agency, employer, person, firm, corporation, and/or its officers, employees, and agents, to comply with such a request from The Los Angeles Film School or its agents. The information I have provided is complete and accurate to the best of my knowledge. I agree to abide by all rules and regulations of The Los Angeles Film School. By submitting this form, you give The Los Angeles Film School and its partner schools(Full Sail University and RMCAD) your consent to contact you via phone, email and/or text using automated technology at the information above, including your wireless number, if provided, regarding educational services. Please note that you are not required to provide this consent to receive educational services.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row" style="float: right;">
+                        <a class="btn btn-link" data-dismiss="modal" href="javascript:closeSignUpScreen();">Close</a>
+                    </div>                   
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--END MODEL -->
+   
+    <script type="text/javascript">
+        
+        function populateApexRichText(){  
+                        
+            var objEditor = CKEDITOR.instances['{!$Component.shortEssay}'];
+            var strTest = objEditor.getData();
+            var res = strTest.replace("<p>", "");
+            res =res.replace("</p>", "");
+            j$('[id$=myHiddenField]').val(res);
+        }
+                   
+        CKEDITOR.plugins.addExternal( 'wordcount', '{!URLFOR($Resource.CkEditorNew,'ckeditor/plugins/wordcount/')}', 'plugin.js' );
+        
+        
+        CKEDITOR.replace( '{!$Component.shortEssay}', {
+            // DEFINE THE TOOLBAR GROUPS AS IT IS A MORE ACCESSIBLE SOLUTION.
+            extraPlugins: 'wordcount',
+            wordcount: 
+            {
+                showParagraphs: false, 
+                showWordCount: false, 
+                showCharCount: true,
+                maxCharCount: 250,
+                paragraphsCountGreaterThanMaxLengthEvent: function (currentLength, maxLength) {
+                    j$("#informationparagraphs").css("background-color", "crimson").css("color", "white").text(currentLength + "/" + maxLength + " - paragraphs").show();
+                },
+                wordCountGreaterThanMaxLengthEvent: function (currentLength, maxLength) {
+                    j$("#informationword").css("background-color", "crimson").css("color", "white").text(currentLength + "/" + maxLength + " - word").show();
+                },
+                charCountGreaterThanMaxLengthEvent: function (currentLength, maxLength) {
+                    j$("#informationchar").css("background-color", "crimson").css("color", "white").text(currentLength + "/" + maxLength + " - char").show();
+                },
+                charCountLessThanMaxLengthEvent: function (currentLength, maxLength) {
+                    j$("#informationchar").css("background-color", "white").css("color", "black").hide();
+                },
+                paragraphsCountLessThanMaxLengthEvent: function (currentLength, maxLength) {
+                    j$("#informationparagraphs").css("background-color", "white").css("color", "black").hide();
+                },
+                wordCountLessThanMaxLengthEvent: function (currentLength, maxLength) {
+                    j$("#informationword").css("background-color", "white").css("color", "black").hide();
+                }
+            },
+            
+            toolbarGroups: 
+            [
+                {
+                  "name": "basicstyles",
+                  "groups": ["basicstyles"]
+                },
+                {
+                  "name": "links",
+                  "groups": ["links"]
+                },
+                {
+                  "name": "paragraph",
+                  "groups": ["list", "blocks"]
+                },
+                {
+                  "name": "document",
+                  "groups": ["mode"]
+                },
+                {
+                  "name": "insert",
+                  "groups": ["insert"]
+                },
+                {
+                  "name": "styles",
+                  "groups": ["styles"]
+                },
+                {
+                  "name": "about",
+                  "groups": ["about"]
+                }
+            ],
+          // Remove the redundant buttons from toolbar groups defined above.
+          removeButtons: 'Underline,Strike,Subscript,Superscript,Anchor,Styles,Specialchar,Source,Image,SpecialChar,HorizontalRule,BlockQuote,About'
+        });
+
+    </script>
+  
+</apex:component>

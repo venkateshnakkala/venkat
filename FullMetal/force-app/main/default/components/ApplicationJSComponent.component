@@ -1,0 +1,2963 @@
+<apex:component Controller="ApplicationController" allowDML="true">
+     <apex:attribute name="applicationSelected" type="Application__c" description="Application"/>
+     <apex:attribute name="schoolId" type="String" description="school Id"/>
+     <apex:attribute name="att_src" type="String" description="lead source code" assignTo="{!SRC}"/>
+     <apex:attribute name="att_lid" type="String" description="lead id" assignTo="{!LID}"/>
+     <script>
+    
+        console.log('applicationSelected>>','{!applicationSelected}');
+        ko.validation.init({
+            registerExtenders: true,
+            messagesOnModified: true,
+            insertMessages: false,
+            decorateInputElement:true,
+            parseInputAttributes: true,
+            messageTemplate: null
+        },true);
+        ko.bindingHandlers.fadeVisible = {
+            init: function(element, valueAccessor) {
+                // Initially set the element to be instantly visible/hidden depending on the value
+                var value = valueAccessor();
+                j$(element).toggle(ko.unwrap(value)); // Use "unwrapObservable" so we can handle values that may or may not be observable
+            },
+            update: function(element, valueAccessor) {
+                // Whenever the value subsequently changes, slowly fade the element in or out
+                var value = valueAccessor();
+                ko.unwrap(value) ? j$(element).fadeIn() : j$(element).fadeOut();
+            }
+        };
+
+
+        
+        var dateValidator = function (val) {
+            if (!val)
+                return false;
+            if (ko.validation.utils.isEmptyVal(val) || moment(val, 'MM-DD-YYYY',true).isValid()) {
+                var thisYear=moment(val,"MM-DD-YYYY").year();
+                var currentY=new Date().getFullYear();
+                
+                if(thisYear < currentY){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+            else
+                return false;
+        };
+        
+        var dateValidator2 = function (val) {
+            if (!val)
+                return false;
+            if (ko.validation.utils.isEmptyVal(val) || moment(val, 'MM-DD-YYYY',true).isValid()) 
+                return true;
+            else
+                return false;
+        };
+        
+        function ApplicationVM(){
+            var self=this;
+            
+            //global variables      
+            self.totalApplications = ko.observable();    
+            self.applicationId = ko.observable();
+            self.isReadOnly = ko.observable(false);
+            self.performValidation = ko.observable(true);
+            self.householdId = ko.observable();  
+            self.studentId = ko.observable();
+            self.emContId = ko.observable();
+            self.leadSource = ko.observable();
+            self.makeApplicationReadOnly = ko.observable();
+            self.applicationStatus = ko.observable();
+            
+            self.sameParent = ko.observable(false);
+
+            
+            self.applicationFound = ko.observable();
+            self.checked = ko.observable('<span class="glyphicon glyphicon-ok" aria-hidden="true" ></span>');
+            self.pageName=ko.observable();
+            self.notApp=ko.observable(true);
+            
+            self.pageName.subscribe(function(newValue){
+                if(newValue == 'application'){
+                    self.notApp(false);
+                }
+                else{
+                    self.notApp(true);
+                }
+            });
+            //reused select lists           
+            self.countryOptions = ko.observableArray(["United States","Afghanistan","Åland Islands","Albania","Algeria","American Samoa","Andorra","Angola","Anguilla","Antarctica","Antigua and Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia, Plurinational State of","Bonaire, Sint Eustatius nd Saba","Bosnia and Herzegovina","Botswana","Bouvet Island","Brazil","British Indian Ocean Territory","Brunei Darussalam","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central African Republic","Chad","Chile","China","Christmas Island","Cocos (Keeling) Islands","Colombia","Comoros","Congo","Congo, the Democratic Republic of the","Cook Islands","Costa Rica","Côte d'Ivoire","Croatia","Cuba","Curaçao","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Falkland Islands (Malvinas)","Faroe Islands","Fiji","Finland","France","French Guiana","French Polynesia","French Southern Territories","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guadeloupe","Guam","Guatemala","Guernsey","Guinea","Guinea-Bissau","Guyana","Haiti","Heard Island and McDonald Islands","Holy See (atican City State)","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran, Islamic Republic of","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kiribati","Korea, Democratic People's Republic of","Korea, Republic of","Kuwait","Kyrgyzstan","Lao People's Democratic Republic","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macao","Macedonia, the former ugoslav Republic of","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Martinique","Mauritania","Mauritius","Mayotte","Mexico","Micronesia, Federated States of","Moldova, Republic of","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","Niue","Norfolk Island","Northern Mariana Islands","Norway","Oman","Pakistan","Palau","Palestinian Territory, Occupied","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Pitcairn","Poland","Portugal","Puerto Rico","Qatar","Réunion","Romania","Russian Federation","Rwanda","Saint Barthélemy","Saint Helena, Ascension and Tristan da Cunha","Saint Kitts and Nevis","Saint Lucia","Saint Martin (French part)","Saint Pierre and Miquelon","Saint Vincent and the Grenadines","Samoa","San arino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Sint Maarten (Dutch part)","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Georgia and the South Sandwich slands","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Svalbard and Jan Mayen","Swaziland","Sweden","Switzerland","Syrian Arab Republic","Taiwan, Province of China","Tajikistan","Tanzania, United Republic of","Thailand","Timor-este","Togo","Tokelau","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Turks and Caicos Islands","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States Minor Outlying Islands","Uruguay","Uzbekistan","Vanuatu","Venezuela, Bolivarian Republic of","Viet Nam","Virgin Islands, British","Virgin Islands, U.S.","Wallis and Futuna","Western Sahara","Yemen","Zambia","Zimbabwe"]);
+            self.citizenShipCountryOptions=[];
+            
+            for(var i=1; i<self.countryOptions().length; i++){
+                self.citizenShipCountryOptions.push(self.countryOptions()[i]);
+            }
+            self.countryOptionsInternational = ko.observableArray(self.citizenShipCountryOptions);
+            
+            self.yesOrNoOptions = ko.observableArray(["Yes", "No"]);
+            //self.stateOptions = ko.observableArray(["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming","Washington DC","Other"]);
+            self.stateOptions = ko.observableArray([{value:'AL',text:'Alabama'},
+                                                    {value:'AK',text:'Alaska'},
+                                                    {value:'AS',text:'American Samoa'},
+                                                    {value:'AZ',text:'Arizona'},
+                                                    {value:'AR',text:'Arkansas'},
+                                                    {value:'CA',text:'California'},
+                                                    {value:'CO',text:'Colorado'},
+                                                    {value:'CT',text:'Connecticut'},
+                                                    {value:'DE',text:'Delaware'},
+                                                    {value:'FL',text:'Florida'},
+                                                    {value:'GA',text:'Georgia'},
+                                                    {value:'GU',text:'Guam'},
+                                                    {value:'HI',text:'Hawaii'},
+                                                    {value:'ID',text:'Idaho'},
+                                                    {value:'IL',text:'Illinois'},
+                                                    {value:'IN',text:'Indiana'},
+                                                    {value:'IA',text:'Iowa'},
+                                                    {value:'KS',text:'Kansas'},
+                                                    {value:'KY',text:'Kentucky'},
+                                                    {value:'LA',text:'Louisiana'},
+                                                    {value:'ME',text:'Maine'},
+                                                    {value:'MH',text:'Marshall Islands'},
+                                                    {value:'MD',text:'Maryland'},
+                                                    {value:'MA',text:'Massachusetts'},
+                                                    {value:'MI',text:'Michigan'},
+                                                    {value:'FM',text:'Micronesia'},
+                                                    {value:'MN',text:'Minnesota'},
+                                                    {value:'MS',text:'Mississippi'},
+                                                    {value:'MO',text:'Missouri'},
+                                                    {value:'MT',text:'Montana'},
+                                                    {value:'NE',text:'Nebraska'},
+                                                    {value:'NV',text:'Nevada'},
+                                                    {value:'NH',text:'New Hampshire'},
+                                                    {value:'NJ',text:'New Jersey'},
+                                                    {value:'NM',text:'New Mexico'},
+                                                    {value:'NY',text:'New York'},
+                                                    {value:'NC',text:'North Carolina'},
+                                                    {value:'ND',text:'North Dakota'},
+                                                    {value:'MP',text:'Northern Marianas'},
+                                                    {value:'OH',text:'Ohio'},
+                                                    {value:'OK',text:'Oklahoma'},
+                                                    {value:'OR',text:'Oregon'},
+                                                    {value:'PW',text:'Palau'},
+                                                    {value:'PA',text:'Pennsylvania'},
+                                                    {value:'PR',text:'Puerto Rico'},
+                                                    {value:'RI',text:'Rhode Island'},
+                                                    {value:'SC',text:'South Carolina'},
+                                                    {value:'SD',text:'South Dakota'},
+                                                    {value:'TN',text:'Tennessee'},
+                                                    {value:'TX',text:'Texas'},
+                                                    {value:'UT',text:'Utah'},
+                                                    {value:'VT',text:'Vermont'},
+                                                    {value:'VI',text:'Virgin Islands'},
+                                                    {value:'VA',text:'Virginia'},
+                                                    {value:'WA',text:'Washington'},
+                                                    {value:'DC',text:'Washington DC'},
+                                                    {value:'WV',text:'West Virginia'},
+                                                    {value:'WI',text:'Wisconsin'},
+                                                    {value:'WY',text:'Wyoming'}]);
+            //button visibles
+            self.studentInfoIsEdit = ko.observable();
+            self.parentInfoIsEdit = ko.observable();
+            self.emerContInfoIsEdit = ko.observable();
+            self.programInfoIsEdit = ko.observable();
+            self.educationInfoIsEdit = ko.observable();
+            self.collegeInfoIsEdit = ko.observable();
+            self.citizenInfoIsEdit = ko.observable();
+            self.veteranInfoIsEdit = ko.observable();
+            self.essayInfoIsEdit = ko.observable();
+            self.previousHistoryIsEdit = ko.observable();
+            self.previousHistoryIsEdit2 = ko.observable();
+            self.statisticInfoIsEdit = ko.observable();
+            self.disabilityInfoIsEdit = ko.observable();
+            self.referAFriendInfoIsEdit = ko.observable();
+            self.acceptanceInfoIsEdit = ko.observable(); 
+            self.isGuestUser = ko.observable(true); 
+            self.doneSettingPassword = ko.observable(false);              
+
+            //sections
+            self.studentDetails = ko.observable();
+            self.studentDetailsComplete = ko.observable();
+            self.parentDetails = ko.observable();
+            self.under24Section = ko.observable();
+            self.emerContDetails = ko.observable();
+            self.programInfoDetails = ko.observable();
+            self.educationDetails = ko.observable();
+            self.collegeDetails = ko.observable();
+            self.citizenDetails = ko.observable();
+            self.veteranDetails = ko.observable();
+            self.essayDetails = ko.observable();
+            self.previousHistoryDetails = ko.observable();
+            self.previousHistoryDetails2 = ko.observable();
+            self.disabilitiesDetails = ko.observable();
+            self.statisticalDetails = ko.observable();
+            self.referAFriendDetails = ko.observable();
+            self.uploadDetails = ko.observable();
+            self.acceptanceDetails = ko.observable();
+            self.submissionDetails = ko.observable();
+            self.bringBackToSubmission = ko.observable(false);
+            self.setPassword = ko.observable(false);
+            self.applicantPassword = ko.observable();
+            self.applicationSubmitted = ko.observable();
+            
+            self.contactInfoComplete = function(){
+
+              return self.studentDetailsComplete() && (self.parentInfoComplete() || !self.under24()) && (self.veteranInfoComplete() || self.international()) && self.citizenInfoComplete() && self.programInfoComplete() && self.emContInfoComplete();  
+            }
+
+            self.educationAndBackgroundInfoComplete = function(){
+                return self.highSchoolInfoComplete()  && self.disabilityInfoComplete() && self.criminalInfoComplete() && self.disciplineInfoComplete();
+            }
+
+            self.supplimentalInformationComplete = function(){
+                return self.shortEssayComplete() && self.statisticalInfoComplete() && self.referralInfoComplete() && self.acceptanceInfoComplete(); ;
+            }
+
+
+
+            var userType = "{!IF(NOT(ISPICKVAL($User.UserType,'Guest')),'loggedInApplicant','guest')}";                
+            if(userType === 'guest'){
+                self.isGuestUser(true);                                
+            }else{
+                self.isGuestUser(false);
+                j$('#secondPageSaveAndExitButton').removeClass('disabled');
+                j$('#secondPageSaveAndExitButton').text('Save and Finish Later');
+                j$('#secondPageNextButton').removeClass('disabled');                
+                j$('#secondPageNextButton').text('Next');
+                
+                
+            }
+
+
+            
+            self.moveToSection=function(section){   
+                    
+                    if(typeof section==="undefined" && self.bringBackToSubmission()){
+                        self.moveToSection('submissionSection');
+                        return;
+                    }
+
+                    var steps=[];
+                    steps.push('studentDetailSection');                    
+                    steps.push('educationDetailSection');                    
+                    steps.push('essayDetailSection');                                     
+                    
+                    var current='';
+                    var sourceStepIndex  = 0;
+                    var destStepIndex = 0;
+
+                    var url=window.location.href;
+                    var urlR=url.split('#');
+                    
+                    console.log('CURRENT----------------->>>>',current);                    
+                    current=j$(".vwspc-section:visible").attr('id');
+                    if(section=='first' ){
+                        section=steps[0];
+                        history.pushState("", document.title, location.pathname+'#'+section);
+                        self.showProgress(5,100);
+                    }
+                    else if(!(typeof section==="undefined")) {
+                        var position=0;
+                        for(var i=0; i<steps.length; i++){
+                            if(section==steps[i]){
+                                position=i;
+                                destStepIndex = position;
+                                break;
+                            }
+                        }
+
+                        for(var i=0; i<steps.length; i++){
+                            if(current==steps[i]){
+                                sourceStepIndex = i;
+                                break;
+                            }
+                        }
+
+                        console.log('position--------->>>>',position);
+                        
+                        if(section=='back'){
+                            console.log('current inside back if block----------->>>',current);
+
+                            var positionTemp = 0;
+                            for(var i=0; i<steps.length; i++){
+                                if(current==steps[i]){
+                                    positionTemp=i;
+                                    break;
+                                }
+                            }                           
+                            position = positionTemp;
+                            position=position-1; 
+                            console.log('positionTemp----------->>>',position);
+                            if(position < 0){
+                                section = current;
+                            }else{
+                                section=steps[position];                               
+                            }
+                            console.log('section----------->>>',section);
+                        }
+                        else if(section=='next' ){ //&& position<steps.length-1
+                            var positionTemp = 0;
+                            console.log('current when clicked on next---------->>>>',current);
+                            for(var i=0; i<steps.length; i++){                                
+                                if(current==steps[i]){
+                                    positionTemp=i;
+                                    break;
+                                }
+                            }                            
+                            positionTemp=positionTemp+1;                            
+                            position = positionTemp;   
+                            section=steps[position];     
+                            console.log('position next---------->>>>',position);                   
+                            console.log('section next---------->>>>',section);                   
+                        }
+                        
+                        
+                        history.pushState("", document.title, location.pathname+'#'+section);
+                    }
+                    
+                console.log('section----------->>>>',section);
+                if(section === 'essayDetailSection'){
+                    var shortEssayContent = CKEDITOR.instances['shortEssay'].getData();                
+                    self.shortEssay(shortEssayContent);                        
+                    CKEDITOR.instances['shortEssay'].destroy();                        
+                    CKEDITOR.replace('shortEssay');                           
+                }
+                var filledRequiredFields = true;
+                
+                
+                
+                //if(filledRequiredFields){
+                console.log('sourceStepIndex--------------------->>>',sourceStepIndex);
+                console.log('destStepIndex--------------------->>>',destStepIndex);
+                if(sourceStepIndex < destStepIndex){
+                    if(current == 'studentDetailSection'){ 
+                        if(!self.isReadOnly()){
+                            console.log('test-->'+!self.studentDetailsComplete());
+                            if(!self.studentDetailsComplete()){
+                                self.goToParentSection();
+                            }else{
+                                filledRequiredFields = true;    
+                            }
+                            filledRequiredFields = self.studentDetailsComplete();
+                        }else{
+                            filledRequiredFields = true;
+                        }                                               
+                    }else if(current == 'educationDetailSection'){                        
+                        if(!self.isReadOnly()){
+                            if(!self.educationAndBackgroundInfoComplete()){
+                                self.goToCollegeSection();    
+                            }else{
+                                filledRequiredFields = true;       
+                            }                            
+                            filledRequiredFields = self.educationAndBackgroundInfoComplete();
+                        }else{
+                            filledRequiredFields = true;
+                        }
+                    }else if(current == 'essayDetailSection'){
+                        filledRequiredFields = true;
+                    }
+                    if(filledRequiredFields){  //filledRequiredFields
+                        self.changeSections(section);
+                    }
+                }else{
+                    self.changeSections(section);
+                }
+                        
+                /*}else{
+                    alert('Please check your submission');
+                }*/                                
+            }
+
+            self.changeSections = function(section){
+                j$('#sectionListPanel').find('li').each(function(){
+                    j$(this).removeClass('active');
+                    j$(this).removeClass('ui-state-selected');
+                    j$(this).addClass('ui-state');
+                });
+
+                    j$('#'+section+'Pill').addClass('active');
+                    j$('#'+section+'Pill').addClass('ui-state-selected');
+                    j$('#'+section+'Pill').removeClass('ui-state-disabled');
+                    j$('.vwspc-section').not("#" + section).hide("slide", { direction: "up" }, 100);
+                    j$("#" + section).fadeIn(100);
+                    j$(".intl:visible").each(function(){
+                        if(typeof j$(this).intlTelInput("getNumber")=='object'){
+                            j$(this).intlTelInput({initialCountry: "auto",
+                                                   geoIpLookup: function(callback) {
+                                                      $.get("https://ipinfo.io", function() {}, "jsonp").always(function(resp) {
+                                                        var countryCode = (resp && resp.country) ? resp.country : "";
+                                                        callback(countryCode);
+                                                      });
+                                                    },
+                                                    utilsScript: "{!URLFOR($Resource.IntlTelFomat, 'js/utils.js')}"});
+                        }
+                        
+                        if(typeof j$(this).intlTelInput("getSelectedCountryData").iso2=='undefined'){
+                            j$(this).intlTelInput("setCountry", "us");
+                        }
+                    });
+                    document.body.scrollTop = 0; // For Chrome, Safari and Opera 
+                    document.documentElement.scrollTop = 0; // For IE and Firefox
+                    j$('#loadingModal').modal('hide');            
+            }
+                    
+            self.showProgress=function(position,sections){
+                var elem = j$(".progress"); 
+                j$(elem).css('background-color','#cccccc');
+                var bar=j$(".bar");
+                var width = 1;
+                var begin=(position==1)?1:Math.ceil(((position-1)/sections)*100);
+                var end=Math.ceil((position/sections)*100);
+                var id = setInterval(frame, 1);
+                function frame() {
+                    if (width >= end) {
+                        clearInterval(id);
+                    } else {
+                        width++; 
+                        $(bar).css('width',width+'%');
+                    }
+                    $(bar).html(width+'%');
+                }
+            }
+            self.goToThisSection = function(sectionToOpen){
+                self.bringBackToSubmission(true);              
+                if(sectionToOpen == 'studentDetailSection'){
+                    self.studentInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'parentDetailSection'){
+                    self.parentInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'emerContSection'){
+                    self.emerContInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'programInfoSection'){
+                    self.programInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'educationDetailSection'){
+                    console.log('self.educationInfoIsEdit-----------?>>',self.educationInfoIsEdit());
+                    self.educationInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'collegeDetailSection'){
+                    self.collegeInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'citizenDetailSection'){
+                    self.citizenInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'veteranDetailSection'){
+                    self.veteranInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'essayDetailSection'){
+                    self.essayInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'previousHistoryDetailSection'){
+                    self.previousHistoryIsEdit(true);
+                }
+                else if(sectionToOpen == 'previousHistoryDetailSection2'){
+                    self.previousHistoryIsEdit2(true);
+                }
+                else if(sectionToOpen == 'statisticalDetailSection'){
+                    self.statisticInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'disabilitiesDetailSection'){
+                    self.disabilityInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'referAFriendSection'){
+                    self.referAFriendInfoIsEdit(true);
+                }       
+                else if(sectionToOpen == 'acceptanceSection'){
+                    self.acceptanceInfoIsEdit(true);
+                }
+                history.pushState("", document.title, location.pathname+'#'+sectionToOpen);
+                self.moveToSection(sectionToOpen);
+                        
+            }  
+                                 
+            //student information 
+            self.addmissionsRep = ko.observable(true);
+            //self.representativeId = ko.observable();
+            self.representative = ko.observable();
+            self.repName = ko.observable("Admissions:");
+            self.repPhone = ko.observable(" 877-952-3456 | LOCAL: 323-860-0789");
+            self.repEmail = ko.observable("info@lafilm.edu");
+            self.studentFirstName = ko.observable().extend({ required: true });
+            self.studentFullName = ko.observable();
+            self.studentLastName = ko.observable().extend({ required: true });
+            self.studentPhone = ko.observable().extend({ required: true});
+            self.studentAltPhone = ko.observable();                       
+            self.studentEmail = ko.observable().extend({
+                required: {
+                    params: true, message: 'Enter  Email Address' 
+                } 
+            }).extend({
+                    pattern: {
+                        params : /\S+@\S+\.\S+/,
+                        message : 'Enter Valid Email Address'
+                    }
+            });                                   
+            self.studentDOB = ko.observable().extend({ validation: { validator: dateValidator, message: 'Date is not in the correct format.' } });
+            self.studentDOB_Alt = ko.observable();
+            self.under24 = ko.observable();
+            self.studentUsStates = ko.observable(false);
+            j$('#studentState').css('display','none !important');
+            self.selectedUsState = ko.observable().extend({
+                required:{
+                    onlyIf: function(){
+                        return self.studentUsStates() === true;
+                    }
+                }           
+            });
+            self.selectedUsState.subscribe(function(newValue){
+                var disAllowStatus=['AL','AR','DE','FL','MD','MN','MT','OK','OR','WY','PR','GA','DC'];
+                
+                if(disAllowStatus.indexOf(newValue)>=0){
+                    self.campusOptions(["On Campus"]);
+                    console.log('found');
+                }
+                else{
+                    self.campusOptions(["On Campus","Online"]);
+                    console.log('not found');
+                }
+            });
+            
+            self.studentProvince = ko.observable();
+            self.selectedProvince = ko.observable().extend({
+                required:{
+                    onlyIf: function(){
+                        return self.studentProvince() === true;
+                    }
+                }           
+            });
+            self.studentState = ko.observable();
+            self.studentCountry = ko.observable().extend({ required: true });
+            self.studentCountry.subscribe(function(newValue){
+
+                if(newValue == 'United States'){
+                    self.studentUsStates(true);
+                    self.studentProvince(false);
+                    self.selectedProvince();
+                    //self.studentState(self.selectedUsState());
+                }
+                else{                   
+                    self.studentUsStates(false);
+                    self.studentProvince(true);
+                    self.selectedUsState();
+                    //self.studentState(self.selectedProvince());
+                }           
+            });
+            self.studentHomeAddress = ko.observable().extend({ required: true });
+            self.studentFullAddress = ko.observable();
+            self.studentCity = ko.observable().extend({ required: true });          
+            self.studentZip = ko.observable().extend({ required: {onlyIf:function(){return self.studentCountry()=='United States';}}});               
+            //program info here because creating application record
+            self.programCode = ko.observable();
+            self.programInfoComplete = ko.observable();
+            self.goBackToParentSection = function(){
+            
+                if(!self.under24()){
+                    self.studentDetails(true);
+                    j$('html,body').animate({scrollTop: j$(studentDetailSection).offset().top}, 1000);
+                }
+                else{
+                    self.parentDetails(true);
+                    j$('html,body').animate({scrollTop: j$(parentDetailSection).offset().top}, 1000);
+                }
+            }
+            
+            
+            self.reApply = function(){
+                console.log('self.applicationId------->>>>',self.applicationId());
+                self.bringBackToSubmission = ko.observable();
+                self.appFinalized = ko.observable(false);                               
+                self.applicationId = ko.observable();
+                self.studentInfoIsEdit = ko.observable(false); 
+                self.shortEssayComplete = ko.observable(false);
+                self.studentDetailsComplete = ko.observable(false);
+                self.shortEssay = ko.observable(); 
+                self.collegeInfoIsEdit = ko.observable(false);                             
+                self.goToThisSection('studentDetailSection');
+                
+                console.log('self after------->>>>',self);
+                
+            }
+            self.buttonTitle=function(value){
+                console.log('value self.buttonTitle--------->>>>>',value);
+                console.log('value self.appFinalized() --------->>>>>',self.appFinalized());
+                console.log('value self.shortEssayComplete() --------->>>>>',self.shortEssayComplete());                
+                if(self.appFinalized()){
+                    return 'SUBMITTED';
+                }
+                else if(value==true){
+                    return 'EDIT';
+                }
+                else {
+                    return 'PENDING';
+                }                
+            }
+            self.checkApplication=function(){
+                console.log('self.programCode()------------->>>>',self.programCode()); ////&& self.programCode()
+                console.log('self.applicationId()------------->>>>',self.applicationId()); ////&& self.programCode()
+                console.log('self.studentId()------------->>>>',self.studentId()); ////&& self.programCode()
+                var selectedApplicationId = '{!applicationSelected}';
+                
+                
+                console.log('selectedApplicationId ------------->>>>',selectedApplicationId);
+                if(self.applicationId()){
+                    console.log('inside if self.studentId() ------------->>>>',self.studentId());
+                    self.goToProgramInfoSection();                                                                                                                
+                    self.goToEdBackgroundSection(); 
+                    self.goToVeteranSection();                                                                                                                
+                    self.goToEssaySection();
+                    if(self.setPassword()){
+                        /*j$('#loadingModal').modal('hide');
+                        j$('#setPasswordModal').modal('hide');    
+                        j$('#accountSavedModal').modal('show');  */                        
+                        self.setPassword(false);  
+                        self.doneSettingPassword(true);            
+                        //self.loginToApplication();                            
+                    }else{
+                        self.moveToSection('next');    
+                    }
+                    return;
+                }                
+                else if(self.studentId() ){ 
+                    var programDetails ={                       
+                        programCode: self.programCode(),
+                        studentId: self.studentId()
+                    }
+                    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ApplicationController.checkApplication}', programDetails,selectedApplicationId, 
+                    function(appId){   
+                        if(self.setPassword()){
+                            /*j$('#loadingModal').modal('hide');
+                            j$('#setPasswordModal').modal('hide');    
+                            j$('#accountSavedModal').modal('show');*/  
+                            self.setPassword(false);  
+                            self.doneSettingPassword(true);   
+                            //self.loginToApplication();                                     
+                        }else{
+                            self.moveToSection('next');    
+                        }                
+                        self.applicationId(appId);
+                        self.goToProgramInfoSection();                                                                                                                
+                        self.goToEdBackgroundSection(); 
+                        self.goToVeteranSection();                                                                                                                
+                        self.goToEssaySection();                                                     
+                    },{escape : false});  
+                }
+            } 
+
+            self.setApplicantPassword = function(password)
+            {
+                if(self.studentEmail().includes(password))
+                {
+                    j$('#setPasswordErrorMessage').show();
+                }
+                else
+                {
+                    j$('#setPasswordErrorMessage').hide();                
+                    j$('#setPasswordModal').modal('hide');    
+                    j$('#loadingIconText').show();                
+                    j$('#loadingModal').modal('show');   
+                                 
+                    console.log('password----------->>>>',password);    
+                    console.log('self.setPassword----------->>>>',self.setPassword);   
+                    console.log('self.setPassword----------->>>>',self.setPassword);
+                       
+                    self.applicantPassword(password); 
+                    
+                    if(self.setPassword()){
+                        var currentSection = j$(".vwspc-section:visible").attr('id');
+                        
+                        if(currentSection === 'studentDetailSection')
+                        {
+                            self.goToParentSection();                        
+                        }
+                        else if(currentSection === 'educationDetailSection')
+                        {
+                            self.performValidation(false);
+                            self.goToCollegeSection();                        
+                        }
+                        else if(currentSection === 'essayDetailSection')
+                        {
+                            self.performValidation(false);
+                            self.goToPreviousHistorySection();
+                        } 
+                        //self.loginToApplication();   
+                    }else{                               
+                        
+                        var studentDetails = {
+                            'studentId' : self.studentId(),
+                            'appId' : self.applicationId(),
+                            'password' : password                                                                                                                            
+                        }
+                    
+                        console.log('self--------------------------->>>',self.studentId());
+                        
+                        if(self.studentId() != undefined)
+                        {
+                            studentDetails['applicantContactId'] = self.studentId();  
+                            console.log('Student Details:',studentDetails);  
+                            
+                            Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ApplicationController.setApplicantPassword}',studentDetails,
+                                function(result){
+                                     console.log('result--------------------------->>>',result);
+                                     
+                                     if(result['success'] === true)
+                                     {
+                                        self.setPassword(true);                                       
+                                        self.studentId(result['studentId']);
+                                        self.doneSettingPassword(true); 
+                                        self.loginToApplicationGoToSection('uploadDetailsSection');
+                                     }
+                                     else
+                                     {
+                                        self.setPassword(false);
+                                        j$('#setPasswordErrorMessage').show();                
+                                        j$('#setPasswordModal').modal('show');    
+                                        j$('#loadingIconText').hide();                
+                                        j$('#loadingModal').modal('hide'); 
+                                        
+                                        if(result && result['error'] === true){
+                                            j$('#setPasswordErrorMessage').html(result['errorMessage']);
+                                            j$('#passwordsDoNotMatch').hide();
+                                        }
+                                     }
+                                },{escape : false});
+                        }else{                    
+                            self.setPassword(false);                                     
+                            j$('#accountSavedModal').modal('show');
+                            /*
+                            //////alert('Please check your selection');
+                            emContInfoValidation.showAllMessages();   
+                            programInfoValidation.showAllMessages();
+                            citizenDetailsInfoValidation.showAllMessages();*/
+                        }
+                    }
+                }
+                
+            } 
+
+            self.showSetPasswordModal = function(){   
+                if(j$(this).text().toLowerCase()=='please wait...'){
+                    return;
+                } 
+                var currentSection = j$(".vwspc-section:visible").attr('id');
+                var allRequiredInfoFilled = false;                
+                var isCitizenInfoValid;
+                var isProgramInfoValid;
+                var crimianalHistory;
+                var disabilityServices;            
+                var academicMisconduct;
+                var base30;
+                if(currentSection === 'studentDetailSection'){
+                    var isCitizenInfoValid = citizenshipValidator();
+                    var isProgramInfoValid = programInfoValidator();
+                    allRequiredInfoFilled = studentInfoValidation().length === 0 && isCitizenInfoValid == '' && isProgramInfoValid == '' && emContInfoValidation().length == 0 && programInfoValidation().length == 0; 
+                }else if(currentSection === 'educationDetailSection'){
+                    self.performValidation(false);
+                    var crimianalHistory = criminalHistoryValidator();
+                    var disabilityServices = disabilityServicesValidator();
+                    var academicMisconduct = academicMisconductValidator();
+                    allRequiredInfoFilled = educationDetailsValidation().length == 0 && crimianalHistory == '' && disabilityServices == '' && academicMisconduct == ''; 
+                    //self.goToCollegeSection();
+                }else if(currentSection === 'essayDetailSection'){
+                    self.performValidation(false);
+                    var shortEssayContent = CKEDITOR.instances['shortEssay'].getData();                
+                    self.shortEssay(shortEssayContent);  
+                    //var base30=j$("#signature").jSignature('getData','base30');
+                    allRequiredInfoFilled = shortEssayValidation().length==0 ; //&& base30 != ''
+                    //self.goToPreviousHistorySection();
+                } 
+                console.log('allRequiredInfoFilled------------------->>>> for college info --->>>',allRequiredInfoFilled);
+                if(!self.performValidation() || allRequiredInfoFilled){                    
+                    j$(isCitizenInfoValid).removeClass('validationElement');
+                    j$(isProgramInfoValid).removeClass('validationElement');
+                    j$(crimianalHistory).removeClass('validationElement');
+                    j$(academicMisconduct).removeClass('validationElement');
+                    j$(disabilityServices).removeClass('validationElement');
+                    //j$(base30).removeClass('validationElement');   
+                    j$('#countryCitizen').removeClass('validationElement');
+                    j$('#ssn').removeClass('validationElement'); 
+                    j$('#residentialStatusOptions').removeClass('validationElement'); 
+                    j$('#programCode').removeClass('validationElement');
+                    j$('#programVersion').removeClass('validationElement'); 
+                    j$('#criminalHistoryExplain').removeClass('validationElement');
+                    j$('#criminalHistoryOptions').removeClass('validationElement');
+                    j$('#disabilityServicesExplain').removeClass('validationElement');
+                    j$('#disabilityServicesExplain').removeClass('validationElement');
+                    j$('#educationDisciplineExplain').removeClass('validationElement');
+                    j$('#educationDisiplineQuestion').removeClass('validationElement');
+                    //self.highSchoolInfoComplete(true);  
+                    self.setPassword(true);                                                                    
+                    j$('#setPasswordModal').modal('show'); 
+                }else{
+                    if(currentSection === 'studentDetailSection'){
+                        studentInfoValidation.showAllMessages();    
+                        emContInfoValidation.showAllMessages();
+                        programInfoValidation.showAllMessages();
+                        j$(isCitizenInfoValid).addClass('validationElement');
+                        j$(isProgramInfoValid).addClass('validationElement');                                        
+                    }else if(currentSection === 'educationDetailSection'){
+                        educationDetailsValidation.showAllMessages(); 
+                        j$(crimianalHistory).addClass('validationElement');
+                        j$(academicMisconduct).addClass('validationElement');
+                        j$(disabilityServices).addClass('validationElement');                       
+                    }else if(currentSection === 'essayDetailSection'){
+                        shortEssayValidation.showAllMessages();                    
+                        //j$(base30).addClass('validationElement');                    
+                    }                    
+                    self.setPassword(false); 
+                }
+                
+            }
+
+                               
+            self.goToParentSection = function(){
+
+                var isCitizenInfoValid = citizenshipValidator();
+                var isProgramInfoValid = programInfoValidator();   
+               
+                if(isCitizenInfoValid == ''){
+                    j$('#countryCitizen').removeClass('validationElement');
+                    j$('#ssn').removeClass('validationElement'); 
+                    j$('#residentialStatusOptions').removeClass('validationElement');
+                } 
+                if(isProgramInfoValid == ''){
+                    j$('#programCode').removeClass('validationElement');
+                    j$('#programVersion').removeClass('validationElement');
+                }else{
+                    j$(isProgramInfoValid).addClass('validationElement');
+                }
+                console.log('tanmay-------->>>>'+studentInfoValidation());
+                if (studentInfoValidation().length === 0 && isCitizenInfoValid == '' && isProgramInfoValid == '' && emContInfoValidation().length == 0 && programInfoValidation().length == 0) {
+                    j$('#loadingIconText').show();                
+                    j$('#loadingModal').modal('show');
+                    j$('#setPasswordModal').modal('hide');                
+                    var dob = j$('#studentDOB_alternate').val();
+                    dob = new Date(dob);
+                    var today = new Date();
+                    var age = Math.floor((today-dob) / (365.25 * 24 * 60 * 60 * 1000));
+
+                    if(age < 24){
+                        self.under24(true);
+                    }
+                    else{
+                        self.under24(false);
+                    }
+                    
+                    self.studentDetailsComplete(true);
+                    self.emContInfoComplete(true);
+                    self.citizenInfoComplete(true);     
+                    self.veteranInfoComplete(true);
+                    self.programInfoComplete(true);
+                    self.emContInfoComplete(true);   
+                    self.studentDetailsComplete(true);
+                                      
+                    if(!(j$('#txt_phone_number').intlTelInput("isValidNumber") && (j$('#txt_alt_phone_number').intlTelInput("isValidNumber") || !j$('#txt_alt_phone_number').val() )))
+                    {
+                        j$('#loadingModal').modal('hide');
+                        j$('#txt_phone_number').addClass('validationElement');
+                        return false;
+                    }
+                    j$('#txt_phone_number').removeClass('validationElement');
+                    
+                    var chkUser={'email':self.studentEmail(),'firstname':self.studentFirstName(),'lastname':self.studentLastName(),'phone':self.studentPhone()};
+                                    
+                    Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.ApplicationController.checkIfUserAlreadyExists}',chkUser,
+                    function(result){
+                        console.log('result--------------->>>>',result);
+                        if(result){
+                            j$('#loadingModal').modal('hide');
+                            j$('#applicationAlreadyExistsModal').modal('show'); 
+                            return false;
+                        }else{
+                            if(!self.setPassword()){
+                                j$('#loadingModal').modal('hide');
+                                self.moveToSection('next');                                
+                            }
+                            self.saveStudentInfo();    
+                        }
+                    },{buffer:true,escape : false});                    
+                }else {                    
+                    j$('#loadingModal').modal('hide');                    
+                    studentInfoValidation.showAllMessages();
+                    emContInfoValidation.showAllMessages();   
+                    programInfoValidation.showAllMessages();                   
+                    j$(isCitizenInfoValid).addClass('validationElement');
+                }
+            }
+            
+            window.addEventListener("beforeunload", function (e) {
+                document.cookie = "latestViewedApplication="+self.applicationId();
+                if('{!schoolId}' != ''){
+                    console.log('inside if---->>>');
+                    document.cookie = "latestViewedApplicationSchoolId="+'{!schoolId}';
+                }
+            });
+
+            self.saveStudentInfo = function()
+            {
+                var schoolIdFromComponent = '{!schoolId}';
+                if(schoolIdFromComponent == '')
+                {
+                    var tempComponent = document.cookie.split(';');
+                    
+                    for(var i =0; i<tempComponent.length;i++)
+                    {
+                      if(tempComponent[i].indexOf('latestViewedApplicationSchoolId') > -1)
+                      {
+                        var temp2Component = tempComponent[i].split('=');
+                        
+                        if(temp2Component[1] == '01')
+                        {
+                            self.leadSource('LAFSWEBAPP')
+                        }
+                        else if(temp2Component[1] == '02')
+                        {
+                            self.leadSource('LARSWEBAPP')
+                        }
+                      }                                      
+                    }
+                    if(self.leadSource() == '' || self.leadSource() == undefined){
+                        self.leadSource('LAFSWEBAPP')
+                    }
+                }else{                    
+                    if(schoolIdFromComponent == '01'){
+                        self.leadSource('LAFSWEBAPP');                
+                    }
+                    else if(schoolIdFromComponent == '02'){
+                        self.leadSource('LARSWEBAPP');
+                    }
+                    else{
+                        self.leadSource('LAFSWEBAPP');
+                    }
+                }
+
+                self.schoolId = ko.observable();
+                var under24=self.under24();                         
+                var studentDetails = {
+                    studentFirstName : self.studentFirstName(),
+                    studentLastName : self.studentLastName(),
+                    studentDOB : (j$('#studentDOB_alternate').val()),
+                    studentPhone : j$('#txt_phone_number').intlTelInput("getNumber"),
+                    studentOtherPhone : j$('#txt_alt_phone_number').intlTelInput("getNumber"),
+                    studentEmail : self.studentEmail(),
+                    studentCountry : self.studentCountry(),
+                    studentHomeAddress : self.studentHomeAddress(),
+                    studentCity : self.studentCity(),
+                    studentSelectedUsState : self.selectedUsState(),
+                    studentSelectedProvince : self.selectedProvince(),
+                    studentZip : self.studentZip(),
+                    studentId : self.studentId(),
+                    leadSource : self.leadSource(),
+                    src : '{!att_src}',
+                    lid : '{!att_lid}',
+                    studentInfoComplete : self.studentDetailsComplete(),
+                    householdId : self.householdId(),
+                    setPassword : self.setPassword(),
+                    under24 : self.under24(),
+                    appId : self.applicationId(),
+                    password:self.applicantPassword(),
+                    emContFirstName : self.emContFirstName(),
+                    emContLastName : self.emContLastName(),
+                    emContPhone : j$('#txt_em_phone').intlTelInput("getNumber"),
+                    emContRelation: self.emContRelation(),
+                    programCode: self.programCode(),
+                    prefStartPeriod: self.prefStartPeriod(),                        
+                    version : self.programVersion(),
+                    residentialStatus : self.residentialStatus(),
+                    alienNumber : self.alienNumber(),
+                    countryOfCitizenship : self.countryOfCitizenship().join(','),
+                    visaType : self.visaType(),
+                    ssNumber : self.ssNumber(),
+                    visaExpirationDate : (j$('#visaExpirationDate_alternate').val()),
+                    visaSchoolName : self.visaSchoolName(),
+                    visaSchoolAddress : self.visaSchoolAddress(),
+                    visaSchoolCity : self.visaSchoolCity(),
+                    visaSchoolState : self.visaSchoolState(),
+                    visaSchoolCountry : self.visaSchoolCountry(),
+                    visaSchoolZip : self.visaSchoolZip(),
+                    qualifyForBenefits : self.qualifyForBenefitsQuestion(),
+                    militaryAffiliation : self.militaryAffiliation(),
+                    militaryETS : (j$('#militaryETS_alternate').val()),
+                    branchOfService : self.branchOfService(),
+                    currentCertificate : self.currentCertificate(),
+                    militaryStartDate : (j$('#militaryStartDate_alternate').val()),
+                    militaryEndDate : (j$('#militaryEndDate_alternate').val()),
+                    authorizeTranscript : self.authorizeTranscript()                                                                                               
+                }
+                    
+                if(self.doneSettingPassword()){
+                    self.setPassword(false);                        
+                }                    
+
+                Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.ApplicationController.studentInfo}',studentDetails, under24,
+                        function(result){
+                            j$('#secondPageSaveAndExitButton').html('Save and Finish Later').removeClass('disabled').css('background-color','#000');
+                            j$('#secondPageNextButton').html('Next').removeClass('disabled').css('background-color','#000');
+                            //try{
+                                console.log('result---------->>>',result);
+                                self.applicationId(result['appId']);                                                      
+                                if(self.setPassword()){
+                                    /*self.setPassword(false);  
+                                    self.doneSettingPassword(true);      
+                                    self.loginToApplication();*/
+                                    if(result['success'] === true){                                        
+                                        self.setPassword(false);  
+                                        self.doneSettingPassword(true); 
+                                        self.loginToApplication();
+                                     }else{
+                                        self.setPassword(true);
+                                        j$('#setPasswordErrorMessage').show();                
+                                        j$('#setPasswordModal').modal('show');    
+                                        j$('#loadingIconText').hide();                
+                                        j$('#loadingModal').modal('hide');                                         
+                                        if(result && result['error'] === true){
+                                            j$('#setPasswordErrorMessage').html(result['errorMessage']);
+                                            j$('#passwordsDoNotMatch').hide();
+                                        }
+                                    }
+                                }
+                                if(result['studentToReturn']){
+                                    var studentContactObj = result['studentToReturn'];
+                                    self.householdId(studentContactObj['AccountId']);
+                                    self.studentId(studentContactObj['Id']);                                    
+                                }else{
+                                    self.householdId(result['AccountId']);
+                                    self.studentId(result['Id']);  
+                                }
+                                /*
+                                if(result['appId']){
+                                    self.applicationId(result['appId']);                                    
+                                    j$('#secondPageNextButton').removeClass('disabled');
+                                    j$('#secondPageNextButton').text('Next');                                    
+                                    j$('#secondPageSaveAndExitButton').removeClass('disabled');
+                                    j$('#secondPageSaveAndExitButton').text('Save and Finish Later');                                    
+                                }
+                                */                                                                       
+                                
+                            /*}catch(err){
+                                //self.goToParentSection(); //2nd time
+                            }*/
+                    },{buffer:true,escape : false});
+            }   
+                                
+            //parent info section               
+            self.parentInfoComplete = ko.observable();
+            self.parentId = ko.observable();        
+            self.studentParentFirstName = ko.observable();
+            self.isParent = ko.observable(false);
+            self.studentParentLastName = ko.observable().extend({required:true});
+            self.studentParentLastName.subscribe(function(number){
+                if(number.length>0){
+                    self.isParent(true);
+                }
+                else{
+                    self.isParent(false);
+                }
+            });
+            
+            self.studentParentPhone = ko.observable();
+            self.studentParentEmail =ko.observable().extend({
+                required: {
+                    params: true, message: 'Enter  Email Address' 
+                } 
+            }).extend({
+                    pattern: {
+                        params : /\S+@\S+\.\S+/,
+                        message : 'Enter Valid Email Address'
+                    }
+            });
+            
+            
+            self.populateSignature = function(){
+                
+                    var fullName = self.studentFirstName() + ' '+self.studentLastName();     
+                    console.log('fullName----------->>>>',fullName);        
+                    j$('#ApplicantSignature').val(fullName);
+                    self.applicationSubmitted(true);
+                
+                
+            }; 
+            
+            self.loginToApplication = function(){
+                var currentSection =j$(".vwspc-section:visible").attr('id');
+                console.log('currentSection---------------->>>>',currentSection);
+                j$('input[id*="sectionName"').val(currentSection);                            
+                j$('input[id*="applicantUserName"').val(self.studentEmail());                            
+                j$('input[id*="applicantPassword"').val(self.applicantPassword());                            
+                j$('input[id*="applicationIdAfterLogin"').val(self.applicationId());                            
+                loginToApplicationAfterResettingPassword();                                      
+            }
+
+            self.loginToApplicationGoToSection = function(goToThisSection){
+                //var currentSection =j$(".vwspc-section:visible").attr('id');
+                j$('input[id*="sectionName"').val(goToThisSection);                            
+                j$('input[id*="applicantUserName"').val(self.studentEmail());                            
+                j$('input[id*="applicantPassword"').val(self.applicantPassword());                            
+                j$('input[id*="applicationIdAfterLogin"').val(self.applicationId());                            
+                loginToApplicationAfterResettingPassword();                                      
+            }
+            
+                        
+            
+            self.sameAsParent=function(){
+                
+                self.sameParent(self.sameParent());
+                if(self.sameParent()){
+                    self.emContFirstName(self.studentParentFirstName());
+                    self.emContLastName(self.studentParentLastName());
+                    self.emContRelation('Parent / Guardian');
+                    console.log('self.studentParentPhone()----------------->>>>',self.studentParentPhone());
+                    if(self.studentParentPhone() != undefined){
+                        self.emContPhone(self.studentParentPhone());
+                        j$('#txt_em_phone').intlTelInput("setNumber",self.studentParentPhone());
+                    }                    
+                }
+                else {
+                    self.emContFirstName("");
+                    self.emContLastName("");
+                    self.emContRelation("");
+                    self.emContPhone("");
+                }
+                return true;
+            };
+            
+            self.goToEmContSection = function(){
+
+                    var parentDetails = {
+                        parentId : self.parentId(),
+                        schoolId : self.schoolId(),
+                        householdId : self.householdId(),
+                        applicationId : self.applicationId(),
+                        studentParentLastName : self.studentParentLastName(),
+                        studentParentFirstName : self.studentParentFirstName(),
+                        studentParentEmail : self.studentParentEmail(),
+                        studentParentPhone : j$('#txt_parent_phone').intlTelInput("getNumber"),
+                        studentId : self.studentId()    
+                    }
+
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.ApplicationController.parentInfo}',parentDetails,   
+                                    function(results){                          
+                                        self.parentId(results);
+                                        self.parentInfoComplete(true);   
+                                       // self.goToEdBackgroundSection();
+                                  },{escape : false});
+                        self.parentInfoComplete(true);
+                        /*if(self.parentInfoIsEdit()){
+                            self.submissionDetails(true);
+                            self.goToThisSection('submissionSection');  
+                        }
+                        else{
+                            self.moveToSection('next');                  
+                        } */  
+                        
+
+              
+            }
+            //emergency contact information
+            self.emContFirstName = ko.observable().extend({ required: true });
+            self.emContInfoComplete = ko.observable();
+            self.emContLastName = ko.observable().extend({ required: true });
+            self.emContRelation = ko.observable().extend({ required: true });
+            self.emContPhone = ko.observable().extend({ required: true });  
+            self.goToStudentDetailSection = function(){
+                j$('html,body').animate({scrollTop: j$(studentDetailSection).offset().top}, 1000);                      
+            }
+
+            self.goToProgramInfoSection = function(){
+                if(!j$('#txt_em_phone').intlTelInput("isValidNumber")){
+                    //alert('Invalid Phone Number');
+                    j$('#loadingModal').modal('hide');
+                    j$('#txt_em_phone').addClass('validationElement');
+                    return false;
+                }
+                 j$('#txt_em_phone').removeClass('validationElement');
+            
+                if (emContInfoValidation().length === 0) {
+                    self.emContInfoComplete(true);
+                    var emContInfoComplete = self.emContInfoComplete();                     
+                    var emContDetails = {
+                        applicationId : self.applicationId(), 
+                        studentId : self.studentId(),                                                      
+                        emContFirstName : self.emContFirstName(),
+                        emContLastName : self.emContLastName(),
+                        emContPhone : j$('#txt_em_phone').intlTelInput("getNumber"),
+                        emContRelation: self.emContRelation()                                                                                                          
+                    }   
+                    console.log('emContDetails-------->>>>>',emContDetails);
+        
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.ApplicationController.emContInfo}',emContDetails, 
+                            function(results){   
+                                console.log('results------>>>>',results);                       
+                                self.emContId(results.Id); 
+                                 //self.goToEmContSection();                                                                                                        
+                                // self.goToEdBackgroundSection();
+                            },{escape : false});
+                    /*if(self.emerContInfoIsEdit()){
+                        self.submissionDetails(true);
+                        self.goToThisSection('submissionSection');  
+                    }
+                    else{
+                        self.moveToSection('next');
+                    }*/
+                }
+                else{
+                    self.setPassword(false);
+                    //alert('Please check your selection');
+                    emContInfoValidation.showAllMessages();
+                } 
+             
+            }    
+                   
+
+            //self.prefStartDate = ko.observable().extend({ required: true });
+            //self.prefStartDateAlt = ko.observable();
+            self.prefStartPeriod  = ko.observable().extend({ required: true });
+            //self.prefStartPeriodOpt = ko.observable();
+            self.prefStartPeriodOptions = ko.observableArray({!StartDateOptions});
+            self.prefStartPeriod.subscribe(function(data){
+                var ar=self.prefStartPeriodOptions();
+                var found=false;
+                for(var i=0; i<ar.length; i++){
+                    if(ar[i]==data){
+                        found=true;
+                        break;
+                    }
+                }
+                
+                if(!found){
+                    self.prefStartPeriodOptions.push(data);
+                }
+            });
+            self.campusOptions = ko.observableArray(["On Campus", "Online"]);
+            self.programOptions = ko.observable();
+            self.selectedProgramCode = ko.observable();     
+            self.programOptions = ko.observableArray([]);
+            self.haveComputerSection = ko.observable(); 
+            self.haveNoComputer = ko.observable(false);                 
+            self.selectedCampus = ko.observable().extend({ required: true });
+            self.programOptionSection = ko.observable();            
+            self.selectedProgram = ko.observable().extend({ required: true });
+            
+            self.onCampusPrograms=ko.observableArray([{value:'BSAVE',text:'Bachelor of Science in Animation and Visual Effects'},
+                                                {value:'BSAP',text:'Bachelor of Science in Audio Production'},
+                                                {value:'BSFP',text:'Bachelor of Science in Film Production'},
+                                                {value:'BSEB',text:'Bachelor of Science in Entertainment Business '},
+                                                {value:'ASF',text:'Associate of Science in Film'},
+                                                {value:'ASAP',text:'Associate of Science in Audio Production'},
+                                                {value:'ASMP',text:'Associate of Science in Music Production'}]);
+                                                
+           self.onLinePrograms=ko.observableArray([{value:'BSDF-O',text:'Bachelor of Science in Digital Filmmaking Online'},
+                                                {value:'BSEB-O',text:'Bachelor of Science in Entertainment Business Online'},
+                                                {value:'BSGD-O',text:'Bachelor of Science in Graphic Design'},
+                                                {value:'ASMP-O',text:'Associate of Science in Music Production Online '}]);
+                                                
+           self.programVersions={'BSEB':['Full','Completer'],
+                               'BSAVE':['Visual Effects','Game Art'],
+                               'BSFP':['Production','Producing','Directing/Screenwriting','Cinematography']};
+            
+           self.selectedCampus.subscribe(function(newValue){
+                if(newValue == 'On Campus'){
+                    self.programOptionSection(true);
+                    self.haveComputerSection(false);
+                    self.programOptions(self.onCampusPrograms());
+                }
+                else if(newValue == 'Online'){
+                    self.haveComputerSection(true);
+                    self.programOptionSection(true);                          
+                    self.programOptions(self.onLinePrograms());
+                }
+                else{
+                    self.programOptionSection(false);
+                    self.haveComputerSection(false);
+                    self.selectedProgram();
+                }               
+            }) 
+            self.isVersionAvailable=ko.observable(false);
+            self.programVersion=ko.observable();
+
+            self.programVersionOptions=ko.observableArray();
+            
+            self.programCode.subscribe(function(code){
+                var ar;
+                if(self.selectedCampus()=='On Campus'){
+                    ar=self.onCampusPrograms();
+                }
+                else {
+                    ar=self.onLinePrograms();
+                }
+                
+                if(self.programVersions.hasOwnProperty(code)){
+                    self.isVersionAvailable(true);
+                    self.programVersionOptions(self.programVersions[code]);
+                    self.programVersion('');
+                }
+                else {
+                    self.isVersionAvailable(false);
+                    self.programVersionOptions([]);
+                    self.programVersion('');
+                }
+                
+                for(var x in ar){
+                    if(ar[x].value==code){
+                        self.selectedProgram(ar[x].text);
+                        return false;
+                    }
+                }
+            });
+                 
+            self.goToEdBackgroundSection = function(){   
+                console.log('programInfoValidation()---------------------->>>',programInfoValidation());     
+                var selectedApplicationId = '{!applicationSelected}';
+                if (programInfoValidation().length === 0) { 
+                
+                    var programDetails ={                       
+                        representative : self.representative(),   
+                        //prefStartDate : (j$('#prefStartDate_alternate').val()),
+                        programCode: self.programCode(),
+                        prefStartPeriod: self.prefStartPeriod(),
+                        applicationId: self.applicationId(),
+                        studentId: self.studentId(),
+                        version : self.programVersion()
+                    }
+                    var under24 = self.under24();
+                    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ApplicationController.createApplication}', programDetails,under24,selectedApplicationId,
+                        function(result){          
+                            //self.applicationId(result.Id);
+                            //self.goToVeteranSection();                                                                                                                                                                                               
+                        },{escape : false});  
+                            
+                    self.programInfoComplete(true);
+                    /*if(self.programInfoIsEdit()){
+                        self.submissionDetails(true);
+                        self.goToThisSection('submissionSection');  
+                    }
+                    else{
+                        self.moveToSection('next');                                        
+                    }*/
+                }
+                else{
+                    self.setPassword(false);
+                    //alert('Please check your selection');
+                    programInfoValidation.showAllMessages();
+                }
+            }           
+            //educational background section
+            self.highSchoolInfoComplete = ko.observable();          
+            self.highSchoolName = ko.observable().extend({ required: true });
+            self.graduationDate = ko.observable().extend({ validation: { validator: dateValidator2, message: 'Date is not in the correct format.' } });
+            self.graduationDateAlt = ko.observable();
+            self.degreeReceived = ko.observable();
+            self.highSchoolAddress = ko.observable();
+            self.highSchoolAddress2 = ko.observable();
+            self.highSchoolCity = ko.observable().extend({required:true});
+            self.highSchoolCountry = ko.observable().extend({ required: true });
+            self.highSchoolUsStates = ko.observable(true);
+            self.selectedHighSchoolUsState = ko.observable().extend({
+                required:{
+                    onlyIf: function(){
+                        return self.highSchoolCountry()=='United States';
+                    }
+                }           
+            })
+            self.highSchoolProvince = ko.observable();
+            self.selectedHighSchoolProvince = ko.observable().extend({
+                required:{
+                    onlyIf: function(){
+                        return self.highSchoolCountry()!='United States';
+                    }
+                }           
+            })
+            self.highSchoolState = ko.observable();
+            
+            self.highSchoolCountry.subscribe(function(newValue){
+                if(newValue == 'United States'){
+                    self.highSchoolUsStates(true);
+                    self.highSchoolProvince(false);
+                    self.highSchoolProvince();
+                    //self.studentState(self.selectedUsState());
+                }
+                else{                   
+                    self.highSchoolUsStates(false);
+                    self.highSchoolProvince(true);
+                    self.highSchoolUsStates();
+                    //self.studentState(self.selectedProvince());
+                }       
+            });
+            self.highSchoolZip = ko.observable();
+            self.iNotSendTranscript = ko.observable();
+            //self.transcriptRequest = ko.observable().extend({ required: true });
+            self.transcriptOptions = ko.observableArray(["I would like The Los Angeles Film School to request my transcript from my high school", "I will provide my high school transcript myself"]);          
+
+            
+
+            function criminalHistoryValidator(){
+                console.log('self.criminalHistoryQuestion()------------------------------>>>>',self.criminalHistoryQuestion());
+                console.log('self.self.criminalHistoryExplain()()------------------------------>>>>',self.criminalHistoryExplain());
+                if(self.criminalHistoryQuestion() != '' && self.criminalHistoryQuestion() != undefined){
+                    if(self.criminalHistoryQuestion() == 'No'){
+                        return '';
+                    }
+                    var explain = self.criminalHistoryExplain().trim();
+                    if(explain == '' || explain == undefined){
+                        return '#criminalHistoryExplain';
+                    }
+                    return '';
+                }else{
+                    return '#criminalHistoryOptions';
+                }
+            }
+
+
+
+
+            function academicMisconductValidator(){
+                console.log('self.educationDisiplineQuestion()------------------------------>>>>',self.educationDisiplineQuestion());
+                console.log('self.self.educationDisciplineExplain()()------------------------------>>>>',self.educationDisciplineExplain());                                
+                if(self.educationDisiplineQuestion() != '' && self.educationDisiplineQuestion() != undefined){
+                    if(self.educationDisiplineQuestion() == 'No'){
+                        return '';
+                    }
+                    var explain = self.educationDisciplineExplain().trim();
+                    if(explain == '' || explain == undefined){
+                        return '#educationDisciplineExplain';
+                    } 
+                    return '';                                   
+                }else{
+                    return '#educationDisiplineQuestion';
+                }
+            }
+
+
+            self.goToCollegeSection = function(){   
+                if(j$(this).text().toLowerCase()=='please wait...'){
+                    return;
+                }         
+                var crimianalHistory = criminalHistoryValidator();
+                var disabilityServices = disabilityServicesValidator();
+                var academicMisconduct = academicMisconductValidator();
+                console.log('crimianalHistory--------------->>>>>>',crimianalHistory);
+                console.log('disabilityServices-------------->>>>>>',disabilityServices);
+                console.log('academicMisconduct--------------->>>>>>',academicMisconduct);               
+                console.log('applicantPassword--------------->>>>>>',self.applicantPassword());    
+                if(self.performValidation()){
+                    if (educationDetailsValidation().length == 0 && crimianalHistory == '' && disabilityServices == '' && academicMisconduct == '') {
+                        j$('#loadingIconText').show();                
+                        j$('#loadingModal').modal('show');            
+                        j$('#criminalHistoryExplain').removeClass('validationElement');
+                        j$('#criminalHistoryOptions').removeClass('validationElement');
+                        j$('#disabilityServicesExplain').removeClass('validationElement');
+                        j$('#disabilityServicesExplain').removeClass('validationElement');
+                        j$('#educationDisciplineExplain').removeClass('validationElement');
+                        j$('#educationDisiplineQuestion').removeClass('validationElement');
+                        self.highSchoolInfoComplete(true);          
+                        var educationDetails = {
+                            applicationId : self.applicationId(),
+                            studentId : self.studentId(),
+                            setPassword : self.setPassword(),      
+                            password : self.applicantPassword(),                                                                                                                  
+                            highSchoolName : self.highSchoolName(),
+                            graduationDate : j$('#graduationDate_alternate').val(),
+                            degreeReceived : self.degreeReceived(),
+                            highSchoolAddress : self.highSchoolAddress(),
+                            highSchoolAddress2 : self.highSchoolAddress2(),
+                            highSchoolCity : self.highSchoolCity(),
+                            highSchoolState : self.highSchoolState(),
+                            highSchoolZip : self.highSchoolZip(),
+                            highSchoolCountry : self.highSchoolCountry(),
+                            highSchoolSelectedUsState : self.selectedHighSchoolUsState(),
+                            highSchoolSelectedProvince : self.selectedHighSchoolProvince(),
+                            //transcriptRequest : self.transcriptRequest()                
+                        }
+                        
+                        if(self.doneSettingPassword()){
+                            educationDetails['setPassword'] = false;
+                        }
+                       
+                        Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.ApplicationController.educationInfo}',educationDetails,
+                            function(result){                            
+                                                                
+                                if(self.setPassword()){                           
+                                    if(result['success'] === true){                                        
+                                        //self.setPassword(false);  
+                                        //self.doneSettingPassword(true); 
+                                       // self.loginToApplication();
+                                       self.goToCitizenSection();                                                                    
+                                     }else{
+                                        self.setPassword(true);
+                                        j$('#setPasswordErrorMessage').show();                
+                                        j$('#setPasswordModal').modal('show');    
+                                        j$('#loadingIconText').hide();                
+                                        j$('#loadingModal').modal('hide');                                         
+                                        if(result && result['error'] === true){
+                                            j$('#setPasswordErrorMessage').html(result['errorMessage']);
+                                            j$('#passwordsDoNotMatch').hide();
+                                        }
+                                    }
+                                }else{
+                                  //  self.moveToSection('next'); 
+                                  self.goToCitizenSection();
+                                }                                                                                           
+                                //self.goToCitizenSection();                                                                                                               
+                            },{escape : false});                            
+                                                                                
+                    }else{
+                        //alert('Please check your selection');
+                        j$('#loadingModal').modal('hide');  
+                        self.setPassword(false);          
+                        j$(crimianalHistory).addClass('validationElement');
+                        j$(disabilityServices).addClass('validationElement');
+                        j$(academicMisconduct).addClass('validationElement');
+                        educationDetailsValidation.showAllMessages();
+                        //educationDetailsValidation.showAllMessages();
+                        //previousCriminalExplainInfoValidation.showAllMessages();   
+                        //disabilitiesDetailsInfoValidation.showAllMessages(); 
+                    }
+                }else{
+                    self.saveCollegeInfo();
+                }                                
+            }
+
+
+            self.saveCollegeInfo = function(){
+                var educationDetails = {
+                        applicationId : self.applicationId(),
+                        studentId : self.studentId(),
+                        setPassword : self.setPassword(),      
+                        password : self.applicantPassword(),                                                                                                                  
+                        highSchoolName : self.highSchoolName(),
+                        graduationDate : j$('#graduationDate_alternate').val(),
+                        degreeReceived : self.degreeReceived(),
+                        highSchoolAddress : self.highSchoolAddress(),
+                        highSchoolAddress2 : self.highSchoolAddress2(),
+                        highSchoolCity : self.highSchoolCity(),
+                        highSchoolState : self.highSchoolState(),
+                        highSchoolZip : self.highSchoolZip(),
+                        highSchoolCountry : self.highSchoolCountry(),
+                        highSchoolSelectedUsState : self.selectedHighSchoolUsState(),
+                        highSchoolSelectedProvince : self.selectedHighSchoolProvince(),
+                        //transcriptRequest : self.transcriptRequest()                
+                    }                    
+                    if(self.doneSettingPassword()){
+                        educationDetails['setPassword'] = false;
+                    }
+                    console.log('educationDetails------------->>>>',educationDetails);
+
+                    Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.ApplicationController.educationInfo}',educationDetails,
+                        function(result){                            
+                            if(self.setPassword()){                           
+                                    if(result['success'] === true){                                        
+                                        //self.setPassword(false);  
+                                        //self.doneSettingPassword(true); 
+                                       // self.loginToApplication();
+                                       self.goToCitizenSection();                                                                    
+                                     }else{
+                                        self.setPassword(true);
+                                        j$('#setPasswordErrorMessage').show();                
+                                        j$('#setPasswordModal').modal('show');    
+                                        j$('#loadingIconText').hide();                
+                                        j$('#loadingModal').modal('hide');                                         
+                                        if(result && result['error'] === true){
+                                            j$('#setPasswordErrorMessage').html(result['errorMessage']);
+                                            j$('#passwordsDoNotMatch').hide();
+                                        }
+                                    }
+                                }else{
+                                  //  self.moveToSection('next'); 
+                                  self.goToCitizenSection();
+                                }                                                                                                               
+                        },{escape : false});                            
+                    
+            }
+            //college details section
+            self.collegeInfoComplete = ko.observable();
+            self.college1Name = ko.observable();
+            self.college1GraduationDate = ko.observable();
+            self.college1GraduationDateAlt = ko.observable();
+            self.college1DegreeReceived = ko.observable();
+            self.college2Name = ko.observable();
+            self.college2GraduationDate = ko.observable();
+            self.college2GraduationDateAlt = ko.observable();
+            self.college2DegreeReceived = ko.observable(); 
+            self.collegeNotes = ko.observable();
+
+            self.goToCitizenSection = function(){
+                self.collegeInfoComplete(true);
+                var collegeDetails = {
+                    applicationId : self.applicationId(),
+                    college1Name : self.college1Name(),
+                    college1GraduationDate : (j$('#college1GraduationDate_alternate').val()),
+                    college1DegreeReceived : self.college1DegreeReceived(),
+                    college2Name : self.college2Name(),
+                    college2GraduationDate : (j$('#college2GraduationDate_alternate').val()),
+                    college2DegreeReceived : self.college2DegreeReceived(),
+                    collegeNotes : self.collegeNotes()
+                }
+                console.log('collegeDetails---------------->>>',collegeDetails);
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.ApplicationController.collegeInfo}', collegeDetails,   
+                        function(results){    
+                            self.goToStatisticalSection();                                                                                                               
+                        },{escape : false});                
+                       
+            }
+            //citizenship details section
+            self.citizenInfoComplete = ko.observable();
+            self.residentialStatus = ko.observable().extend({ required: true });
+            self.international=ko.observable(false);
+            self.residentialStatus.subscribe(function(code){
+                
+                if(code=='I am an international student'){
+                    self.international(true);
+                    self.militaryFileUpload(false);
+                }
+                else {
+                    self.international(false);
+                }
+            });
+            self.residentialStatusOptions = ko.observableArray(["I am a citizen of the United States", "I am a legal resident of the United States", "I am an international student"]);
+            self.alienNumberSection = ko.observable();
+            self.alienNumber = ko.observable();
+            self.countryOfCitizenshipSection = ko.observable();
+            self.visaTypeSection = ko.observable();
+            self.ssNumberSection = ko.observable();
+            self.ssNumber = ko.observable(' ').extend({ minLength: 9, required:  {onlyIf:function(){ //minLength: 9,
+                console.log('self.residentialStatus()------------------------->>>>',self.residentialStatus());
+                if(self.residentialStatus() === "I am a citizen of the United States"){
+                    console.log('required true------->>>>');
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }}});
+
+
+            self.ssNumberAlt = ko.observable(' ').extend({ minLength: 9, required:  {onlyIf:function(){ //minLength: 9,
+                console.log('self.residentialStatus()------------------------->>>>',self.residentialStatus());
+                if(self.residentialStatus() === "I am a citizen of the United States"){
+                    console.log('required true------->>>>');
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }}});
+
+
+            self.ssNumberAlt = ko.computed({
+                read:function(){
+                    if(self.ssNumber()){
+                        var n=self.ssNumber().replace(/[^0-9\.]/g, '');
+                        var l=n.length;
+                        if(l==9){
+                            var a=n.substring(l-4,l);
+                            return '***-**-'+a;
+                        }
+                    }
+                },
+                write: function(value){
+                    self.ssNumber(value.replace(/[^0-9\.]/g,''));
+                }
+            });
+            self.alienNumberSection = ko.observable(); 
+            self.visaExpirationDateSection = ko.observable(false);
+            self.residentialStatus.subscribe(function(newValue){
+                console.log('newValue--------------->>>',newValue);
+                if(newValue == 'I am a citizen of the United States'){
+                    self.internationalFileUpload(false);                                
+                    self.alienNumberSection(false);
+                    self.countryOfCitizenshipSection(false);
+                    self.visaTypeSection(false);
+                    self.visaExpirationDateSection(false);
+                    self.ssNumberSection(true); 
+                    j$('#ssnRequired').css('display','inline');
+                    j$('#militaryInformation').show();
+                    //self.ssNumber = ko.observable().extend({ required: true }); 
+                    //self.ssNumberAlt = ko.observable().extend({ required: true }); 
+                    
+                    //citizenDetailsInfoValidation = ko.validation.group({self.residentialStatus,self.ssNumberAlt,self.ssNumber, self.countryOfCitizenship});               
+                }
+                if(newValue == 'I am an international student'){
+                    self.internationalFileUpload(true);                 
+                    self.countryOfCitizenshipSection(true);
+                    self.visaTypeSection(true);
+                    self.alienNumberSection(false);
+                    self.visaExpirationDateSection(true);
+                    self.ssNumberSection(false);
+                    j$('#militaryInformation').hide();
+                    //self.ssNumber = ko.observable().extend({ required: false }); 
+                    //self.ssNumberAlt = ko.observable().extend({ required: false }); 
+                    //citizenDetailsInfoValidation = ko.validation.group({self.residentialStatus,self.countryOfCitizenship});
+                }
+                if(newValue == 'I am a legal resident of the United States'){
+                    self.internationalFileUpload(false);//true
+                    self.alienNumberSection(true);
+                    self.countryOfCitizenshipSection(false);
+                    self.visaTypeSection(false);
+                    self.visaExpirationDateSection(false);
+                    self.ssNumberSection(true); 
+                    j$('#ssnRequired').css('display','none');
+                    j$('#militaryInformation').show();
+                    //self.ssNumber = ko.observable().extend({ required: true }); 
+                    //self.ssNumberAlt = ko.observable().extend({ required: true });                     
+                    //citizenDetailsInfoValidation = ko.validation.group({self.residentialStatus,self.alienNumber, self.ssNumber, self.countryOfCitizenship});
+                }               
+            });
+            self.countryOfCitizenship = ko.observableArray().extend({ required:  {onlyIf:function(){
+
+                if(self.residentialStatus()=="I am an international student"){
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }}});
+            self.visaType = ko.observable();
+            
+            self.visaExpirationDate = ko.observable();
+            self.visaExpirationDate.subscribe(function(date){
+                if(date==''){
+                    j$('#visaExpirationDate_alternate').val('');
+                }
+            });
+            self.visaExpirationDateAlt = ko.observable();
+            self.visaTypeOptions = ko.observableArray(["None","F-1 Visa(Student Visitor)", "J-1 Visa(Exchange Visitor)", "M-1 Visa(Vocational Student)","B1/2","A1/A2"]);
+            self.visaSchoolName = ko.observable();
+            self.visaSchoolAddress = ko.observable();
+            self.visaSchoolCity = ko.observable();
+            self.visaSchoolState = ko.observable();
+            self.visaSchoolZip = ko.observable();
+            self.visaSchoolCountry = ko.observable();
+            self.visaType.subscribe(function(newValue){
+                if(newValue == "None"){
+                    self.visaExpirationDateSection(false);
+                }
+                else{
+                    self.visaExpirationDateSection(true);
+                }           
+            });
+
+
+
+            function programInfoValidator(){
+                console.log('self.programCode()------------------------------>>>>',self.programCode());
+                console.log('self.programVersion()------------------------------>>>>',self.programVersion());                
+                if(self.programCode() == '' || self.programCode() == undefined){
+                        return '#programCode';                    
+                }
+                /*
+                if(self.selectedCampus() != 'Online'){
+                    if(self.programVersion() == '' || self.programVersion() == undefined){
+                            return '#programVersion';
+                    }
+                }
+                */
+                if(self.isVersionAvailable()  && !self.programVersion()){
+                     return '#programVersion';
+                }
+
+                return '';
+                
+            }
+
+            function citizenshipValidator(){
+                if(self.residentialStatus() == 'I am a citizen of the United States'){
+                    if(self.ssNumber() != '' || self.ssNumber() != undefined){
+                        if(self.ssNumber().length != 9){
+                            return '#ssn';
+                        }
+                        return '';
+                    }
+                    return false;                    
+                }else if(self.residentialStatus() == 'I am an international student'){
+                    if(self.countryOfCitizenship() != '' || self.countryOfCitizenship() != undefined){
+                        return '';
+                    }
+                    return '#countryCitizen';
+                }else if(self.residentialStatus() == 'I am a legal resident of the United States'){
+                    return '';
+                }else{
+                    return '#residentialStatusOptions';
+                }
+            }
+
+            self.goToVeteranSection = function(){
+                //if(citizenDetailsInfoValidation().length === 0) {
+                    self.citizenInfoComplete(true);     
+
+                    var citizenDetails = {
+                        applicationId : self.applicationId(),
+                        studentId : self.studentId(),
+                        residentialStatus : self.residentialStatus(),
+                        alienNumber : self.alienNumber(),
+                        countryOfCitizenship : self.countryOfCitizenship().join(','),
+                        visaType : self.visaType(),
+                        ssNumber : self.ssNumber(),
+                        visaExpirationDate : (j$('#visaExpirationDate_alternate').val()),
+                        visaSchoolName : self.visaSchoolName(),
+                        visaSchoolAddress : self.visaSchoolAddress(),
+                        visaSchoolCity : self.visaSchoolCity(),
+                        visaSchoolState : self.visaSchoolState(),
+                        visaSchoolCountry : self.visaSchoolCountry(),
+                        visaSchoolZip : self.visaSchoolZip()                
+                    }
+
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.ApplicationController.citizenInfo}',citizenDetails,  
+                            function(results){      
+                                 //self.goToEssaySection();                                                                                                              
+                            },{escape : false});
+                                        
+            }
+            //veteran benefit section
+            self.qualifyForBenefitsQuestion = ko.observable();
+            self.veteranInfoComplete = ko.observable();
+            self.qualifySection = ko.observable();
+            self.qualifyForBenefits = ko.observable();
+            self.militaryAffiliation = ko.observable();
+            self.qualifyForBenefitsQuestion.subscribe(function(newValue){
+                if(newValue == "Yes"){
+                    self.qualifySection(true);
+                    self.qualifyForBenefits(true);
+                    self.militaryFileUpload(true);
+                }
+                else if(newValue == "No"){
+                    
+                    self.qualifySection(false);
+                    self.qualifyForBenefits(false);
+                    self.militaryFileUpload(false);
+                }
+                else{
+                    self.qualifySection(false);
+                    self.qualifyForBenefits(false);
+                    self.militaryFileUpload(false);
+                }
+            });
+            
+            self.militaryETS = ko.observable();
+            self.militaryETS.subscribe(function(date){
+                if(date==''){
+                    j$('#militaryETS_alternate').val('');
+                }
+            });
+            self.militaryAffiliationOptions = ko.observableArray([{value:'ACT',text:'Active Duty'},{value:'MDEP',text:'Dependent'},{value:'RESR',text:'Reservist or National Guard'},{value:'VET',text:'Veteran'}]);
+            self.branchOfService = ko.observable();
+            self.branchOfServiceOptions = ko.observableArray(["Air Force","Army","Coast Guard", "Marine Corps", "Navy"]);
+            self.currentCertificate = ko.observable(null);
+            self.militaryStartDate = ko.observable();
+            self.militaryStartDateAlt = ko.observable();
+            self.militaryStartDate.subscribe(function(date){
+                if(date==''){
+                    j$('#militaryStartDate_alternate').val('');
+                    self.militaryStartDateAlt('');
+                }
+            });
+            
+            self.militaryEndDate = ko.observable();
+            self.militaryEndDateAlt = ko.observable();
+            self.militaryEndDate.subscribe(function(date){
+                if(date==''){
+                    j$('#militaryEndDate_alternate').val('');
+                    self.militaryEndDateAlt('');
+                }
+            });
+            
+            self.authorizeTranscript = ko.observable(null); 
+            self.goToEssaySection = function(){
+                var militaryDetails = {
+                    studentId : self.studentId(),
+                    applicationId : self.applicationId(),
+                    qualifyForBenefits : self.qualifyForBenefitsQuestion(),
+                    militaryAffiliation : self.militaryAffiliation(),
+                    militaryETS : (j$('#militaryETS_alternate').val()),
+                    branchOfService : self.branchOfService(),
+                    currentCertificate : self.currentCertificate(),
+                    militaryStartDate : (j$('#militaryStartDate_alternate').val()),
+                    militaryEndDate : (j$('#militaryEndDate_alternate').val()),
+                    authorizeTranscript : self.authorizeTranscript()
+                }
+
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.ApplicationController.militaryInfo}', militaryDetails,
+                        function(results){                              
+                            self.veteranInfoComplete(true);
+                            j$('#educationDetailSectionPill').attr('class','ui-state');                                    
+                            /*if(self.setPassword()){
+                                   j$('#loadingModal').modal('hide');
+                                    j$('#setPasswordModal').modal('hide');    
+                                    j$('#accountSavedModal').modal('show');  
+                                    self.setPassword(false);  
+                                    self.doneSettingPassword(true);                                        
+                            }else{
+                                    self.moveToSection('next');    
+                                } */                                                                                                                                                                          
+                        },{escape : false});                             
+            }
+            //short essay section                       
+            self.shortEssayComplete = ko.observable();
+            self.shortEssay = ko.observable();
+            self.shortEssay.extend({ required:  {onlyIf:function(){
+
+                if(self.international()){
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }}});            
+            self.goToPreviousHistorySection = function(){                
+                console.log('shortEssayValidation--------------------------->>>>',shortEssayValidation());                         
+                var shortEssayContent = CKEDITOR.instances['shortEssay'].getData();                
+                self.shortEssay(shortEssayContent);  
+               // base30=j$("#signature").jSignature('getData','base30');
+                if(self.performValidation()){
+                    
+                    if(shortEssayValidation().length==0){
+                        j$('#loadingIconText').show();                 
+                        j$('#loadingModal').modal('show'); 
+                        var shortEssayDetails ={
+                            applicationId : self.applicationId(),
+                            shortEssay : self.shortEssay(),
+                            studentId : self.studentId(),
+                            setPassword : self.setPassword(),
+                            password : self.applicantPassword()
+                        }
+                                    
+                        if(self.doneSettingPassword()){
+                            shortEssayDetails['setPassword'] = false;
+                        }
+                        console.log('shortEssayDetails--------------->>>',shortEssayDetails);
+                        if(!self.isReadOnly()){
+                            console.log('shortEssayDetails--------------->>>',shortEssayDetails);
+                            Visualforce.remoting.Manager.invokeAction(
+                            '{!$RemoteAction.ApplicationController.shortEssayInfo}',shortEssayDetails,
+                                function(result){  
+                                    
+                                    if(self.setPassword()){ //### self.setPassword() && 
+                                        
+                                        self.doneSettingPassword(true);
+                                        self.setPassword(false);
+                                        
+                                        if(result['success'] === true)
+                                        {
+                                            /*self.setPassword(true);                                    
+                                            self.doneSettingPassword(true);*/ 
+                                            //self.loginToApplicationGoToSection('uploadDetailsSection');
+                                            self.goToReferAFriendSection();
+                                        }
+                                        else
+                                        {
+                                            self.setPassword(false);
+                                            j$('#setPasswordErrorMessage').show();                
+                                            j$('#setPasswordModal').modal('show');    
+                                            j$('#loadingIconText').hide();                
+                                            j$('#loadingModal').modal('hide');
+                                            
+                                            if(result && result['error'] === true){
+                                                j$('#setPasswordErrorMessage').html(result['errorMessage']);
+                                                j$('#passwordsDoNotMatch').hide();
+                                            }
+                                        }
+                                    }else{
+
+                                        if(result['studentId']){
+                                            self.studentId(result['studentId']);
+                                        }
+                                        if(!result || !result['error']){
+                                            self.applicationId[result['applicationId']];
+                                            self.shortEssayComplete(true);  
+                                            self.goToReferAFriendSection();
+                                        }else {
+                                            alert('123'+results['error']);
+                                        }
+                                    }
+                                    /*
+                                    console.log('results goToPreviousHistorySection---------->>>>',results);                              
+                                    if(results['studentId']){
+                                        self.studentId(results['studentId']);
+                                    }
+                                    if(!results || !results['error'])
+                                    {
+                                        self.applicationId[results['applicationId']];
+                                        self.shortEssayComplete(true);  
+                                        self.goToReferAFriendSection();
+                                    }
+                                    else {
+                                        alert('123'+results['error']);
+                                    }
+                                    */
+                                },{escape : false});                        
+                        }                    
+                    }
+                    else {
+                        self.setPassword(false);
+                        //alert('Please add some text');
+                        j$('#cke_shortEssay').addClass("validationElement");
+                        j$('#loadingModal').modal('hide');
+                    }   
+                }else{
+                    self.savePrevHistory();
+                }                                                                                                 
+            }
+
+
+            self.savePrevHistory = function(){
+                j$('#loadingIconText').show();                 
+                j$('#loadingModal').modal('show'); 
+                var shortEssayDetails ={
+                    applicationId : self.applicationId(),
+                    shortEssay : self.shortEssay(),
+                    studentId : self.studentId(),
+                    setPassword : self.setPassword(),
+                    password : self.applicantPassword()
+                }            
+                if(self.doneSettingPassword()){
+                    shortEssayDetails['setPassword'] = false;
+                }
+                console.log('shortEssayDetails--------------->>>',shortEssayDetails);
+                if(!self.isReadOnly()){
+                    console.log('shortEssayDetails--------------->>>',shortEssayDetails);
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.ApplicationController.shortEssayInfo}',shortEssayDetails,
+                        function(result){  
+                            if(self.setPassword()){                                
+                                if(result['success'] === true){                                        
+                                        
+                                        /*self.setPassword(false);  
+                                        self.doneSettingPassword(true); 
+                                        self.loginToApplication();*/
+                                        self.goToReferAFriendSection();
+                                        
+                                        if(!result || !result['error'])
+                                        {
+                                            self.applicationId[result['applicationId']];
+                                            self.shortEssayComplete(true);  
+                                            self.goToReferAFriendSection();
+                                        }else{
+                                            alert('123'+results['error']);
+                                        }
+                                     }else{
+                                        self.setPassword(true);
+                                        j$('#setPasswordErrorMessage').show();                
+                                        j$('#setPasswordModal').modal('show');    
+                                        j$('#loadingIconText').hide();                
+                                        j$('#loadingModal').modal('hide');                                         
+                                        if(result && result['error'] === true){
+                                            j$('#setPasswordErrorMessage').html(result['errorMessage']);
+                                            j$('#passwordsDoNotMatch').hide();
+                                        }
+                                    }
+                            }
+                            console.log('results goToPreviousHistorySection---------->>>>',result);
+                            if(!result || !result['error']){
+                                self.applicationId[result['applicationId']];
+                                self.shortEssayComplete(true);  
+                                self.goToReferAFriendSection();
+                            }else{
+                               // alert('123'+result['error']);
+                            }
+                        },{escape : false});                        
+                   }
+                 j$('#loadingIconText').hide();                 
+                 j$('#loadingModal').modal('hide');                   
+             }   
+            
+
+
+
+
+            //previous history section
+            self.criminalInfoComplete = ko.observable();    
+            self.criminalHistoryQuestion = ko.observable().extend({ required: true });
+            self.criminalHistoryExplainSection = ko.observable();
+            self.criminalHistoryExplain = ko.observable(' ').extend({ required: true });
+            self.criminalHistoryQuestion.subscribe(function(newValue){                
+                if(newValue == 'Yes'){
+                    self.criminalHistoryExplainSection(true);                   
+                    self.criminalHistoryExplain = ko.observable(' ').extend({ required: true });
+                }
+                else if(newValue == 'No'){
+                    self.criminalHistoryExplainSection(false);
+                    self.criminalHistoryExplain = ko.observable(' ').extend({ required: false});
+                }
+                else{
+                    self.criminalHistoryExplainSection(false);
+                    self.criminalHistoryExplain = ko.observable(' ').extend({ required: false });
+                }
+            })
+
+            
+
+
+            self.goToPreviousHistorySection2 = function(){
+                self.criminalInfoComplete(true);
+                self.disciplineInfoComplete(true);                                                                                                                                           
+                var previousHistoryDetails = {
+                    applicationId : self.applicationId(),
+                    criminalHistoryQuestion : self.criminalHistoryQuestion(),
+                    criminalHistoryExplain : self.criminalHistoryExplain(),
+                    educationHistoryQuestion : self.educationDisiplineQuestion(),
+                    educationHistoryExplain : self.educationDisciplineExplain()                         
+                }
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.ApplicationController.previousHistoryInfo}',previousHistoryDetails,  
+                    function(result){     
+                        self.criminalInfoComplete(true);  
+                        self.disciplineInfoComplete(true);  
+                        j$('#educationDetailSectionPill').attr('class','ui-state'); 
+                        console.log('self.setPassword() from goToPreviousHistorySection2------------------>>>>',self.setPassword());
+                        if(self.setPassword()){
+                                self.setPassword(false);  
+                                self.doneSettingPassword(true); 
+                                self.loginToApplication();
+                                     
+                        }else{
+                           self.moveToSection('next'); 
+                        }                                                                                                                                                        
+                    },{escape : false});                                          
+            }
+
+
+            //previous history section 2
+            self.disciplineInfoComplete = ko.observable();          
+            self.educationDisiplineQuestion = ko.observable().extend({ required: true });
+            self.educationDisciplineExplainSection = ko.observable();
+            self.educationDisciplineExplain = ko.observable(' ').extend({ required: true });
+            self.educationDisiplineQuestion.subscribe(function(newValue){
+                if(newValue == 'Yes'){
+                    self.educationDisciplineExplainSection(true);
+                    self.educationDisciplineExplain = ko.observable(' ').extend({ required: true });
+                }
+                else if(newValue == 'No'){
+                    self.educationDisciplineExplainSection(false);
+                    self.educationDisciplineExplain = ko.observable(' ').extend({ required: false });
+                }
+                else{
+                    self.educationDisciplineExplainSection(false);
+                    self.educationDisciplineExplain = ko.observable(' ').extend({ required: false });
+                }
+            })
+            self.goToDisabilitiesSection = function(){
+                self.disciplineInfoComplete(true);
+                if((self.educationDisiplineQuestion() === 'Yes' && previousEducationExplainInfoValidation().length === 0)  || self.educationDisiplineQuestion() === 'No'){
+                    var previousHistoryDetails2 = {
+                        applicationId : self.applicationId(),
+                        educationHistoryQuestion : self.educationDisiplineQuestion(),
+                        educationHistoryExplain : self.educationDisciplineExplain(),
+                        criminalHistoryQuestion : self.criminalHistoryQuestion(),
+                        criminalHistoryExplain : self.criminalHistoryExplain()
+                    }
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.ApplicationController.previousHistoryInfo}',previousHistoryDetails2,  
+                            function(results){                                                                                                                
+                            },{escape : false});
+                    /*if(self.previousHistoryIsEdit2()){
+                        self.submissionDetails(true);
+                        self.goToThisSection('submissionSection');  
+                    }
+                    else{
+                        self.moveToSection('next');                                         
+                        /*self.disabilitiesDetails(true);
+                        j$('html,body').animate({scrollTop: j$(disabilitiesDetailSection).offset().top}, 1000);
+                    }*/                       
+                }
+                else{
+                    ////alert('Please check your selection');
+                    previousEducationExplainInfoValidation.showAllMessages();
+                }   
+            }
+            //disabilites section
+            self.disabilityInfoComplete = ko.observable();
+            self.disabilityServicesQuestion = ko.observable().extend({ required: true });
+            self.disabilityServiceOptions = ko.observableArray(["Yes, I will be requesting the use of auxiliary aids and/or services as described above.", "No, I will NOT by requesting the use of auxiliary aids and/or services as described above."]);
+            self.disabilityServicesExplainSection = ko.observable();
+            self.disabilityServicesExplain = ko.observable(' '); //.extend({ required: true })
+            self.disabilityServicesQuestion.subscribe(function(newValue){
+                if(newValue == 'Yes, I will be requesting the use of auxiliary aids and/or services as described above.'){
+                    self.disabilityServicesExplainSection(true);
+                }
+                else if(newValue == 'No, I will NOT by requesting the use of auxiliary aids and/or services as described above.'){
+                    self.disabilityServicesExplainSection(false);
+                }
+                else{
+                    self.disabilityServicesExplainSection(false);
+                }
+            })
+
+            function disabilityServicesValidator(){
+                console.log('self.disabilityServicesQuestion()------------------------------>>>>',self.disabilityServicesQuestion());
+                console.log('self.self.disabilityServicesExplain()()------------------------------>>>>',self.disabilityServicesExplain());                
+                if(self.disabilityServicesQuestion() != '' && self.disabilityServicesQuestion() != undefined){
+                    console.log('inside if ------------------------------>>>>',self.disabilityServicesExplain());                
+                    if(self.disabilityServicesQuestion() == 'No, I will NOT by requesting the use of auxiliary aids and/or services as described above.'){
+                        console.log('inside if answer no------------------------------>>>>',self.disabilityServicesExplain());                
+                        return '';
+                    }
+                    var explain = self.disabilityServicesExplain().trim();
+                    if(explain == '' || explain == undefined){
+                        console.log('inside if explain------------------------------>>>>',self.disabilityServicesExplain());                
+                        return '#disabilityServicesExplain';
+                    } else{
+                        return '';
+                    }                                    
+
+                }else{
+                    return '#disabilityServicesQuestion';
+                }
+            }
+
+            self.goToStatisticalSection = function(){               
+                self.disabilityInfoComplete(true);
+                var disabilityServicesDetails = {
+                    applicationId : self.applicationId(),
+                    disabilityServicesQuestion : self.disabilityServicesQuestion(),
+                    disabilityServicesExplanation : self.disabilityServicesExplain()
+                }
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.ApplicationController.disabilityServicesInfo}',disabilityServicesDetails, 
+                        function(results){    
+                            self.disabilityInfoComplete(true);  
+                            self.goToPreviousHistorySection2();                                                                                                             
+                        },{escape : false});                                                                         
+            }
+            //statistics section
+            self.statisticalInfoComplete = ko.observable();
+            self.genderOptions = ko.observableArray(["Female", "Male", "Not Specified"]);
+            self.genderQuestion = ko.observable();
+            self.ethnicityOptions = ko.observableArray(["African American (Non-Hispanic)", "American Indian or Alaskan Native", "Asian or Pacific Islander", "Multi-ethnic background","Hispanic or Latino", "White (non-Hispanic)", "Other"]);
+            self.ethnicityQuestion = ko.observable();
+            self.nationalityOptions = ko.observableArray(["American", "Canadian", "Chinese", "French", "Italian","Japanese", "Other"]);
+            self.nationalityQuestion = ko.observable();
+            self.goToReferAFriendSection = function(){
+                self.statisticalInfoComplete(true);
+                var statisticsDetails = {
+                    studentId : self.studentId(),
+                    applicationId : self.applicationId(),
+                    gender : self.genderQuestion(),
+                    ethnicity : self.ethnicityQuestion(),
+                    nationality : self.nationalityQuestion()
+                }
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.ApplicationController.statisticsInfo}', statisticsDetails,  
+                        function(results){
+                            self.goToAcceptanceSection();                            
+                                                                                  
+                        },{escape : false});
+                //self.moveToSection('next');                                            
+                /*if(self.statisticInfoIsEdit()){
+                    self.submissionDetails(true);
+                    self.goToThisSection('submissionSection');  
+                }
+                else{ 
+                    self.moveToSection('next');                                            
+                    /*self.referAFriendDetails(true);
+                    j$('html,body').animate({scrollTop: j$(referAFriendSection).offset().top}, 1000);
+                } */          
+            }
+            //refer a friend section
+            self.referralInfoComplete = ko.observable();
+            self.referralId = ko.observable();
+            self.referFriendQuestion = ko.observable();
+            self.friendInfoSection = ko.observable();
+            self.friendFirstName = ko.observable();
+            self.friendLastName = ko.observable();
+            
+            
+              
+                              
+            //self.friendEmail = ko.observable();
+            
+            
+            
+            self.friendEmail = ko.observable().extend({
+                        required: {
+                            onlyIf: function(){
+                                return self.referFriendQuestion() === 'Yes';
+                                
+                            },
+                        
+                            params: true, message: 'Enter  Email Address' 
+                        } 
+                        }).extend({
+                                pattern: {
+                                    params : /\S+@\S+\.\S+/,
+                                    message : 'Enter Valid Email Address'
+                                }
+                        });   
+            self.friendPhone = ko.observable();
+            self.friendOther = ko.observable();
+            self.referFriendQuestion.subscribe(function(newValue){
+                if(newValue == "Yes"){
+                    self.friendInfoSection(true);
+                    j$(".intl:visible").intlTelInput({utilsScript: "{!URLFOR($Resource.IntlTelFomat, 'js/utils.js')}"});
+                }
+                else if(newValue == "No"){
+                    self.friendInfoSection(false);
+                }
+                else{
+                    self.friendInfoSection(false);
+                }
+            })    
+            self.refFriend=ko.observable(false);  
+            
+            self.refButtonText=function(){
+                if(self.refFriend()){
+                    return 'Please Wait..';
+                }
+                else if(self.referAFriendInfoIsEdit()){
+                    return'Accept'
+                }
+                else {
+                    return 'Next';
+                }
+            }  
+            self.goToAcceptanceSection = function(){
+                if(self.referFriendQuestion() === 'Yes' && referInfoValidation().length === 0) {
+                
+                    if(j$('#txt_ref_phone').val()!="" && !j$('#txt_ref_phone').intlTelInput("isValidNumber")){
+                      //alert('Invalid Phone Number');
+                      j$('#loadingModal').modal('hide');
+                      j$('#txt_ref_phone').addClass('validationElement');
+                        return false;
+                    }
+                    j$('#txt_ref_phone').removeClass('validationElement');
+                    if(referInfoValidation().length === 0) {
+                        
+                        var referFriendDetails = {
+                            studentId: self.studentId(),
+                            applicationId : self.applicationId(),
+                            referFriendQuestion : self.referFriendQuestion(),
+                            friendFirstName : self.friendFirstName(),
+                            friendLastName : self.friendLastName(),
+                            friendPhone : (j$('#txt_ref_phone').val()=="")?'':j$('#txt_ref_phone').intlTelInput("getNumber"),
+                            friendEmail : self.friendEmail(),
+                            leadSource : self.leadSource()
+                        }
+                        
+                        Visualforce.remoting.Manager.invokeAction(
+                            '{!$RemoteAction.ApplicationController.referFriendInfo}', referFriendDetails, 
+                                function(results){ 
+                                    console.log('results-------->>>>',results);                         
+                                    if(results != null){
+                                       // self.referralId(results.Id);                                        
+                                        self.goToSubmissionSection();  
+                                        self.referralInfoComplete(true);
+                                     }                                                                                          
+                                },{escape : false});
+                                
+                        
+                          
+                         
+                        /*if(self.referAFriendInfoIsEdit()){
+                            self.submissionDetails(true);
+                            self.goToThisSection('submissionSection');  
+                        }
+                        else{
+                            self.moveToSection('next');                                             
+                        }*/
+                   }
+
+                    else{
+                        //alert('Please check your selection');
+                        j$('#loadingModal').modal('hide');
+                        self.setPassword(false);
+                        referInfoValidation.showAllMessages();
+                    }           
+                }else{
+                    self.referralInfoComplete(true);
+                    self.goToSubmissionSection();
+                }
+        }
+            // file upload section
+            self.allDocsIn = ko.observable();
+            self.internationalFileUpload = ko.observable();
+            self.militaryFileUpload = ko.observable();
+            self.photoIdSubmitted = ko.observable();
+            self.HSDiplomaSubmitted = ko.observable();
+            self.CCAFSumbitted = ko.observable();
+            self.DD214Submitted = ko.observable();
+            self.passportSubmitted = ko.observable();
+            self.I20Submitted = ko.observable();
+            self.USVisaSubmitted = ko.observable();
+            self.I94Submitted = ko.observable();
+            self.TOEFLSubmitted = ko.observable();
+            self.compSpecsSubmitted = ko.observable();
+            self.I539Submitted = ko.observable();
+            self.collegeTranscriptsSubmitted = ko.observable();
+            self.bankStatementSubmitted = ko.observable();
+            self.HSTranscriptEvaluationSubmitted = ko.observable();
+            self.enrollmentPacketStatus = ko.observable();
+            self.docuSignList = ko.observable();
+            
+            self.I539Status = ko.observable();
+
+            self.collegeTranscriptsStatus = ko.observable();
+            self.compSpecsStatus = ko.observable();
+            self.photoIdStatus = ko.observable();
+            self.HSDiplomaStatus = ko.observable();
+            self.CCAFStatus = ko.observable();
+            self.DD214Status = ko.observable();
+            self.passportStatus = ko.observable();
+            self.I20Status = ko.observable();
+            self.USVisaStatus = ko.observable();
+            self.I94Status = ko.observable();
+            self.TOEFLStatus = ko.observable();
+            self.bankStatementStatus = ko.observable();
+            self.HSTransriptEvaluationStatus = ko.observable();
+            
+            //file upload 
+            var maxStringSize = 6000000;    //Maximum String size is 6,000,000 characters
+            var maxFileSize = 4350000;      //After Base64 Encoding, this is the max file size
+            var chunkSize = 950000;         //Maximum Javascript Remoting message size is 1,000,000 characters
+            var attachment;
+            attachmentName=[];
+            var fileSize;
+            var positionIndex;
+            var doneUploading; 
+            var attachmentBody;
+            self.uploadable=ko.observable(true);
+
+
+
+             
+            self.uploadAttach2 = function(fileName, id, directData) {
+              attachment=directData[1];
+              
+              attachmentName = 'Student Signature.png';
+              fileSize = attachment.length;
+              positionIndex=0;
+              doneUploading = false;
+              attachmentBody=attachment.match(/.{1,950000}/g);
+              self.uploadAttachment(attachmentName);
+              return;
+            }    
+            //Method to prepare a file to be attached to the Account bound to the page by the standardController
+            self.uploadAttach = function(fileName, id) 
+            {
+                  console.log('fileName---------->>>>',fileName);
+                  if(!self.uploadable()){
+                      return;
+                  }
+                  
+                  var file = document.getElementById(id).files[0];
+                  var fileSplit = file.name.split('.');
+                  var fileExt = '';
+                  if (fileSplit.length > 1) {
+                     fileExt = fileSplit[fileSplit.length - 1];
+                  } 
+
+                 
+                  if(file != null) {
+                    if(file.size <= maxFileSize) {
+                      //attachmentName = fileName;
+                      attachmentName = fileName + '.' + fileExt;
+                      var fileReader = new FileReader();
+                      fileReader.onloadend = function(e) {
+                      
+                        attachment = window.btoa(this.result);  //Base 64 encode the file before sending it
+                        attachmentBody=attachment.match(/.{1,950000}/g);
+                        positionIndex=0;
+                        fileSize = attachment.length;
+
+                        doneUploading = false;
+                        if(fileSize < maxStringSize) {
+                            self.uploadable(false);
+                            self.uploadAttachment(attachmentName);
+                        } else {
+                          alert("File is too large.  Maximum size is " + maxStringSize + " your file is " + fileSize + ".");
+                        }                            
+                      }
+                      fileReader.onerror = function(e) {
+                        alert("There was an error reading the file.  Please try again.");
+                      }
+                      fileReader.onabort = function(e) {
+                        alert("There was an error reading the file.  Please try again.");
+                      }  
+
+                      fileReader.readAsBinaryString(file);
+
+                     
+                    } else {
+                      alert("File must be under 4.3 MB in size.  Your file is too large.  Please try again.");
+                    }
+                  } else {
+                    alert("You must choose 45 a file before trying to upload it" + fileName);
+                  }
+                }                    
+                //Method to send a file to be attached to the Application bound to the page by the Controller
+                //Sends parameters: Account Id, Attachment (body), Attachment Name, and the Id of the Attachment if it exists to the controller   
+                self.uploadAttachment = function(fileId, index, id) {
+
+                      if(typeof index === "undefined"){
+                          index=0;
+                      }
+                      
+                      if(typeof id === "undefined"){
+                          id='NULL';
+                      }
+                      
+                      var fileData = {
+                        applicationId : self.applicationId(),
+                        attachmentName : attachmentName,
+                        fileId : fileId,
+                      }
+                      
+
+                      fileData['attachmentBody']=attachmentBody[index];
+
+                        ApplicationController.doUploadAttachment(fileData, id,
+                            function(result, event) {
+                                
+                                if(event.type === 'exception') {
+                                    console.log(result);
+                                } 
+                                else if(event.status)
+                                {
+                                    if(index==attachmentBody.length-1){
+                                        var fileName = attachmentName.replace(/\.[^/.]+$/, "");
+                                          Visualforce.remoting.Manager.invokeAction(
+                                          '{!$RemoteAction.ApplicationController.updateUploads}', fileName, self.applicationId(),
+                                           function(result){                           
+                                           },{escape:true});
+                                           self.uploadable(true);
+                                           if(fileName == 'I539'){
+                                                self.I539Submitted(true);
+                                                self.I539Status('Received. Thank You.');
+                                            } 
+                                            else if(fileName == 'College Transcripts'){
+                                                self.collegeTranscriptsSubmitted(true);
+                                                self.collegeTranscriptsStatus('Received. Thank You.');
+                                            }
+                                            else if(fileName == 'Photo Id'){
+                                                self.photoIdSubmitted(true);
+                                                self.photoIdStatus('Received. Thank You.');
+                                            }
+                                            else if(fileName == 'Computer Specs'){
+                                                self.compSpecsSubmitted(true);
+                                                self.compSpecsStatus('Received. Thank You.');
+                                            }
+                                            else if(fileName == 'High School Diploma'){
+                                                self.HSDiplomaSubmitted(true);
+                                                self.HSDiplomaStatus('Received. Thank You.');
+                                            }
+                                            else if(fileName == 'CCAF'){
+                                                self.CCAFSumbitted(true);
+                                                self.CCAFStatus('Received. Thank You.');
+                                            }
+                                            else if(fileName == 'DD-214'){
+                                                self.DD214Submitted(true);
+                                                self.DD214Status('Received. Thank You.');
+                                            }
+                                            else if(fileName == 'Passport'){
+                                                self.passportSubmitted(true);
+                                                self.passportStatus('Received. Thank You.');
+                                            }
+                                            else if(fileName == 'I-20'){
+                                                self.I20Submitted(true);
+                                                self.I20Status('Received. Thank You.');
+                                            }
+                                            else if(fileName == 'US Visa'){
+                                                self.USVisaSubmitted(true);
+                                                self.USVisaStatus('Received. Thank You.');
+                                            }
+                                            else if(fileName == 'I-94'){
+                                                self.I94Submitted(true);
+                                                self.I94Status('Received. Thank You.');
+                                            }
+                                            else if(fileName == 'TOEFL Scores'){
+                                                self.TOEFLSubmitted(true);
+                                                self.TOEFLStatus('Received. Thank You.');
+                                            }
+                                            else if(fileName == 'Bank Statements'){
+                                                self.bankStatementSubmitted(true);
+                                                self.bankStatementStatus('Received. Thank You.');
+                                            }
+                                            else if(fileName == 'HSTransriptEvaluation'){
+                                                self.HSTranscriptEvaluationSubmitted(true);
+                                                self.HSTransriptEvaluationStatus('Received. Thank You.');
+                                            }
+                                           return;
+                                    }
+                                    else {
+                                        self.uploadAttachment(result,++index,result);
+                                    }
+                                }
+                         },{buffer: true, escape: true, timeout: 120000});
+
+                      
+                    }
+
+
+            self.goBackToSubmissionSection = function(){
+                self.goToThisSection('submissionSection');                                                              
+                self.submissionDetails(true);                                                               
+                j$('html,body').animate({scrollTop: j$(submissionSection).offset().top}, 1000);
+            }                       
+            //acceptance/summary section            
+            self.acceptedAgreement = ko.observable();
+            self.acceptanceInfoComplete = ko.observable();  
+
+         
+self.ApplicationFinalSubmit = function(){
+    j$('#loadingModal').modal('show');
+    var shortEssayContent = CKEDITOR.instances['shortEssay'].getData();                
+    self.shortEssay(shortEssayContent);
+    // essay validation
+    if(shortEssayValidation().length>0){
+        j$('#cke_shortEssay').addClass("validationElement");
+        j$('#loadingModal').modal('hide');
+        return false;
+    }                                               
+    j$('#cke_shortEssay').removeClass('validationElement');
+    
+    
+    // refer friend validation
+    if(self.referFriendQuestion() === 'Yes' && (referInfoValidation().length!=0 || !j$('#txt_ref_phone').intlTelInput("isValidNumber")))
+    {
+        if(!j$('#txt_ref_phone').intlTelInput("isValidNumber")){
+            j$('#txt_ref_phone').addClass('validationElement');
+        }else{
+            j$('#txt_ref_phone').removeClass('validationElement');
+        }
+        
+        if(referInfoValidation().length!=0){
+            j$('#txt_ref_email').addClass('validationElement');
+        }else{
+            j$('#txt_ref_email').removeClass('validationElement');
+        }
+        
+        j$('#loadingModal').modal('hide');
+        return false;
+    }
+    
+    var dataset ={studentId : self.studentId(),
+        applicationId : self.applicationId(),
+        shortEssay : self.shortEssay(),
+        studentId : self.studentId(),
+        ssn:self.ssNumber(),
+        studentFirstName:self.studentFirstName(),
+        studentLastName:self.studentLastName(),
+        setPassword : self.setPassword(),
+        password : self.applicantPassword(),
+        gender : self.genderQuestion(),
+        ethnicity : self.ethnicityQuestion(),
+        nationality : self.nationalityQuestion(),
+        referFriendQuestion : self.referFriendQuestion(),
+        friendFirstName : self.friendFirstName(),
+        friendLastName : self.friendLastName(),
+        friendPhone : (j$('#txt_ref_phone').val()=="")?'':j$('#txt_ref_phone').intlTelInput("getNumber"),
+        friendEmail : self.friendEmail(),
+        leadSource : self.leadSource()};
+        
+                
+            Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ApplicationController.applicationFinalSubmit}', dataset, 
+            function(results){  
+                j$('#loadingModal').modal('hide');  
+                self.appFinalized(true);  /***/
+                self.isReadOnly(true);/***/
+                if(!self.doneSettingPassword() && self.isGuestUser()){
+                     j$('#finalizeApplication').modal('hide');
+                     j$('#loadingModal').modal('hide');  
+                     //self.showSetPasswordModal();                    
+                     j$('#setPasswordModal').modal('show');
+                 }else{
+                     j$('#sectionListPanel').css('display','none');  
+                     self.goToThisSection('uploadDetailsSection');     
+                 }
+            },{escape : false});
+    }
+
+      
+            self.goToSubmissionSection = function(){  
+                console.log('Application.isReadOnly();--------------->>>>',Application.isReadOnly());
+                console.log('self.setPassword()--------------->>>>',self.setPassword());
+                var base30;
+                if(!Application.isReadOnly()){
+                   // self.goToPreviousHistorySection();
+                    base30=j$("#signature").jSignature('getData','base30');                                                                                                 
+                        Visualforce.remoting.Manager.invokeAction(
+                          '{!$RemoteAction.ApplicationController.acceptApp}', self.applicationId(), 
+                              function(results){  
+                                  self.submissionDetails(true);
+                                  self.acceptanceInfoComplete(true);
+                                  if(self.performValidation()){
+                                      self.finalSubmit();    
+                                  }else{ 
+                                      if(self.setPassword()){                                       
+                                          self.setPassword(false);
+                                          self.doneSettingPassword(true);
+                                          self.loginToApplication();
+                                      }                                         
+                                  }
+
+                              },{escape : false});     
+                                                                                   
+                }
+            }
+            self.appFinalized = ko.observable();            
+            self.finalSubmit = function(){ 
+                
+                var sections ={'info':self.studentDetailsComplete(),
+                               'parent':true, //((self.parentInfoComplete() || !self.under24())?true:false
+                               'vet':((self.veteranInfoComplete() || self.international())?true:false),
+                               'college':self.collegeInfoComplete(),
+                               'citizen':self.citizenInfoComplete(),
+                               'essay':self.shortEssayComplete(),
+                               'program':self.programInfoComplete(),
+                               'hs':self.highSchoolInfoComplete(),
+                               'crim':self.criminalInfoComplete(),
+                               'discipline':self.disciplineInfoComplete(),
+                               'disable':self.disabilityInfoComplete(),
+                               'stat':self.statisticalInfoComplete(),
+                               'ref':self.referralInfoComplete(),
+                               'accept':self.acceptanceInfoComplete()};
+                var complete=true;
+                console.log('sections-------------->>>>',sections);
+                j$.each(sections ,function(label, value){
+                    if(!value){
+                        complete=false;
+                    }
+                });
+                
+                if(!complete){
+                    //alert('Please go through each sections that doesn\'t have check marks (\u2714) and input data if required.');
+                    j$('#loadingModal').modal('hide');
+                    alert('Please fill all the required information');                    
+                    return;
+                }else{
+                
+                    j$('#loadingModal').modal('hide');
+                    j$('#finalizeApplication').modal('show');                    
+                }                         
+            }
+
+
+                self.proceedToFinalSubmit = function (){
+                    j$('#finalizeApplication').modal('hide');
+                    j$('#loadingIconText').show();                
+                    j$('#loadingModal').modal('show');
+                    /***/
+
+                    var applicationInfo = {
+                        applicationId : self.applicationId(),
+                        studentId : self.studentId(),
+                        ssn : self.ssNumber(),
+                        applicationSubmitted : self.applicationSubmitted()            
+                    }
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.ApplicationController.savePdf}', applicationInfo, 
+                            function(results){                          
+                                   j$('#sectionListPanel').css('display','none');  
+                                   j$('#loadingModal').modal('hide');  
+                                   self.appFinalized(true);  /***/
+                                   self.isReadOnly(true);/***/
+                                   if(!self.doneSettingPassword() && self.isGuestUser()){
+                                        j$('#finalizeApplication').modal('hide');
+                                        j$('#loadingModal').modal('hide');  
+                                        //self.showSetPasswordModal();                    
+                                        j$('#setPasswordModal').modal('show');
+                                    }else{
+                                        self.goToThisSection('uploadDetailsSection');     
+                                    }  
+                                   
+                            },{escape : false});             
+                /*else{
+                    j$('#loadingModal').modal('hide');
+                } */               
+            }
+            
+            //required document upload logic
+            self.completerDocsIn = ko.observable();
+            self.onlineDocsIn = ko.observable();
+            self.militaryDocsIn = ko.observable();
+            self.internationalDocsIn = ko.observable();
+            
+            //in the bs of entertain completer
+            if(self.selectedProgram() == 'Bachelor of Science in Entertainment Completer'){
+                if(self.collegeTranscriptsSubmitted()){
+                    self.completerDocsIn(true);
+                }
+                else{
+                    self.completerDocsIn(false);
+                }
+            }
+            else{
+                self.completerDocsIn(true);
+            }
+            //online campus
+            if(self.selectedCampus() == 'Online'){
+                if(self.photoIdSubmitted()){
+                    if(self.haveNoComputer()){
+                        if(self.compSpecsSubmitted()){
+                            self.onlineDocsIn(true);
+                        }
+                        else{
+                            self.onlineDocsIn(false);
+                        }
+                    }
+                    else{
+                        self.onlineDocsIn(true);
+                    }           
+                }
+                else{
+                    self.onlineDocsIn(false);
+                }   
+            }
+            else{
+                self.onlineDocsIn(true);
+            }
+            //military docs
+            if(self.militaryFileUpload()){//eligible for military benefits
+                if(self.militaryAffiliation() != 'ACT'){//is eligible for benefits, not active duty
+                    if(self.DD214Submitted()){//is eligible for benefits,not active duty, dd214 in
+                        if(self.branchOfService() == 'Air Force'){//is eligible for benefits,not active duty, dd214 in, in air force
+                            if(self.CCAFSumbitted()){//is eligible for benefits,not active duty, dd214 in, in air force, ccaf in
+                                self.militaryDocsIn(true);
+                            }
+                            else{//is eligible for benefits,not active duty, dd214 in, in air force, ccaf not in
+                                self.militaryDocsIn(false);
+                            }
+                        }
+                        else{//is eligible for benefits,not active duty,dd214 in, not air force
+                            self.militaryDocsIn(true);
+                        }
+                    }
+                    else{//is eligible for benefits,not active duty, dd214 not in
+                        self.militaryDocsIn(false);
+                    }
+                }
+                else{//is eligible for benefits,is active duty
+                    if(self.branchOfService() == 'Air Force'){//is eligible for benefits,is active duty, is in air force
+                        if(self.CCAFSumbitted()){//is eligible for benefits, is active duty, in air force, ccaf in
+                            self.militaryDocsIn(true);
+                        }
+                        else{//is eligible for benefits, is active duty,is in air force, ccaf not in
+                            self.militaryDocsIn(false);
+                        }
+                    }
+                    else{//is eligible for benefits, is active duty, not in air force
+                        self.militaryDocsIn(true);
+                    }
+                }
+            }
+            else{//not eligible for military benefits
+                self.militaryDocsIn(true);
+            }
+            //international docs
+            if(self.internationalFileUpload()){//is international student
+                if(self.passportSubmitted()){//is international student, passport is in
+                    if(self.I20Submitted()){//is international student, passport is in, I20 is in
+                        if(self.USVisaSubmitted()){//is international student, passport is in, I20 is in, visa is in
+                            if(self.bankStatementSubmitted()){//is international student, passport is in, I20 is in, visa is in, bank statement is in
+                                if(self.I539Submitted()){//is international student, passport is in, I20 is in, visa is in, bank statement is in, I539 is in
+                                    if(self.selectedCampus() == 'Online'){//is international student, passport is in, I20 is in, visa is in, bank statement is in, I539 is in, online campus selected
+                                        if(self.TOEFLSubmitted()){//is international student, passport is in, I20 is in, visa is in, bank statement is in, I539 is in, online campus selected, toefl is in
+                                            self.internationalDocsIn(true);
+                                        }
+                                        else{//is international student, passport is in, I20 is in, visa is in, bank statement is in, I539 is in, online campus selected, toefl not in
+                                            self.internationalDocsIn(false);
+                                        }
+                                    }
+                                    else{//is international student, passport is in, I20 is in, visa is in, bank statement is in, I539 is in, online campus not selected
+                                        self.internationalDocsIn(true);
+                                    }
+                                }
+                                else{//is international student, passport is in, I20 is in, visa is in, bank statement is in, I539 not in
+                                    self.internationalDocsIn(false);
+                                }
+                            }
+                            else{//is international student, passport is in, I20 is in, visa is in, bank statement not in
+                                self.internationalDocsIn(false);
+                            }
+                        }
+                        else{//is international student, passport is in, I20 is in, visa not in
+                            self.internationalDocsIn(false);
+                        }
+                    }
+                    else{//is international student, passport is in, I20 not in
+                        self.internationalDocsIn(false);
+                    }
+                }
+                else{//is international student, passport not in
+                    self.internationalDocsIn(false);
+                }
+            }
+            else{//is not international student
+                self.internationalDocsIn(true);
+            }
+            //wrapped up
+            if(self.HSDiplomaSubmitted() && self.completerDocsIn() && self.onlineDocsIn() && self.militaryDocsIn() && self.internationalDocsIn()){
+                self.allDocsIn(true);
+            }
+            else{
+                self.allDocsIn(false);
+            }
+            
+                                                     
+        }//end viewmodel
+
+        //var Application=new ApplicationVM;
+        //var Application = ko.validatedObservable(ApplicationVM);
+
+        var Application = ko.validatedObservable(new ApplicationVM())();
+        ko.applyBindings(Application);
+        
+
+
+        function setPw(applicantPassword){
+            console.log('inside seet password application---------------->>>>');
+            Application.setApplicantPassword(applicantPassword);
+        }
+
+
+        function goToNextSectionApplication(){
+            var currentSection = j$(".vwspc-section:visible").attr('id');            
+            if(currentSection === 'studentDetailSection'){
+                Application.moveToSection('next');
+            }else if(currentSection === 'educationDetailSection'){
+                Application.moveToSection('next');
+            }else if(currentSection === 'essayDetailSection'){
+                //self.goToPreviousHistorySection();
+                self.goToThisSection('uploadDetailsSection');
+            }
+        }
+        //j$(".intl").intlTelInput({utilsScript: "{!URLFOR($Resource.IntlTelFomat, 'js/utils.js')}"});
+        
+        //Validation group for input field of start Section
+        var studentInfoValidation = ko.validation.group([Application.studentFirstName,Application.studentLastName,Application.studentPhone,
+            Application.studentEmail,Application.studentDOB,Application.studentCountry,Application.studentHomeAddress,Application.studentCity,
+            Application.selectedProvince, Application.selectedUsState,Application.studentZip]);
+        var emContInfoValidation = ko.validation.group([Application.emContFirstName,Application.emContLastName, Application.emContRelation, Application.emContPhone]);  
+        //var programInfoValidation = ko.validation.group([Application.prefStartDate, Application.selectedCampus, Application.selectedProgram]);
+        var programInfoValidation = ko.validation.group([Application.prefStartPeriod, Application.selectedCampus,Application.programCode,Application.programVersion,]); //Application.selectedProgram
+        var educationDetailsValidation = ko.validation.group([Application.highSchoolName, Application.graduationDate, Application.highSchoolCountry, Application.highSchoolCity,Application.selectedHighSchoolUsState,Application.selectedHighSchoolProvince]);
+        var citizenDetailsInfoValidation = ko.validation.group([Application.residentialStatus, Application.ssNumber, Application.countryOfCitizenship]);
+        var previousCriminalExplainInfoValidation = ko.validation.group([Application.criminalHistoryQuestion, Application.criminalHistoryExplain]);
+        var previousEducationExplainInfoValidation = ko.validation.group([Application.educationDisiplineQuestion, Application.educationDisciplineExplain]);
+        var disabilitiesDetailsInfoValidation = ko.validation.group([Application.disabilityServicesQuestion,Application.disabilityServicesExplain]);
+        var referInfoValidation = ko.validation.group([Application.friendEmail]);
+        var shortEssayValidation = ko.validation.group([Application.shortEssay]);
+        
+    </script>
+    <script>
+        jQuery.fn.extend({
+          scrollTo : function(speed, easing) {
+            return this.each(function() {
+              var targetOffset = j$(this).offset().top;
+              j$('html,body').animate({scrollTop: targetOffset}, speed, easing);
+            });
+          }
+        });
+    </script>   
+</apex:component>

@@ -1,0 +1,21 @@
+<apex:page id="pg" controller="TestClass2">
+    <apex:form >
+        <apex:pageblock id="pb1">
+            Select: <apex:selectList value="{!selectedRT}" size="1" multiselect="false">
+                <apex:selectOption itemValue="" itemlabel="--None--"/>
+                <apex:selectOption itemValue="abc" itemlabel="Abc"/>
+                <apex:selectOption itemValue="def" itemlabel="Def"/>
+                <apex:actionSupport event="onchange" action="{!onChangeFnCall}" />
+            </apex:selectList>
+        
+             <div>
+               <apex:inputText rendered="{!pb2Rendered}"/><br/> 
+               <apex:inputText rendered="{!pb3Rendered}"/><br/>
+            </div>
+            
+             
+            
+       
+        </apex:pageblock>
+    </apex:form>
+</apex:page>

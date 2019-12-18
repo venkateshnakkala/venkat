@@ -1,0 +1,40 @@
+<apex:page showHeader="false" sidebar="false" controller="TwoObjectsDataDisplayInOnTable">
+    <script>
+    function hideTable(){
+        document.getElementById("hiddentab").style.display = "none";
+    }
+    </script>
+    <apex:form >
+        <apex:pageBlock >        
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton action="{!SelectedValue}" value="Next" />
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection columns="1">
+                <apex:pageBlockTable value="{!WrpObjDispaly}" var="wrp" >
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:inputCheckbox />
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!wrp.Selected}"/>
+                    </apex:column>
+                    <apex:column Value="{!wrp.acc.ID}" />
+                    <apex:column Value="{!wrp.acc.Name}" />
+                    <apex:column Value="{!wrp.con.ID}" />
+                    <apex:column Value="{!wrp.con.Name}" />
+                    <apex:column Value="{!wrp.opp.ID}" />
+                    <apex:column Value="{!wrp.opp.Name}" />
+                </apex:pageBlockTable>
+                
+         <!--       <apex:pageBlockTable value="{!objlst}" var="DAP">
+                     <apex:column Value="{!DAP.acc.ID}" />
+                     <apex:column Value="{!DAP.acc.Name}" />
+                     <apex:column Value="{!DAP.con.ID}" />
+                      <apex:column Value="{!DAP.con.Name}" />
+                     <apex:column Value="{!DAP.opp.ID}" />
+                     <apex:column Value="{!DAP.opp.Name}" />
+                </apex:pageBlockTable>  -->
+                
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

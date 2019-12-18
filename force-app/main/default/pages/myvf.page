@@ -1,0 +1,21 @@
+<apex:page controller="MyController1">
+  <apex:form >
+    <apex:pageBlock >
+    <apex:pageBlockSection id="search">
+
+      <apex:outputPanel id="thePanelWrapper1" >
+        <apex:outputPanel id="panel1" layout="block" rendered="{!panel1}" >
+          <apex:commandLink action="{!displayPanel2}" value="show second"  reRender="thePanelWrapper1, thePanelWrapper2" />
+        </apex:outputPanel>
+      </apex:outputPanel>
+
+      <apex:outputPanel id="thePanelWrapper2"  >
+        <apex:outputPanel id="panel2" layout="block" rendered="{!panel2}">
+          <apex:commandLink action="{!displayPanel1}" value="show first"  reRender="thePanelWrapper1, thePanelWrapper2" />
+        </apex:outputPanel>
+      </apex:outputPanel>
+
+    </apex:pageBlockSection>
+    </apex:pageBlock>
+  </apex:form>
+</apex:page>

@@ -1,0 +1,86 @@
+<apex:page Controller="CheckinContact" showHeader="false" sidebar="false" showChat="false" action="{!chkLogIn}">
+    <style type="text/css">
+        body {
+            margin-left: auto;
+            margin-right: auto;
+            width: 600px;
+        }
+        .disclamer {font-size:10px; font-style: italic; width:300px}
+        
+        input[type="text"], select {
+            width:300px;
+            margin:0px;
+            -ms-box-sizing:border-box;
+            -moz-box-sizing:border-box;
+            -webkit-box-sizing:border-box; 
+            box-sizing:border-box;
+        }
+        input[type="submit"]{
+            width:100px;
+        }
+        tr td:nth-child(2){
+            padding-left:20px;
+        }
+        td{
+            margin-bottom:20px;
+        }
+    </style>
+
+    <apex:form >
+        <apex:pageBlock >
+            Email: <apex:inputText value="{!email}"/> 
+            <apex:commandButton action="{!cheakEmails}" value="Check"/>
+            <a href="/secur/logout.jsp" style="float:right;">Logout</a>
+            <p>{!message}</p>
+        </apex:pageBlock>
+        <apex:pageBlock rendered="{!ready}">
+            <apex:panelGrid columns="2">
+                <apex:outputText value="Rep" />
+                <apex:selectList value="{!owner}" multiselect="false" size="1" disabled="{!ownerlock}">
+                    <apex:selectOptions value="{!rep}"/>
+                </apex:selectList>
+                
+                <apex:outputText value="Program of Interest" />
+                <apex:selectList value="{!program}" multiselect="false" size="1">
+                    <apex:selectOptions value="{!programs}"/>
+                </apex:selectList>
+                
+                <apex:outputText value="First Name" />
+                <apex:inputText value="{!firstName}"/>
+                
+                <apex:outputText value="Last Name" />
+                <apex:inputText value="{!lastName}"/>
+                
+                <apex:outputText value="Phone" />
+                <apex:inputText value="{!phone}"/>
+                
+                <apex:outputText value="Country" />
+                <apex:selectList value="{!country}" multiselect="false" size="1">
+                    <apex:selectOptions value="{!countries}"/>
+                </apex:selectList>
+                
+                <apex:outputText value="Postalcode" />
+                <apex:inputText value="{!zipCode}"/>
+                
+                <apex:outputText value="Street Address" />
+                <apex:inputText value="{!street}"/>
+                
+                <apex:outputText value="Military / International" />
+                <apex:selectList value="{!military}" multiselect="false" size="1">
+                    <apex:selectOptions value="{!militarys}"/>
+                </apex:selectList>
+                
+                <apex:outputText value="Previous Education" />
+                <apex:selectList value="{!preEducation}" multiselect="false" size="1">
+                    <apex:selectOptions value="{!preEducations}"/>
+                </apex:selectList>
+                
+                <apex:outputText value=" " />
+                <p class="disclamer">By submitting this form, you confirm the person whose information you are submitting has agreed to give The Los Angeles Film School and its partner schools (Full Sail University and RMCAD) their consent to contact him/her via phone, email and/or text using automated technology at the information above, including their wireless number, if provided, regarding educational services. Please note that consent is not required to receive educational services.</p>
+                
+                <apex:outputText value=" " />
+                <apex:commandButton action="{!save}" value="Save"/>
+            </apex:panelGrid>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

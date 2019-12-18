@@ -1,0 +1,546 @@
+<apex:component Controller="NewApplicationController" allowDML="true">
+    <apex:attribute name="applicationSelected" type="Application__c" description="Application"/>
+    <apex:attribute name="schoolId" type="String" description="school Id"/>
+    <apex:attribute name="goToSection" type="String" description="goToSection" assignTo="{!pageSection}"/>
+    
+    	<script>   
+   
+            //sections
+            
+            var userType = "{!IF(NOT(ISPICKVAL($User.UserType,'Guest')),'loggedInApplicant','guest')}";    /////            
+            if(userType === 'guest'){
+                self.isGuestUser(true);                                
+            }else{
+                self.isGuestUser(false);
+                //j$('#secondPageSaveAndExitButton').removeClass('disabled');
+                //j$('#secondPageSaveAndExitButton').text('Save and Finish Later');
+                //j$('#secondPageNextButton').removeClass('disabled');                
+                //j$('#secondPageNextButton').text('Next');
+            }
+            
+            self.moveToSection=function(section,event)
+            {   
+                var ctrl=false;
+                
+                //on Windows Ctrl + Shift + Click, On Mac Command + Shift + Click
+                //Click with these keys will move pages bypassing validation
+                //in this method it does not update Salesforce but move pages
+                if(event && (event.ctrlKey || event.metaKey) && event.shiftKey) {
+                    ctrl=true;
+                }
+                
+                var steps=[];
+                steps.push('studentDetailSection');                    
+                steps.push('educationDetailSection');                    
+                steps.push('essayDetailSection');
+                steps.push('uploadDetailsSection');                                     
+                
+                var current='';
+                var sourceStepIndex  = 0;
+                var destStepIndex = 0;
+
+                //var url=window.location.href;
+                //var urlR=url.split('#');
+                //var myParam = location.search.split('=')[1]
+                                       
+                current=j$(".vwspc-section:visible").attr('id');
+                
+                var position=0;
+                
+                if(section=='first' || section=='null' || !section)
+                {
+                    console.log('section is ',section);
+                    section=steps[0];
+                }
+                else if(section=='back')
+                {
+                    var positionTemp = 0;
+                    for(var i=0; i<steps.length; i++){
+                        if(current==steps[i]){
+                            positionTemp=i;
+                            break;
+                        }
+                    }                           
+                    position = positionTemp;
+                    position=position-1; 
+
+                    if(position < 0){
+                        section = current;
+                    }else{
+                        section=steps[position];                               
+                    }
+                }
+                else if(section=='next' )
+                {
+                    var positionTemp = 0;
+                    for(var i=0; i<steps.length; i++){                                
+                        if(current==steps[i]){
+                            positionTemp=i;
+                            break;
+                        }
+                    }                            
+                    positionTemp=positionTemp+1;                            
+                    position = positionTemp;   
+                    section=steps[position];     
+                }
+                
+                for(var i=0; i<steps.length; i++){
+                    if(section==steps[i]){
+                        position=i;
+                        destStepIndex = position;
+                        break;
+                    }
+                }
+
+                for(var i=0; i<steps.length; i++){
+                    if(current==steps[i]){
+                        sourceStepIndex = i;
+                        break;
+                    }
+                } 
+                
+                history.pushState("",section, location.pathname+'?goToSection='+section);
+
+                // allowing go back
+                if((sourceStepIndex < destStepIndex) || ctrl)
+                {
+                    if(self.isReadOnly() || ctrl){
+                        self.changeSections(section);
+                    }
+                    else if(current && (destStepIndex-sourceStepIndex)==1)
+                    {
+                        if(current == 'studentDetailSection')
+                        { 
+                            self.saveFirstPage();                                          
+                        }
+                        else if(current == 'educationDetailSection')
+                        {                        
+                            self.saveSecondPage();
+                            
+                        }
+                        else if(current == 'essayDetailSection')
+                        {
+                            self.saveThirdPage();
+                        }
+                   }
+                   else
+                   { 
+                       var val1=self.firstPageValidation.isValid();
+                       var val2=self.secondPageValidation.isValid();
+                       var val3=self.thirdPageValidation.isValid();
+                       
+                        
+                        
+                       if((destStepIndex==1 && val1==true) || (destStepIndex==2 && val1==true && val2==false))
+                       {
+                           // go to 2nd page
+                           self.changeSections('educationDetailSection');
+                       }
+                       else if(destStepIndex==2 && val1==true && val2==true && val3==false)
+                       {
+                           // go to 3rd page
+                           self.changeSections('essayDetailSection');
+                       }
+                       else
+                       {
+                           // go to 1st page
+                           self.changeSections('studentDetailSection');
+                       }
+                   }
+                }
+                else
+                {    
+                    if(section=='uploadDetailsSection'){
+                        j$('#sectionListPanel').hide();
+                    }
+                    else{
+                        j$('#sectionListPanel').show();
+                    }
+                    self.changeSections(section);
+                }
+                                                        
+            } // moveToSection ends
+
+            self.changeSections = function(section)
+            {
+                j$('#sectionListPanel').find('li').each(function(){
+                    j$(this).removeClass('active');
+                    j$(this).removeClass('ui-state-selected');
+                    j$(this).addClass('ui-state');
+                });
+
+                j$('#'+section+'Pill').addClass('active');
+                j$('#'+section+'Pill').addClass('ui-state-selected');
+                j$('#'+section+'Pill').removeClass('ui-state-disabled');
+                j$('.vwspc-section').not("#" + section).hide("slide", { direction: "up" }, 100);
+                j$("#" + section).fadeIn(100);
+                j$(".intl:visible").each(function()
+                {
+                    if(typeof j$(this).intlTelInput("getNumber")=='object')
+                    {
+                        j$(this).intlTelInput({initialCountry: "auto",
+                           geoIpLookup: function(callback) {
+                              $.get("https://ipinfo.io", function() {}, "jsonp").always(function(resp) {
+                                var countryCode = (resp && resp.country) ? resp.country : "";
+                                callback(countryCode);
+                              });
+                            },
+                            utilsScript: "{!URLFOR($Resource.IntlTelFomat, 'js/utils.js')}"});
+                    }
+                    
+                    if(typeof j$(this).intlTelInput("getSelectedCountryData").iso2=='undefined')
+                    {
+                        j$(this).intlTelInput("setCountry", "us");
+                    }
+                });
+                document.body.scrollTop = 0; // For Chrome, Safari and Opera 
+                document.documentElement.scrollTop = 0; // For IE and Firefox
+                
+                j$.each(j$(".vwspc-section"),function(){
+                    var thisId=j$(this).attr('id');
+                    
+                    if(thisId==section){
+                        j$('#'+thisId).show();
+                    }
+                    else{
+                        j$('#'+thisId).hide();
+                    }
+                });
+                
+                j$('#loadingModal').modal('hide');            
+            }
+                    
+            self.showProgress=function(position,sections){
+                var elem = j$(".progress"); 
+                j$(elem).css('background-color','#cccccc');
+                var bar=j$(".bar");
+                var width = 1;
+                var begin=(position==1)?1:Math.ceil(((position-1)/sections)*100);
+                var end=Math.ceil((position/sections)*100);
+                var id = setInterval(frame, 1);
+                function frame() {
+                    if (width >= end) {
+                        clearInterval(id);
+                    } else {
+                        width++; 
+                        $(bar).css('width',width+'%');
+                    }
+                    $(bar).html(width+'%');
+                }
+            }
+            self.goToThisSection = function(sectionToOpen){
+                self.bringBackToSubmission(true);              
+                if(sectionToOpen == 'studentDetailSection'){
+                    self.studentInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'parentDetailSection'){
+                    self.parentInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'emerContSection'){
+                    self.emerContInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'programInfoSection'){
+                    self.programInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'educationDetailSection'){
+                    self.educationInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'collegeDetailSection'){
+                    self.collegeInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'citizenDetailSection'){
+                    self.citizenInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'veteranDetailSection'){
+                    self.veteranInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'essayDetailSection'){
+                    self.essayInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'previousHistoryDetailSection'){
+                    self.previousHistoryIsEdit(true);
+                }
+                else if(sectionToOpen == 'previousHistoryDetailSection2'){
+                    self.previousHistoryIsEdit2(true);
+                }
+                else if(sectionToOpen == 'statisticalDetailSection'){
+                    self.statisticInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'disabilitiesDetailSection'){
+                    self.disabilityInfoIsEdit(true);
+                }
+                else if(sectionToOpen == 'referAFriendSection'){
+                    self.referAFriendInfoIsEdit(true);
+                }       
+                else if(sectionToOpen == 'acceptanceSection'){
+                    self.acceptanceInfoIsEdit(true);
+                }
+                self.moveToSection(sectionToOpen);
+                        
+            }  
+                                 
+            //student information 
+            self.addmissionsRep = ko.observable(true);
+            //self.representativeId = ko.observable();
+            self.representative = ko.observable();
+            self.repName = ko.observable("Admissions:");
+            self.repPhone = ko.observable(" 877-952-3456 | LOCAL: 323-860-0789");
+            self.repEmail = ko.observable("info@lafilm.edu");
+            self.studentFirstName = ko.observable().extend({ required: true });
+            self.studentFullName = ko.observable();
+            self.studentLastName = ko.observable().extend({ required: true });
+            self.studentPhone = ko.observable().extend({
+                required:true,
+                validation:{
+                    validator: function(){
+                        return j$('#txt_phone_number').intlTelInput("isValidNumber");
+                    }
+                }
+            });
+            
+            self.studentAltPhone = ko.observable().extend({
+                required:false,
+                validation:{
+                    validator: function(){
+                        return (j$('#txt_alt_phone_number').intlTelInput("isValidNumber") || j$('#txt_alt_phone_number').intlTelInput("getNumber")=='');
+                    }
+                }
+            });
+                                   
+            self.studentEmail = ko.observable().extend({
+                required: {
+                    params: true, message: 'Enter  Email Address' 
+                } 
+            }).extend({
+                    pattern: {
+                        params : /\S+@\S+\.\S+/,
+                        message : 'Enter Valid Email Address'
+                    }
+            });  
+            self.goBackSetPasswordModal = function(){
+                j$('#setPasswordModal').modal('hide');
+                j$('#loadingModal').modal('hide');
+                self.setPassword(false);                           
+            }                                 
+            self.studentDOB = ko.observable().extend({ validation: { validator: dateValidator, message: 'Date is not in the correct format.' } });
+            self.studentDOB_Alt = ko.observable();
+            self.under24 = ko.observable();
+            self.studentUsStates = ko.observable(false);
+            j$('#studentState').css('display','none !important');
+            self.studentCountry = ko.observable().extend({ required: true });
+            self.selectedUsState = ko.observable().extend({
+                required:{
+                    onlyIf: function(){
+                        return self.studentCountry() == 'United States';
+                    }
+                }           
+            });
+            self.selectedUsState.subscribe(function(newValue){
+                var disAllowStatus=['AR','DE','DC','MD','MN','PR'];
+                
+                if(disAllowStatus.indexOf(newValue)>=0){
+                    self.campusOptions(["On Campus"]);
+                }
+                else{
+                    self.campusOptions(["On Campus","Online"]);
+                }
+            });
+            
+            self.studentProvince = ko.observable();
+            self.selectedProvince = ko.observable().extend({
+                required:{
+                    onlyIf: function(){
+                        return self.studentCountry() != 'United States';
+                    }
+                }           
+            });
+            self.studentState = ko.observable();
+            
+            self.studentCountry.subscribe(function(newValue){
+
+                if(newValue == 'United States'){
+                    self.studentUsStates(true);
+                    self.studentProvince(false);
+                    self.selectedProvince();
+                    //self.studentState(self.selectedUsState());
+                }
+                else{                   
+                    self.studentUsStates(false);
+                    self.studentProvince(true);
+                    self.selectedUsState();
+                    //self.studentState(self.selectedProvince());
+                }           
+            });
+            self.studentHomeAddress = ko.observable().extend({ required: true });
+            self.studentFullAddress = ko.observable();
+            self.studentCity = ko.observable().extend({ required: true });          
+            self.studentZip = ko.observable().extend({ required: {onlyIf:function(){return ((self.studentCountry()=='United States' || !self.studentCountry())?true:false);}}});               
+            //program info here because creating application record
+            self.programCode = ko.observable();
+            self.programInfoComplete = ko.observable();
+            self.goBackToParentSection = function(){
+            
+                if(!self.under24()){
+                    self.studentDetails(true);
+                    j$('html,body').animate({scrollTop: j$(studentDetailSection).offset().top}, 1000);
+                }
+                else{
+                    self.parentDetails(true);
+                    j$('html,body').animate({scrollTop: j$(parentDetailSection).offset().top}, 1000);
+                }
+            }
+            
+            
+            self.reApply = function(){
+                console.log('self.applicationId------->>>>',self.applicationId());
+                self.bringBackToSubmission = ko.observable();
+                self.appFinalized = ko.observable(false);                               
+                self.applicationId = ko.observable();
+                self.studentInfoIsEdit = ko.observable(false); 
+                self.shortEssayComplete = ko.observable(false);
+                self.studentDetailsComplete = ko.observable(false);
+                self.shortEssay = ko.observable(); 
+                self.collegeInfoIsEdit = ko.observable(false);                             
+                self.goToThisSection('studentDetailSection');
+                
+                console.log('self after------->>>>',self);
+                
+            }
+            self.buttonTitle=function(value){              
+                if(self.appFinalized()){
+                    return 'SUBMITTED';
+                }
+                else if(value==true){
+                    return 'EDIT';
+                }
+                else {
+                    return 'PENDING';
+                }                
+            }
+            
+
+
+            self.showSetPasswordModal = function(){   
+                if(j$(this).text().toLowerCase()=='please wait...'){
+                    return;
+                } 
+                
+                var currentSection = j$(".vwspc-section:visible").attr('id');
+                
+                if(currentSection === 'studentDetailSection')
+                {
+                    if(self.firstPageValidation.isValid()){
+                        self.saveFirstPage(true);
+                    }
+                    else
+                    {
+                        self.validatePages(self.firstPageValidation()); 
+                    }
+                }
+                else if(currentSection === 'educationDetailSection')
+                {
+                    if(self.secondPageValidation.isValid()){
+                        self.saveSecondPage(true);
+                    }
+                    else{
+                        j$('#loadingModal').modal('hide');
+                        j$('#setPasswordModal').modal('show');
+                    }
+                }
+                else if(currentSection === 'essayDetailSection')
+                {
+                    if(self.thirdPageValidation.isValid()){
+                        self.saveThirdPage(true);
+                    }
+                    else{
+                       j$('#loadingModal').modal('hide');
+                       j$('#setPasswordModal').modal('show'); 
+                    }
+                }
+                
+            }
+
+                               
+            
+            
+            window.addEventListener("beforeunload", function (e) {
+                document.cookie = "latestViewedApplication="+self.applicationId();
+                if('{!schoolId}' != ''){
+                    document.cookie = "latestViewedApplicationSchoolId="+'{!schoolId}';
+                }
+            });
+
+        function goToNextSectionApplication(){
+            var currentSection = j$(".vwspc-section:visible").attr('id');            
+            if(currentSection === 'studentDetailSection'){
+                ApplicationVM.moveToSection('next');
+            }else if(currentSection === 'educationDetailSection'){
+                ApplicationVM.moveToSection('next');
+            }else if(currentSection === 'essayDetailSection'){              
+                ApplicationVM.goToThisSection('uploadDetailsSection');
+            }
+        }
+        function onSignInClicked(){
+            j$('#setPasswordModal').modal('hide'); 
+            j$('#applicationAlreadyExistsModal').modal('hide'); 
+            j$('#signInModal').modal('show'); 
+        }
+
+        function onForgotPassword(){
+            j$('#signInModal').modal('hide');
+            j$('#forgotPasswordModal').modal('show');
+        }
+
+        function goToNextSection(){
+            goToNextSectionApplication();
+        }
+
+  
+  
+
+    
+    //find details if student already filled out information  
+    
+    j$ = jQuery.noConflict(); 
+ 
+    $(document).ready(function() 
+    {   
+        $ = jQuery.noConflict();
+        
+        console.log(window.location.href);
+        var Application = new ApplicationVM();
+        
+        ko.applyBindings(Application);
+        
+        var short_essay=CKEDITOR.replace('shortEssay');
+        short_essay.on( 'change', function( evt ) {
+            Application.shortEssay(evt.editor.getData());
+        });
+        
+        j$(".calendar").datepicker({
+            dateFormat:"MM dd, yy",
+            onSelect: function(dateText) {
+                Application.prefStartPeriodOptions.push(dateText);
+                Application.prefStartPeriod(dateText);
+                //j$(".calendar").val(dateText);
+            }
+        });
+        
+
+        Application.pageName('application');//shows logout link
+        
+        // work on browser back button
+        window.onpopstate = function(event)
+        {
+            var url_string = window.location;
+            var url = new URL(url_string);
+            var section = url.searchParams.get("goToSection");
+            var current=j$(".vwspc-section:visible").attr('id');
+            
+            if(current!=section){
+                Application.moveToSection(section);
+            }
+        };
+    });              
+    </script>   
+</apex:component>

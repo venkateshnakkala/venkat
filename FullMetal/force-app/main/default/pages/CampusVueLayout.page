@@ -1,0 +1,72 @@
+<apex:page standardController="contact" extensions="CampusVueLayout" action="{!getData}" showHeader="false" sidebar="false" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false">
+<style>
+    .detailList {
+        width: 100%;
+    }
+    .detailList td {
+        border-color: #ececec;
+        border-bottom: 1px solid #e3deb8;
+        vertical-align: top;
+        padding-left: 2px;
+        padding-right: 15px;
+        padding-top: 3px;
+        padding-bottom: 3px;
+    }
+    .labelCol{
+        color: #4a4a56;
+        width: 18%;
+        text-align: right;
+        font-size: 12px;
+        font-weight: bold;
+        font-family: Arial,Helvetica,sans-serif;
+    }
+    .dataCol {
+        text-align: left;
+        color: #000;
+        font-family: Arial,Helvetica,sans-serif;
+        font-size: 12px;
+        width:32%;
+    }
+    .attendance {
+        border-collapse:collapse;
+    }
+    .attendance td, .attendance th {
+        border:#cccccc dotted, 1px;
+    }
+</style>
+<table class="detailList" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="labelCol">School Status</td>
+        <td class="dataCol">{!DataSet.SchoolStatus}</td>
+        <td class="labelCol">Attendance</td>
+        <td class="dataCol" rowspan="7">
+            <table class="attendance" style="{!if(AttSize>0,'','display:none')}">
+                <tr><td><b>Week</b></td><td><b>Attend</b></td><td><b>Absent</b></td><td><b>Total Hours</b></td></tr>
+            <apex:repeat value="{!Attendance}" var="val">
+                <tr>
+                    <td><apex:outputText value="{!val}"></apex:outputText></td>
+                    <td><apex:outputText value="{!if(val=NULL,'',Attendance[val].attend)}"></apex:outputText></td>
+                    <td><apex:outputText value="{!if(val=NULL,'',Attendance[val].absent)}"></apex:outputText></td>
+                    <td><apex:outputText value="{!if(val=NULL,'',Attendance[val].total)}"></apex:outputText></td>
+                 </tr>
+            </apex:repeat>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td class="labelCol">Program</td>
+        <td class="dataCol" colspan="2">{!DataSet.Program}</td>
+    </tr>
+    <tr>
+        <td class="labelCol">Cumulative GPA</td>
+        <td class="dataCol" colspan="2">{!round(DataSet.CumGPA,2)}</td>
+    </tr>
+    <tr>
+        <td class="labelCol">Hold</td>
+        <td class="dataCol" colspan="2">{!Hold}</td>
+    </tr>
+    <tr><td colspan="3">&nbsp;</td></tr>
+    <tr><td colspan="3">&nbsp;</td></tr>
+    <tr><td colspan="3">&nbsp;</td></tr>
+</table>
+</apex:page>

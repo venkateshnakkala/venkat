@@ -1,0 +1,1 @@
+trigger Trig_CampaignMember on CampaignMember (after insert, after update) { if (!Test.isRunningTest()){et4ae5.triggerUtility.automate('CampaignMember'); }}

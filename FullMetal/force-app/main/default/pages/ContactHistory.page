@@ -1,0 +1,175 @@
+<apex:page standardController="Application__c" extensions="contactHistoryController" showHeader="false" sidebar="false">
+	<apex:slds />  
+    <html>
+        <head>
+            <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+            <script>
+                var currentOffset=0;
+            	var contactId='{!contactId}';
+            	$(document).ready(function(){
+                    loadHistory();
+                });
+            $(window).scroll(function() {
+              if($(window).scrollTop() == $(document).height() - $(window).height()) {
+                        // ajax call get data from server and append to the div
+                 console.log('$(window).scrollTop()'+$(window).scrollTop());
+                loadHistory();
+             }
+            });
+            
+            	function loadHistory(){
+                    var offset=currentOffset.toString();
+                	var data = {offset:offset,contactId:contactId};
+                    var dataJson = JSON.stringify(data);
+                    $('#ChatterSpinner').show();
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.contactHistoryController.loadHistory}',
+                        dataJson,
+                        loadHistorytResult
+                        ,{buffer:false}
+                    );
+                }
+            	function loadHistorytResult(res,event){
+                    $('#ChatterSpinner').hide();
+                	var jsonObject = JSON.parse(unescapedHtml(res));
+                	if(event.status){
+                        if(jsonObject.hasError == false){
+                            if( jsonObject.chat.length == 0){
+                            return false;
+                            }
+                            currentOffset += 15;
+                            var finalListVal = jsonObject.chat;
+                            var formattedDate =jsonObject.date;
+                            var CallDisp;
+                            var Activityesult;
+                            var QuickNote;	
+                            var subj;
+                            var dueDate;
+                            $.each(finalListVal, function( key, finalInVal ) {
+                                $.each(formattedDate, function( key, formattedDateVal ) {
+                                    if(finalInVal.Id == key){
+                                        if(finalInVal.CallDisposition == null || finalInVal.CallDisposition=='undefined')
+                                            CallDisp ='';
+                                        else 
+                                            CallDisp = finalInVal.CallDisposition;
+                                          if(finalInVal.Activity_Results__c == null || finalInVal.Activity_Results__c=='undefined')
+                                            Activityesult ='';
+                                        else 
+                                            Activityesult = finalInVal.Activity_Results__c;
+                                        
+                                          if(finalInVal.Quick_Note__c == null || finalInVal.Quick_Note__c=='undefined')
+                                            QuickNote ='';
+                                        else 
+                                            QuickNote = finalInVal.Quick_Note__c;
+                                        if(finalInVal.Subject == null || finalInVal.Subject=='undefined')
+                                            subj ='';
+                                        else 
+                                            subj = finalInVal.Subject;
+                                        if(finalInVal.ActivityDate == null || finalInVal.ActivityDate=='undefined')
+                                            dueDate ='';
+                                        else 
+                                            dueDate = finalInVal.ActivityDate;
+
+                                        
+                                        
+                                        var dateVal = finalInVal.CreatedDate.split('T');
+                                        var dataHtml='<tr class="slds-hint-parent">';
+                                        dataHtml+='<th data-label="Sender" scope="row">';
+                                        dataHtml+='<div class="slds-truncate" title="" >'+subj+'</div>';
+                                        dataHtml+='</th>';
+                                        
+                                        
+                                        dataHtml+='<td data-label="Message">';
+                                        dataHtml+='<div class="slds-truncate" title="" >'+Activityesult+'</div>';
+                                        dataHtml+='</td>';
+                                        
+                                        dataHtml+='<td data-label="Message">';
+                                        dataHtml+='<div class="slds-truncate" title="" >'+QuickNote+'</div>';
+                                        dataHtml+='</td>';
+                                        
+                                         dataHtml+='<td data-label="Message">';
+                                        dataHtml+='<div class="slds-truncate" title="" >'+CallDisp+'</div>';
+                                        dataHtml+='</td>';
+                                        
+                                        dataHtml+='<td data-label="Message">';
+                                        dataHtml+='<div class="slds-truncate" title="" >'+finalInVal.attributes.type+'</div>';
+                                        dataHtml+='</td>';
+                                        
+                                        
+                                        dataHtml+='<td data-label="Date Time">';
+                                        dataHtml+='<div class="slds-truncate" title="" >'+dueDate+'</div>';
+                                        dataHtml+='</td>';
+                                        dataHtml+='<td data-label="Message">';
+                                        dataHtml+='<div class="slds-truncate" title="" >'+finalInVal.Who.Name+'</div>';
+                                        dataHtml+='</td>';
+                                        dataHtml+='<td data-label="Message">';
+                                        dataHtml+='<div class="slds-truncate" title="" >'+finalInVal.Status+'</div>';
+                                        dataHtml+='</td>';
+                                        dataHtml+='</tr>';
+                                        $('#chatTableId').append(dataHtml);
+                                    }
+                            	});
+                            });    
+                        }
+                	}
+                }
+            function unescapedHtml(){
+                return $("<span />", { html: arguments[0] }).text();
+            }
+            </script>
+        </head>
+        <body>
+            
+            
+            <div>
+                <div class="slds-spinner_container" id="ChatterSpinner" style="display: none;z-index:10;">
+                    <div aria-hidden="true" class="slds-spinner slds-spinner--small" role="alert" style="left: 47% !important;">
+                        <div class="slds-spinner__dot-a"></div>
+                        <div class="slds-spinner__dot-b"></div>
+                    </div>
+                </div>
+                <div id="sr-discussion--block" style="background:white;position:relative;" class="">
+                    <section role="log" class="slds-chat">
+                         <ul class="slds-chat-list slds-border_bottom slds-scrollable_y slds-p-horizontal_large slds-p-bottom_large" id="srd-grp-discussion">
+                        
+                        </ul>
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate"  title="" >Subject</div>
+                                    </th>
+                                     <th class="" scope="col">
+                                        <div class="slds-truncate"  title="" >Activity Results</div>
+                                    </th>
+                                     <th class="" scope="col">
+                                        <div class="slds-truncate"  title="" >Quick Note</div>
+                                    </th>
+                                      <th class="" scope="col">
+                                        <div class="slds-truncate"  title="" >Call Disposition</div>
+                                    </th>
+	                                    
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate"  title="User">Type</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate"  title="Action">Due Date</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate"  title="Action">Assigned To</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate"  title="Action">Status</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id ="chatTableId">
+                            
+                            </tbody>
+                        </table>
+                    </section>
+                </div>
+            </div>    
+        </body>
+    </html>
+</apex:page>

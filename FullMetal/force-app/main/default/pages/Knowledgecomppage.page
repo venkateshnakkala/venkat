@@ -1,0 +1,5 @@
+<apex:page sidebar="FALSE" showHeader="FALSE" standardStylesheets="FALSE" >
+    <apex:form >
+    <c:NewApplicationKnowledgeBase />
+        </apex:form>
+</apex:page>

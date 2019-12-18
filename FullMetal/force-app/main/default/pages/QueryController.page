@@ -1,0 +1,209 @@
+<apex:page Controller="QueryController" id="page1" action="{!ShowallQueries}">
+  <!-- Begin Default Content REMOVE THIS -->
+  <h1></h1>
+
+<script>
+
+function ShowFields(){
+
+   document.getElementById("page1:pageblock1:form123:txtQueryName").value="";
+   document.getElementById("page1:pageblock1:form123:txtValue1").value="";
+   document.getElementById("page1:pageblock1:form123:txtValue2").value="";
+   document.getElementById("page1:pageblock1:form123:txtValue3").value="";
+   document.getElementById("page1:pageblock1:form123:txtValue4").value="";
+   document.getElementById("page1:pageblock1:form123:txtValue5").value="";
+   
+   document.getElementById("page1:pageblock1:form123:f1").value="none";
+   document.getElementById("page1:pageblock1:form123:f2").value="none";
+   document.getElementById("page1:pageblock1:form123:f3").value="none";
+   document.getElementById("page1:pageblock1:form123:f4").value="none";
+   document.getElementById("page1:pageblock1:form123:f5").value="none";
+
+   document.getElementById("page1:pageblock1:form123:f1o").value="none";   
+   document.getElementById("page1:pageblock1:form123:f2o").value="none";   
+   document.getElementById("page1:pageblock1:form123:f3o").value="none";   
+   document.getElementById("page1:pageblock1:form123:f4o").value="none";   
+   document.getElementById("page1:pageblock1:form123:f5o").value="none";   
+   
+  document.getElementById("page1:pageblock1:form123:s1").value="none";   
+  document.getElementById("page1:pageblock1:form123:s2").value="none";   
+  document.getElementById("page1:pageblock1:form123:s3").value="none";   
+  
+  document.getElementById("page1:pageblock1:form123:s1d").value="none";   
+  document.getElementById("page1:pageblock1:form123:s2d").value="none";   
+  document.getElementById("page1:pageblock1:form123:s3d").value="none";   
+ 
+   document.getElementById("page1:pageblock1").style.display='block';
+
+}
+
+function HideFields(){
+   document.getElementById("page1:pageblock1").style.display='none';
+}
+
+
+</script>
+  <!-- End Default Content REMOVE THIS -->
+  
+   <apex:pageblock id="pageblock1" title="{!IF((EditMode==false),'Add new Query','Edit Query')}">
+   
+    <apex:form id="form123">
+    <table>
+    <tr>
+    <td>
+        Query Name
+    </td>
+    <td>
+        <apex:inputtext id="txtQueryName" style="width:200px;height:20px" value="{!QueryName}"/>
+    </td>
+    </tr>
+    
+    </table>
+
+<br />
+   
+
+   <table style="width:500px">
+   <tr style="font-weight:bold">
+   <td>Filter Field</td>   <td>Operator</td>   <td>Value</td>
+   </tr>
+   <tr>
+   <td><apex:selectList id="f1" size="1" style="width:200px; height:25px" value="{!Field1}"><apex:selectOptions value="{!Fields}"></apex:selectOptions></apex:selectList></td>   
+   <td><apex:selectList id="f1o" size="1" style="width:200px; height:25px" value="{!Operator1}"><apex:selectOptions value="{!Operators}"></apex:selectOptions></apex:selectList> </td>   
+   <td><apex:inputtext id="txtValue1" style="width:200px;height:20px" value="{!Value1}"/></td>   
+   </tr>
+   
+      <tr>
+   <td><apex:selectList id="f2" size="1" style="width:200px; height:25px" value="{!Field2}"><apex:selectOptions value="{!Fields}"></apex:selectOptions> </apex:selectList></td>   
+   <td><apex:selectList id="f2o" size="1" style="width:200px; height:25px" value="{!Operator2}"><apex:selectOptions value="{!Operators}"></apex:selectOptions></apex:selectList></td>   
+   <td><apex:inputtext id="txtValue2" style="width:200px;height:20px" value="{!Value2}"/></td>   
+   </tr>
+   
+      <tr>
+   <td><apex:selectList id="f3" size="1" style="width:200px; height:25px" value="{!Field3}"><apex:selectOptions value="{!Fields}"></apex:selectOptions></apex:selectList></td>   
+   <td><apex:selectList id="f3o" size="1" style="width:200px; height:25px" value="{!Operator3}"><apex:selectOptions value="{!Operators}"></apex:selectOptions></apex:selectList></td>   
+   <td><apex:inputtext id="txtValue3" style="width:200px;height:20px" value="{!Value3}"/></td>   
+   </tr>
+   
+      <tr>
+   <td><apex:selectList id="f4" size="1" style="width:200px; height:25px" value="{!Field4}"><apex:selectOptions value="{!Fields}"></apex:selectOptions></apex:selectList></td>   
+   <td><apex:selectList id="f4o" size="1" style="width:200px; height:25px" value="{!Operator4}"><apex:selectOptions value="{!Operators}"></apex:selectOptions></apex:selectList></td>   
+   <td><apex:inputtext id="txtValue4" style="width:200px;height:20px" value="{!Value4}"/></td>   
+   </tr>
+   
+      <tr>
+   <td><apex:selectList id="f5" size="1" style="width:200px; height:25px" value="{!Field5}"><apex:selectOptions value="{!Fields}"></apex:selectOptions></apex:selectList></td>   
+   <td><apex:selectList id="f5o" size="1" style="width:200px; height:25px" value="{!Operator5}"><apex:selectOptions value="{!Operators}"></apex:selectOptions></apex:selectList></td>   
+   <td><apex:inputtext id="txtValue5" style="width:200px;height:20px" value="{!Value5}"/></td>   
+   </tr>
+   </table>
+  
+  <br />
+
+     <table>
+     <tr style="font-weight:bold">
+     <td>
+     Sort Field
+     </td>
+     <td>
+     Direction
+     </td>
+     </tr>
+     <tr>
+       <td><apex:selectList id="s1" size="1" style="width:200px; height:25px" value="{!SortBy1}"><apex:selectOptions value="{!Fields}"></apex:selectOptions></apex:selectList></td>   
+       <td><apex:selectList id="s1d" size="1" style="width:200px; height:25px" value="{!Direction1}"><apex:selectOptions value="{!Directions}"></apex:selectOptions></apex:selectList></td>  
+     </tr>
+     
+     <tr>
+       <td><apex:selectList id="s2" size="1" style="width:200px; height:25px" value="{!SortBy2}"><apex:selectOptions value="{!Fields}"></apex:selectOptions></apex:selectList></td>   
+       <td><apex:selectList id="s2d" size="1" style="width:200px; height:25px" value="{!Direction2}"><apex:selectOptions value="{!Directions}"></apex:selectOptions></apex:selectList></td>  
+     </tr>
+     
+     <tr>
+       <td><apex:selectList id="s3" size="1" style="width:200px; height:25px" value="{!SortBy3}"><apex:selectOptions value="{!Fields}"></apex:selectOptions></apex:selectList></td>   
+       <td><apex:selectList id="s3d" size="1" style="width:200px; height:25px" value="{!Direction3}"><apex:selectOptions value="{!Directions}"></apex:selectOptions></apex:selectList></td>  
+     </tr>
+     <tr>
+     <td colspan="2">
+     <apex:selectRadio value="{! SelectedRadio}">
+            <apex:selectOptions value="{!items}"/>
+     </apex:selectRadio>
+     </td>
+     </tr>
+     </table>
+
+    <table align="center">
+    <tr>
+    <td>
+    <apex:commandButton value="Save Query" id="btnSave" style="height:25px" action="{!SaveQuery}"/>
+    </td>
+    <td>
+     <input type="button" value="Cancel" onclick="HideFields();" title="Cancel" class="btn" style="height:25px"/>
+    </td>
+    </tr>
+    </table>
+    
+     </apex:form>
+     </apex:pageblock>
+     
+     
+     <apex:pageBlock title="Saved Queries" id="pageblock123">
+     <apex:form >
+     <apex:commandbutton value="Add new Query" title="Add new Query" action="{!AddNewQuery}"/>
+
+      <apex:pageblockTable value="{! AllQueries}" var="que" id="pageblocktable123">
+
+      <apex:column headerValue="Action" width="150">
+      <apex:commandLink title="Edit Query" value="Edit Query" action="{!EditQuery}">
+      <apex:param id="param2" name="param2" value="{!que.id}" assignTo="{!QueryID}" />
+      </apex:commandLink>
+      <apex:commandLink title="Delete Query" value="Delete Query" style="margin-left:10px" action="{!DeleteQuery}">
+      <apex:param id="param1" name="param1" value="{!que.id}" assignTo="{!QueryID}" />
+      </apex:commandLink>
+        </apex:column>
+        
+      <apex:column headerValue="Query Name" width="200px">
+        <a href="" style="cursor:pointer; color:#00688b; font-size:15px" target="_blank">{! que.name}</a>
+        </apex:column>
+        
+        <apex:column headerValue="Priority">
+        <a href="" style="cursor:pointer; color:#00688b; font-size:15px">{! que.sequence__c}</a>
+        </apex:column>
+        
+        <apex:column headerValue="Priority">
+        
+        <apex:commandLink title="Up" style="margin-left:10px" action="{!Up}">
+        <apex:image url="{!$Resource.UpImage}" width="20" height="20" />﻿ 
+        <apex:param id="param3" name="param3" value="{!que.id}" assignTo="{!QueryID}" />
+        </apex:commandLink>
+        
+        <apex:commandLink title="Down" style="margin-left:10px" action="{!Down}">
+                <apex:image url="{!$Resource.DownImage}" width="20" height="20" />﻿ 
+        <apex:param id="param4" name="param4" value="{!que.id}" assignTo="{!QueryID}" />
+        </apex:commandLink>
+        
+        </apex:column>
+        
+      </apex:pageblockTable>
+
+      </apex:form>
+     </apex:pageBlock>
+     
+     
+     <script> 
+    
+    if({!EditMode} == true){
+    
+         document.getElementById("page1:pageblock1").style.display='block';     
+    }
+    else if({!AddMode} == true){
+    
+         document.getElementById("page1:pageblock1").style.display='block';     
+    }
+    else{
+     document.getElementById("page1:pageblock1").style.display='none';     
+     }
+     
+     </script>
+     
+</apex:page>

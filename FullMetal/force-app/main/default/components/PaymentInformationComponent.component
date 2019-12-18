@@ -1,0 +1,434 @@
+<apex:component controller="PaymentInformationController" >
+    <apex:attribute name="nadc" type="NewApplicationDetailComponentController" description="common data" required="true"/> 
+    
+ <style >
+     .text-heading{
+     font-size: 1.4rem;
+     margin-top: 10px;   
+     width: 100%;
+     margin-bottom: 20px;
+     }
+     .paynow {
+     background-color: #000;
+     border: 0px solid #000;
+     color: #FFF;
+     padding: 10px 30px 9px 30px;
+     border-radius: 5px;
+     margin-right: 60px;
+     }
+     .paylater{
+     background-color: #dbd7d7;
+     border: 0px solid #dbd7d7;
+     color: #000;
+     padding: 10px 20px 9px 20px;
+     border-radius: 5px;
+     margin-left: 25px;
+     }
+     .pending_actions {
+     background-color: #000;
+     border: 0px solid #000;
+     color: #FFF;
+     padding: 10px 20px 9px 20px;
+     border-radius: 5px;
+     margin-right: 40px;
+     }
+     
+     .paylater_chk {
+     margin-top: 33px !important;
+     position: absolute;
+     }
+     /*
+     .custom-file-label{
+     border: 1px solid #000 !important;
+     height: 42px !important;
+     border-radius: 5px;
+     padding: 12px !important;
+     
+     }
+     .custom-file-label::after{
+     background-color: #000 !important;
+     content: "Choose" !important;
+     color: #FFF !important;
+     height: 40px !important;
+     padding: 12px !important;
+     }
+     */
+     .btn_upload {
+     background-color: #000;
+     border: 0px solid #000;
+     color: #FFF;
+     padding: 0px 25px 0px 25px;
+     line-height: 42px;
+     border-radius: 5px;
+     cursor:pointer;
+     }
+     
+     .fa-question-circle{
+     font-size: 15px !important;
+     }
+     
+     .display_flex{
+     display: flex;
+     }
+     
+     .question_bg{
+     color: #f00 !important;
+     }
+     
+     .file_upload{
+     display: none;
+     }
+     
+     /*
+     .file_upload {
+     position: absolute;
+     z-index: 2;
+     width: 65%;
+     height: 45px;
+     margin: 0;
+     opacity: 0;
+     cursor: pointer;
+     }
+     */
+     
+     .tooltip {
+     top: -35px !important;
+     pointer-events: none;
+     }
+     
+     
+     
+     #pendingmsg .alert-dismissible .close {
+     padding: 8px 10px !important;
+     color: #FFF !important;
+     font-size: 35px !important;
+     font-weight: normal !important;
+     opacity: 1 !important;
+     }   
+     #pendingmsg .fa-check-circle {
+     font-size: 25px;
+     padding-right: 10px;
+     }
+     #pendingmsg .alert-fileupload {
+     color: #FFF;
+     background-color: #fb4556;
+     border-color: #fb4556;
+     border-radius: 10px;
+     display: none;
+     }
+     .paydone{
+     color: #088a08;
+     font-weight: bold;
+     }
+     #pendingmsg .alert-danger {
+     color: #FFF;
+     background-color: #fb4556;
+     border-color: #fb4556;
+     border-radius: 10px;
+     display: none;
+     }
+     #pendingmsg .fa-times-circle {
+     font-size: 25px;
+     padding-right: 10px;
+     }
+     #pendingmsg .alert-suces {
+     color: #FFF;
+     background-color: #05844B;
+     border-color: #05844B;
+     border-radius: 10px;
+     display: none;
+     }
+     .message_secion .pending{
+     color: #721c24;
+     }
+     
+     .message_secion .inprogress{
+     color: #856404;
+     }
+     
+     .message_secion .success{
+     color: #088a08;
+     }
+
+</style>
+<!-- START SPINNER -->
+                <apex:actionStatus id="Process">
+                    <apex:facet name="start">
+                        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.25; z-index: 1000; background-color: #000;">
+                            &nbsp;
+                        </div>
+                        <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 30% 50%">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/ed/Cursor_Windows_Vista.gif" />
+                        </div>
+                    </apex:facet>
+                </apex:actionStatus>
+    
+ 
+ <!-- END SPINNER -->
+ 
+ <div id="pendingmsg">
+                    <div class="alert alert-danger alert-dismissible mt-2">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <i class="fa fa-check-circle error_icon" aria-hidden="true"></i>  <span id="message"></span>
+                    </div>
+                    <div class="alert alert-suces alert-dismissible mt-2">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <i class="fa fa-check-circle error_icon" aria-hidden="true"></i>  <span id="messagespay"></span>
+                    </div>
+                    <div class="alert alert-fileupload alert-dismissible mt-2">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <i class="fa fa-check-circle error_icon" aria-hidden="true"></i>  <span id="messagesupload"></span>
+                    </div>
+
+                </div>
+ 
+<div class="container">
+    <div class="register-form">
+        
+
+        <div class="form-content">
+            <div class="row">
+                <div class="col-md-12">
+                <div class="text-heading">
+                    <center>Thank you for completing The Los Angeles Film School's application for admissions.</center>
+                </div>
+
+                <div class="text-documents">
+                    Below is a list of required documents that need to be uploaded to process your application. Please hover over the question mark next to each document title to get more specific information regarding each document. An admissions representative will also be in touch with you shortly. 
+                </div>
+                </div>
+
+                <div class="col-md-12 mt-4">
+                    <div class="note account_title">
+                        <p>All Students:</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="required mt-3">Application Fee $75.00 </label> : <label Class="paydone"><b> PAID</b></label>                     
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                               <button type="button" class="btn_upload pay_check_btn mt-3 paynownew" rendered="{!(nadc.recordApplication.Application_Fee_Paid__c==true)}" onclick="tempDisableBeforeUnload = true;return Navigatetopayment();">PAY NOW</button> 
+                              </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                     
+                                     <apex:inputCheckbox value="{!nadc.recordApplication.Pay_Later__c}" id="paylater_chk" styleclass="paylater_chk paylaterChk"/> 
+                                     <button type="button" class="paylater mt-3 payLat">PAY LATER</button> 
+                            </div>
+                        </div>
+
+                        <div class="col-md-7">
+                            <div class="form-group">
+                                <button type="button" class="btn_upload mt-3 paction" onclick="tempDisableBeforeUnload = true;return pendingfunction();" >PENDING ACTIONS <i class='fa  fa-angle-right ' style="color: #FFF; background: #000; margin-left: 10px; font-size: 25px; line-height: 10px;"></i></button>   
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+
+
+
+
+                <div class="col-md-12 mt-3">
+                    <div class="note account_title doclable">
+                        <p>Documents Upload Requested:</p>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+
+                        <label class="required hslable" >Proof of HS Diploma <sup><a href="javascript:void(0)" class="question_bg" data-toggle="tooltip" data-placement="top" title="Please provide a clear legible copy of your high school diploma or GED certificate.If you do not have access to your diploma, please contact your high school to request a transcript.To request a GED transcript, visit www.GED.com.  Please contact your admissions representative for further information." ><i  class="fa fa-question-circle "></i></a></sup></label>        
+                        
+                        
+                    </div>                  
+                </div>
+
+
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="form-group">
+
+                              <input type="file" class="file_upload" id="file_upload" name="file_upload"/>
+                             
+                              <button type="button" class="btn_upload choose_click hsupload "  id="submit_upload_doc" data-loading-text="<i class='fa fa-spinner fa-spin'></i> Processing"><i class='fa fa-upload ' style="color: #FFF; background: #000;"></i> CHOOSE &amp; UPLOAD</button><br/>
+                              <label class="upload-file-label" for="customFile"></label>
+
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                </div>
+                
+                <div class="col-md-12 message_secion">
+                    
+                <apex:outputPanel id="refDisp" >  
+                <apex:outputPanel id="docPnding" rendered="{!nadc.recordApplication.HS_Diploma_Received__c=='Received'}" layout="none">
+                    
+                        <div class="form-group pending text-center">
+                            Document already uploaded. Pending review.
+                        </div>
+                    
+                </apex:outputPanel>
+                 <apex:outputPanel id="docAccept" rendered="{!nadc.recordApplication.HS_Diploma_Received__c=='Accepted'}" layout="none">
+                     
+                         <div class="form-group success text-center">
+                             Document already uploaded and accepted.
+                         </div>
+                     
+                </apex:outputPanel>
+               <apex:outputPanel id="docReject" rendered="{!nadc.recordApplication.HS_Diploma_Received__c=='Rejected'}" layout="none">
+                
+                    <div class="form-group pending text-center">
+                        Document already uploaded and rejected.
+                    </div>
+                
+               </apex:outputPanel>
+                </apex:outputPanel>
+              </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <!-- Displaying Document Status -->
+   
+    
+  
+     <!-- START MODEL -->
+    <div class="modal" id="payment_popup">
+        <div class="modal-dialog modal-lg" style="height: 300px;">
+            <div class="modal-content">
+                
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Payment</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    
+                    <div class="row">
+                        <apex:iframe src="" scrolling="true" height="450px" id="show_payment"/>
+                    </div>                   
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--END MODEL -->  
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script>
+     
+var j$ = jQuery.noConflict();
+j$(document).ready(function(){
+    
+j$('[data-toggle="tooltip"]').tooltip();
+    
+        //$('.file_upload').hide();
+    j$('.choose_click').on("click", function() {
+        j$('.file_upload').trigger('click');     
+    });
+
+    // Add the following code if you want the name of the file appear on select
+    j$(".file_upload").on("change", function(e) {
+       
+      var fileName = j$(this).val().split("\\").pop();
+      j$(this).siblings(".upload-file-label").addClass("selected").html(fileName);
+      
+       uploadFile();
+        
+    });
+
+   if(j$('.pay_check_btn').attr('rendered') === true || j$('.pay_check_btn').attr('rendered') == "true")
+        j$('.pay_check_btn').hide();
+        
+});
+function Navigatetopayment() {
+       var appid='{!nadc.recordApplication.id}';
+       j$(window).unbind('beforeunload');
+       Visualforce.remoting.Manager.invokeAction(
+           //Invoking controller action getPaymentLink
+           '{!$RemoteAction.PaymentInformationController.getPaymentLink}',
+           appid,
+           function(result, event){
+              //We can access the records through the parameter result
+              //event.status determines if there is error or not
+              if(event.status){
+                  console.log('this is the result : ', result);
+                  //var res = encodeURI(result);
+                   //window.open(result, "_parent");          
+                   
+                  // alert('result : ' + result);
+                   j$('#show_payment').attr('src', result);     
+                   j$('#payment_popup').modal('show');
+                   //alert('Ok');         
+              }              
+           },
+           {escape: false}
+       );
+   }
+function pendingfunction() {
+        var appid='{!nadc.recordApplication.id}';
+    var apppayconfirm='{!nadc.recordApplication.Application_Fee_Paid__c}';
+   
+    if(apppayconfirm !='false'){
+        window.location.href = '/apex/NewSignAndUpload?appId='+appid;
+    }else{
+        
+            if(j$('.paylater_chk').prop('checked')){
+                
+                 Visualforce.remoting.Manager.invokeAction(
+           //Invoking controller action getPaymentLink
+           '{!$RemoteAction.PaymentInformationController.payinfoupdate}',
+           appid,
+           function(result, event){
+              //We can access the records through the parameter result
+              //event.status determines if there is error or not
+              if(event.status){
+                  console.log('this is the result : ', result);
+                   if(result=='True'){
+                    window.location.href = '/apex/NewSignAndUpload?appId='+appid; 
+                    }                  
+              }else if (event.type === 'exception') {
+                      alert ('Pay later not updated');
+              }
+              
+           },
+           {escape: false}
+       );
+            
+            
+                
+            }else{
+                document.location.href = '#focusHeader';
+                document.getElementById("message").innerHTML ="Payment not yet done, Please check Pay Later checkbox to continue";
+                j$('#pendingmsg .alert-suces').hide();
+                 j$('#pendingmsg').show();
+                j$('#pendingmsg .alert-danger').show();
+                setTimeout( function() {
+                               
+                                j$('#pendingmsg').hide();
+                               
+                                },4000);
+                
+            }
+        
+    }
+}
+  function refDisplayHSDStatus() {
+      DisplayStatusOfHSDimpomo();
+  }
+</script>
+
+</apex:component>
