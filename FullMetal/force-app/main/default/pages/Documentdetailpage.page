@@ -1,3 +1,0 @@
-<apex:page action="{!getlandingimage}" controller="SetDocumentController">
-    
-</apex:page>

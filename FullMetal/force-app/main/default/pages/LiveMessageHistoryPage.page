@@ -1,3 +1,0 @@
-<apex:page standardController="Contact">
-  <c:LiveMessageHistory record="Conversation_Header_c" />
-</apex:page>

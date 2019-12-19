@@ -1,1 +1,0 @@
-trigger Trig_Task on Task (after insert, after update) { if (!Test.isRunningTest()){et4ae5.triggerUtility.automate('Task'); }}

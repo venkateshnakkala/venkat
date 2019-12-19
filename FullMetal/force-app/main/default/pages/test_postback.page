@@ -1,6 +1,0 @@
-<apex:page controller="test_postback" action="{!action}">
-  <!-- Begin Default Content REMOVE THIS -->
-  <p>Id:{!page_id}</p>
-  <p>Data:{!page_data}</p>
-  <!-- End Default Content REMOVE THIS -->
-</apex:page>

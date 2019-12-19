@@ -1,1 +1,0 @@
-trigger Trig_Event on Event (after insert, after update) { if (!Test.isRunningTest()){et4ae5.triggerUtility.automate('Event'); }}
